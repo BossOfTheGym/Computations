@@ -7,10 +7,30 @@
     <Filter Include="glfw-cxx">
       <UniqueIdentifier>{824e33c1-f23f-4c8c-8590-dfd33eefdc67}</UniqueIdentifier>
     </Filter>
+    <Filter Include="glfw-cxx\headers">
+      <UniqueIdentifier>{74dc6072-5f0b-40b4-a00e-ee2f77bb832d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="glfw-cxx\sources">
+      <UniqueIdentifier>{3953e3ac-0f96-460c-9c9d-401a19d2ea3c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>main</Filter>
     </ClCompile>
+    <ClCompile Include="glfw-cxx\sources\glfw3.cpp">
+      <Filter>glfw-cxx\sources</Filter>
+    </ClCompile>
+    <ClCompile Include="glfw-cxx\sources\opengl-loader.cpp">
+      <Filter>glfw-cxx\sources</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="glfw-cxx\glfw3.h">
+      <Filter>glfw-cxx\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="glfw-cxx\opengl-loader.h">
+      <Filter>glfw-cxx\headers</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

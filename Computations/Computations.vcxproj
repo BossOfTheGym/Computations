@@ -141,7 +141,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="glfw-cxx\sources\glfw3.cpp" />
+    <ClCompile Include="glfw-cxx\sources\opengl-loader.cpp" />
     <ClCompile Include="main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="glfw-cxx\glfw3.h" />
+    <ClInclude Include="glfw-cxx\opengl-loader.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
