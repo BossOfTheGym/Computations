@@ -165,6 +165,15 @@ res::VertexArray createVertexArray()
 }
 
 
+// buffer
+res::Buffer createBuffer()
+{
+	// TODO
+
+	return res::Buffer{};
+}
+
+
 int main()
 {
 	// lib init
