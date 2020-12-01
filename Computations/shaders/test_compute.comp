@@ -1,0 +1,23 @@
+#version 460 core
+
+#define WORKGROUP_X 32
+#define WORKGROUP_Y 32
+#define WORKGROUP_Z 1
+
+layout(local_size_x = WORKGROUP_X, local_size_y = WORKGROUP_Y, local_size_z = WORKGROUP_Z) in;
+
+layout(rgba32f) uniform writeonly image2D test;
+
+void main()
+{
+	ivec2 xy = ivec2(gl_GlobalInvocationID.xy);	
+
+	float att = 1.0 / (gl_LocalInvocationIndex + 1);
+	vec3 color = vec3(1.0, 0.5, 0.2) * att;
+
+	ivec2 size = imageSize(test);
+	if (xy.x < size.x && xy.y < size.y)
+	{
+		imageStore(test, xy, vec4(color, 1.0));
+	}
+}

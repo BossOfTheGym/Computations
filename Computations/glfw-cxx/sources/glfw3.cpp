@@ -192,9 +192,9 @@ namespace glfw
 		if (m_window && m_window != glfwGetCurrentContext())
 		{
 			// TODO : error checks
-			load_opengl_functions();
-
 			glfwMakeContextCurrent(m_window);
+
+			load_opengl_functions();
 		}
 	}
 

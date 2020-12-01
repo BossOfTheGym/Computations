@@ -13,16 +13,37 @@
     <Filter Include="glfw-cxx\sources">
       <UniqueIdentifier>{3953e3ac-0f96-460c-9c9d-401a19d2ea3c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="gl-cxx">
+      <UniqueIdentifier>{5315449b-1808-4059-97db-17e01b8afd24}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="main\headers">
+      <UniqueIdentifier>{b9ab8e9c-d32c-4761-9097-74f48ed92fea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="main\sources">
+      <UniqueIdentifier>{0e926305-30aa-4426-828c-7dc7c028df4a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="gl-cxx\headers">
+      <UniqueIdentifier>{672cf0a3-7b3d-4710-988c-957a8b0b4514}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="gl-cxx\sources">
+      <UniqueIdentifier>{ec13e297-b06b-4b24-b9ad-176215d2e0a1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="shaders">
+      <UniqueIdentifier>{794461b4-c40b-43e3-8bf2-887e07bd8a33}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
-      <Filter>main</Filter>
-    </ClCompile>
     <ClCompile Include="glfw-cxx\sources\glfw3.cpp">
       <Filter>glfw-cxx\sources</Filter>
     </ClCompile>
     <ClCompile Include="glfw-cxx\sources\opengl-loader.cpp">
       <Filter>glfw-cxx\sources</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>main\sources</Filter>
+    </ClCompile>
+    <ClCompile Include="MainWindow.cpp">
+      <Filter>main\sources</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -32,5 +53,25 @@
     <ClInclude Include="glfw-cxx\opengl-loader.h">
       <Filter>glfw-cxx\headers</Filter>
     </ClInclude>
+    <ClInclude Include="MainWindow.h">
+      <Filter>main\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsResources.h">
+      <Filter>gl-cxx\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="gl-header.h">
+      <Filter>gl-cxx\headers</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shaders\quad.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\quad.vert">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\test_compute.comp">
+      <Filter>shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
