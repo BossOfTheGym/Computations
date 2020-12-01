@@ -214,6 +214,7 @@ int main()
 
 		return 1;
 	}
+	std::cout << "\"quad.vert\" shader created." << std::endl;
 
 	res::Shader quadFrag{};
 	if (auto contents = readFileContents("shaders/quad.frag"))
@@ -226,6 +227,7 @@ int main()
 
 		return 1;
 	}
+	std::cout << "\"quad.frag\" shader created." << std::endl;
 
 	res::Shader testCompute{};
 	if (auto contents = readFileContents("shaders/test_compute.comp"))
@@ -238,6 +240,7 @@ int main()
 
 		return 1;
 	}
+	std::cout << "\"test_compute.comp\" shader created." << std::endl;
 
 	res::ShaderProgram showProgram = createShaderProgram(quadVert, quadFrag);
 	if (showProgram.id == res::null)
@@ -246,6 +249,7 @@ int main()
 
 		return 1;
 	}
+	std::cout << "\"showProgram\" program created." << std::endl;
 
 	res::ShaderProgram computeProgram = createShaderProgram(testCompute);
 	if (computeProgram.id == res::null)
@@ -254,10 +258,13 @@ int main()
 
 		return 1;
 	}
+	std::cout << "\"computeProgram\" program created." << std::endl;
 
 	res::Texture texture = createTestTexture(WIDTH, HEIGHT);
+	std::cout << "\"texture\" created." << std::endl;
 
 	res::VertexArray array = createVertexArray();
+	std::cout << "\"array\" vertex array created." << std::endl;
 
 
 	// mainloop
