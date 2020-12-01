@@ -177,8 +177,8 @@ int main()
 
 
 	// window
-	const int WIDTH = 1280;
-	const int HEIGHT = 720;
+	const int WIDTH = 1024;
+	const int HEIGHT = 1024;
 
 	glfw::CreationInfo info;
 	info.width = WIDTH;
@@ -263,10 +263,19 @@ int main()
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
+		// compute program
+		glUseProgram(computeProgram.id);
+		glBindImageTexture(0, texture.id, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+
+		glDispatchCompute(32, 32, 1);
+
+		// show program
 		glUseProgram(showProgram.id);
 		glBindTextureUnit(0, texture.id);
 
 		glBindVertexArray(array.id);
+
+		glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
 
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
