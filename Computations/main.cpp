@@ -287,7 +287,7 @@ int main()
 
 		// show program
 		glUseProgram(showProgram.id);
-		glBindTextureUnit(0, texture.id);
+		glBindTextureUnit(0, texture.id); 
 
 		glBindVertexArray(array.id);
 
