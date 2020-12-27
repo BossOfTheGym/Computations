@@ -70,7 +70,7 @@ namespace res
 
 	struct ShaderProgram : Resource
 	{
-		ShaderProgram(Id resource = null) : Resource(id)
+		ShaderProgram(Id resource = null) : Resource(resource)
 		{}
 
 		ShaderProgram(ShaderProgram&& another) noexcept : Resource(std::move(another))
@@ -94,7 +94,7 @@ namespace res
 
 	struct Buffer : Resource
 	{
-		Buffer(Id resource = null) : Resource(id)
+		Buffer(Id resource = null) : Resource(resource)
 		{}
 
 		Buffer(Buffer&& another) noexcept : Resource(std::move(another))
@@ -118,7 +118,7 @@ namespace res
 
 	struct VertexArray : Resource
 	{
-		VertexArray(Id resource = null) : Resource(id)
+		VertexArray(Id resource = null) : Resource(resource)
 		{}
 
 		VertexArray(VertexArray&& another) noexcept : Resource(std::move(another))
@@ -142,7 +142,7 @@ namespace res
 
 	struct Texture : Resource
 	{
-		Texture(Id resource = null) : Resource(id)
+		Texture(Id resource = null) : Resource(resource)
 		{}
 
 		Texture(Texture&& another) noexcept : Resource(std::move(another))
