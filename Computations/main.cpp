@@ -3,6 +3,8 @@
 #include <filesystem>
 #include <optional>
 #include <cmath>
+#include <array>
+#include <cstdint>
 
 #include "MainWindow.h"
 #include "gl-header.h"
@@ -10,6 +12,13 @@
 
 
 namespace fs = std::filesystem;
+
+using i32 = std::int32_t;
+using u32 = std::uint32_t;
+using i64 = std::int64_t;
+using u64 = std::uint64_t;
+using f32 = float;
+using f64 = double;
 
 
 // utility
@@ -111,12 +120,12 @@ res::ShaderProgram createShaderProgram(Shader&& ... shader)
 
 
 // texture
-res::Texture createRgba32fTexture(int width, int height)
+res::Texture createFormatTexture(i32 width, i32 height, GLenum format)
 {
 	res::Texture texture{};
 
 	glCreateTextures(GL_TEXTURE_2D, 1, &texture.id);
-	glTextureStorage2D(texture.id, 1, GL_RGBA32F, width, height);
+	glTextureStorage2D(texture.id, 1, format, width, height);
 	glTextureParameteri(texture.id, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTextureParameteri(texture.id, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTextureParameteri(texture.id, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -125,21 +134,26 @@ res::Texture createRgba32fTexture(int width, int height)
 	return texture;
 }
 
-res::Texture createTestTexture(int width, int height)
+res::Texture createRgba32fTexture(i32 width, i32 height)
+{
+	return createFormatTexture(width, height, GL_RGBA32F);
+}
+
+res::Texture createTestTexture(i32 width, i32 height)
 {
 	res::Texture texture = createRgba32fTexture(width, height);
 
-	std::vector<float> data(width * height * 4);
+	std::vector<f32> data(width * height * 4);
 
-	const float PI = 3.14159265359;
-	const float K = 2 * PI / 64;
+	const f32 PI = 3.14159265359;
+	const f32 K = 2 * PI / 64;
 
 	auto ptr = data.begin();
-	for (int i = 0; i < height; i++)
+	for (i32 i = 0; i < height; i++)
 	{
-		for (int j = 0; j < width; j++)
+		for (i32 j = 0; j < width; j++)
 		{
-			float c = std::abs(std::sin(K * j) + std::sin(K * i));
+			f32 c = std::abs(std::sin(K * j) + std::sin(K * i));
 
 			*ptr++ = c;
 			*ptr++ = c;
@@ -166,11 +180,93 @@ res::VertexArray createVertexArray()
 
 
 // buffer
-res::Buffer createBuffer()
+res::Buffer createBuffer(GLsizeiptr size, GLbitfield usageFlags)
 {
-	// TODO
+	res::Buffer buffer{};
 
-	return res::Buffer{};
+	glCreateBuffers(1, &buffer.id);
+	glNamedBufferStorage(buffer.id, size, nullptr, usageFlags);
+
+	return buffer;
+}
+
+
+// Problem
+// problem description
+// div(grad(u)) = f
+// u(boundary) = gamma
+// first coord is y(rows), second coord is x(cols)
+// TODO : think of additional texture for f-function
+// texture is 'padded' with boundary conditions
+struct Problem
+{
+	res::Texture textures[2]{};
+
+	f32 x0{};
+	f32 x1{};
+	f32 y0{};
+	f32 y1{};
+	f32 hx{};
+	f32 hy{};
+	i32 xSplit{};
+	i32 ySplit{};
+};
+
+Problem createProblem(f32 x0, f32 x1, f32 y0, f32 y1, i32 xSplit, i32 ySplit)
+{	
+	f32 hx = (x1 - x0) / xSplit;
+	f32 hy = (y1 - y0) / ySplit;
+
+	Problem problem;
+	problem.textures[0] = createFormatTexture(xSplit + 1, ySplit + 1, GL_R32F);
+	problem.textures[1] = createFormatTexture(xSplit + 1, ySplit + 1, GL_R32F);
+	problem.x0 = x0;
+	problem.x1 = x1;
+	problem.y0 = y0;
+	problem.y1 = y1;
+	problem.hx = hx;
+	problem.hy = hy;
+	problem.xSplit = xSplit;
+	problem.ySplit = ySplit;
+
+	std::vector<f32> data((xSplit + 1) * (ySplit + 1));
+
+	auto ptr = data.begin();
+	// y0 boundary
+	for (i32 j = 0; j <= xSplit; j++)
+	{
+		f32 x = x0 + j * hx;
+
+		*ptr++ = std::exp(-x * x - y0 * y0);
+	}
+	for (i32 i = 1; i < ySplit; i++)
+	{
+		f32 y = y0 + i * hy;
+
+		// x0 boundary
+		*ptr++ = std::exp(-x0 * x0 - y * y);
+		for (i32 j = 1; j < xSplit; j++)
+		{
+			f32 x = x0 + j * hx;
+
+			// condition
+			*ptr++ = 4.0 * (x * x + y * y - 1.0) * std::exp(-x * x - y * y);
+		}
+		// x1 boundary
+		*ptr++ = std::exp(-x1 * x1 - y * y);
+	}
+	// y1 boundary
+	for (i32 j = 0; j <= xSplit; j++)
+	{
+		f32 x = x0 + j * hx;
+
+		*ptr++ = std::exp(-x * x - y1 * y1);
+	}
+
+	glTextureSubImage2D(problem.textures[0].id, 0, 0, 0, xSplit + 1, ySplit + 1, GL_RED, GL_FLOAT, data.data());
+	glTextureSubImage2D(problem.textures[1].id, 0, 0, 0, xSplit + 1, ySplit + 1, GL_RED, GL_FLOAT, data.data());
+
+	return problem;
 }
 
 
@@ -266,6 +362,9 @@ int main()
 	res::VertexArray array = createVertexArray();
 	std::cout << "\"array\" vertex array created." << std::endl;
 
+	// problem
+	Problem problem = createProblem(-1.0, +1.0, -1.0, +1.0, 256 + 1, 256 + 1); // 256 x 256 vars
+	
 
 	// mainloop
 	window.show();
@@ -287,7 +386,8 @@ int main()
 
 		// show program
 		glUseProgram(showProgram.id);
-		glBindTextureUnit(0, texture.id); 
+		//glBindTextureUnit(0, texture.id); 
+		glBindTextureUnit(0, problem.textures[0].id); 
 
 		glBindVertexArray(array.id);
 
