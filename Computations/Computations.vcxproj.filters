@@ -73,7 +73,7 @@
     <None Include="shaders\test_compute.comp">
       <Filter>shaders</Filter>
     </None>
-    <None Include="shaders\test_red-black.comp">
+    <None Include="shaders\test_jacoby.comp">
       <Filter>shaders</Filter>
     </None>
   </ItemGroup>

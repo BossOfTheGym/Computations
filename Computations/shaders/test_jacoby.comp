@@ -1,0 +1,107 @@
+#version 460 core
+
+#define WORKGROUP_X 32
+#define WORKGROUP_Y 32
+#define WORKGROUP_Z 1
+
+layout(local_size_x = WORKGROUP_X, local_size_y = WORKGROUP_Y, local_size_z = WORKGROUP_Z) in;
+
+// used both for read and write, boundary is not calculated
+// TODO : read about coherent more
+layout(binding = 0, r32f) uniform coherent image2D solution[2];
+
+uniform int prev;
+uniform int next;
+uniform float x0;
+uniform float y0;
+uniform float hx;
+uniform float hy;
+
+shared float cache[(WORKGROUP_X + 2) * (WORKGROUP_Y + 2)];
+
+int cacheFlatIndex(ivec2 ij)
+{
+	return (ij[0] + 1) * (WORKGROUP_X + 2) + (ij[1] + 1);
+}
+
+float cacheLoadValue(ivec2 ij)
+{
+	return cache[cacheFlatIndex(ij)];
+}
+
+void cacheStoreValue(ivec2 ij, float value)
+{
+	cache[cacheFlatIndex(ij)] = value;
+}
+
+
+// i - for y
+// j - for x
+float f(ivec2 ij)
+{
+	float y = y0 + ij[0] * hy;
+	float x = x0 + ij[1] * hx;
+	float xxpyy = x * x + y * y;
+	return 4.0 * (xxpyy - 1.0) * exp(-xxpyy);
+}
+
+void main()
+{
+	ivec2 ij = ivec2(gl_GlobalInvocationID.xy);
+	ivec2 ij_local = ivec2(gl_LocalInvocationID.xy);
+	ivec2 size = imageSize(solution[0]);
+
+	cacheStoreValue(ij_local, imageLoad(solution[prev], ij).x);
+	if (0 < ij[1] && ij[1] < size.x - 1)
+	{
+		if (ij_local[1] == WORKGROUP_X - 1)
+		{
+			ivec2 offset = ivec2(0, 1);
+
+			cacheStoreValue(ij_local + offset, imageLoad(solution[prev], ij + offset).x);
+		}
+		if (ij_local[1] == 0)
+		{
+			ivec2 offset = ivec2(0, -1);
+
+			cacheStoreValue(ij_local + offset, imageLoad(solution[prev], ij + offset).x);
+		}
+	}
+	if (0 < ij[0] && ij[0] < size.y - 1)
+	{
+		if (ij_local[0] == WORKGROUP_Y - 1)
+		{
+			ivec2 offset = ivec2(1, 0);
+
+			cacheStoreValue(ij_local + offset, imageLoad(solution[prev], ij + offset).x);
+		}
+		if (ij_local[0] == 0)
+		{
+			ivec2 offset = ivec2(-1, 0);
+
+			cacheStoreValue(ij_local + offset, imageLoad(solution[prev], ij + offset).x);
+		}
+	}
+
+	memoryBarrierShared();
+	barrier();
+
+	if (0 < ij[1] && ij[1] < size.x - 1 && 0 < ij[0] && ij[0] < size.y - 1)
+	{
+		float uij = cacheLoadValue(ij_local);
+		float uijp1 = cacheLoadValue(ij_local + ivec2(0, +1));
+		float uijm1 = cacheLoadValue(ij_local + ivec2(0, -1));
+		float uip1j = cacheLoadValue(ij_local + ivec2(+1, 0));
+		float uim1j = cacheLoadValue(ij_local + ivec2(-1, 0));
+
+		float hxhx = hx * hx;
+		float hyhy = hy * hy;
+		float H = -2.0 / hxhx - 2.0 / hyhy;
+		float u = f(ij) / H - (uijp1 + uijm1) / (hxhx * H) - (uip1j + uim1j) / (hyhy * H);
+
+		imageStore(solution[next], ij, vec4(u));
+	}
+
+	memoryBarrierImage();
+	barrier();
+}

@@ -191,11 +191,10 @@ res::Buffer createBuffer(GLsizeiptr size, GLbitfield usageFlags)
 }
 
 
-// Problem
-// problem description
+// Problem description
 // div(grad(u)) = f
-// u(boundary) = gamma
-// first coord is y(rows), second coord is x(cols)
+// u(boundary) = g
+// first coord is y(rows), second coord is x(cols) as everything is stored in row-major manner
 // TODO : think of additional texture for f-function
 // texture is 'padded' with boundary conditions
 struct Problem
@@ -338,6 +337,19 @@ int main()
 	}
 	std::cout << "\"test_compute.comp\" shader created." << std::endl;
 
+	res::Shader testJacoby{};
+	if (auto contents = readFileContents("shaders/test_jacoby.comp"))
+	{
+		testJacoby = createShaderFromSource(GL_COMPUTE_SHADER, *contents);
+	}
+	if (testJacoby.id == res::null)
+	{	
+		std::cerr << "Failed to load \"test_jacoby.comp\" ." << std::endl;
+
+		return 1;
+	}
+	std::cout << "\"test_jacoby.comp\" shader created." << std::endl;
+
 	res::ShaderProgram showProgram = createShaderProgram(quadVert, quadFrag);
 	if (showProgram.id == res::null)
 	{
@@ -350,11 +362,27 @@ int main()
 	res::ShaderProgram computeProgram = createShaderProgram(testCompute);
 	if (computeProgram.id == res::null)
 	{
-		std::cerr << "Failed to create compute shader program." << std::endl;
+		std::cerr << "Failed to create \"computeProgram\" program." << std::endl;
 
 		return 1;
 	}
 	std::cout << "\"computeProgram\" program created." << std::endl;
+
+	res::ShaderProgram jacobyProgram = createShaderProgram(testJacoby);
+	if (jacobyProgram.id == res::null)
+	{
+		std::cerr << "Failed to create \"jacobyProgram\" program." << std::endl;
+
+		return 1;
+	}
+	std::cout << "\"jacobyProgram\" program created." << std::endl;
+
+	GLint prevLoc = glGetUniformLocation(jacobyProgram.id, "prev");
+	GLint nextLoc = glGetUniformLocation(jacobyProgram.id, "next");
+	GLint x0Loc = glGetUniformLocation(jacobyProgram.id, "x0");
+	GLint y0Loc = glGetUniformLocation(jacobyProgram.id, "y0");
+	GLint hxLoc = glGetUniformLocation(jacobyProgram.id, "hx");
+	GLint hyLoc = glGetUniformLocation(jacobyProgram.id, "hy");
 
 	res::Texture texture = createTestTexture(WIDTH, HEIGHT);
 	std::cout << "\"texture\" created." << std::endl;
@@ -363,10 +391,19 @@ int main()
 	std::cout << "\"array\" vertex array created." << std::endl;
 
 	// problem
-	Problem problem = createProblem(-1.0, +1.0, -1.0, +1.0, 256 + 1, 256 + 1); // 256 x 256 vars
-	
+	Problem problem = createProblem(-1.2, +1.2, -1.2, +1.2, 256 - 1, 256 - 1); // 256 x 256 vars
+	if (problem.textures[0].id == res::null || problem.textures[1].id == res::null)
+	{
+		std::cerr << "Failed to create \"problem\"" << std::endl;
+
+		return 1;
+	}
+	std::cout << "\"problem\" created." << std::endl;
 
 	// mainloop
+	i32 prev = 0;
+	i32 curr = 1;
+
 	window.show();
 	while(!window.shouldClose())
 	{
@@ -378,23 +415,46 @@ int main()
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-		// compute program
-		glUseProgram(computeProgram.id);
-		glBindImageTexture(0, texture.id, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+		// test compute program
+		//glUseProgram(computeProgram.id);
+		//glBindImageTexture(0, texture.id, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+		//
+		//glDispatchCompute(32, 32, 1);
 
-		glDispatchCompute(32, 32, 1);
+		// jacoby compute program
+		glUseProgram(jacobyProgram.id);
+		glBindImageTexture(0, problem.textures[0].id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
+		glBindImageTexture(1, problem.textures[1].id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
+
+		glUniform1i(prevLoc, prev);
+		glUniform1i(nextLoc, curr);
+		glUniform1f(x0Loc, problem.x0);
+		glUniform1f(y0Loc, problem.y0);
+		glUniform1f(hxLoc, problem.hx);
+		glUniform1f(hyLoc, problem.hy);
+		glDispatchCompute(16, 16, 1);
+
+		std::swap(prev, curr);
+
+		glUniform1i(prevLoc, prev);
+		glUniform1i(nextLoc, curr);
+		glUniform1f(x0Loc, problem.x0);
+		glUniform1f(y0Loc, problem.y0);
+		glUniform1f(hxLoc, problem.hx);
+		glUniform1f(hyLoc, problem.hy);
+		glDispatchCompute(16, 16, 1);
+
+		std::swap(prev, curr);
 
 		// show program
-		glUseProgram(showProgram.id);
-		//glBindTextureUnit(0, texture.id); 
-		glBindTextureUnit(0, problem.textures[0].id); 
+		glUseProgram(showProgram.id); 
+		glBindTextureUnit(0, problem.textures[curr].id); 
 
 		glBindVertexArray(array.id);
 
-		glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
-
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
+		// swap
 		window.swapBuffers();
 	}
 

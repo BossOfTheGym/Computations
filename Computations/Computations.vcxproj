@@ -161,7 +161,7 @@
     <None Include="shaders\quad.frag" />
     <None Include="shaders\quad.vert" />
     <None Include="shaders\test_compute.comp" />
-    <None Include="shaders\test_red-black.comp" />
+    <None Include="shaders\test_jacoby.comp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
