@@ -482,7 +482,7 @@ int main()
 	redBlackLocations.getLocations(redBlackProgram);
 
 	// problem
-	Problem problem = createProblem(-1.2, +1.2, -1.2, +1.2, 512 - 1, 512 - 1); // 256 x 256 vars
+	Problem problem = createProblem(-1.2, +1.2, -1.2, +1.2, 512 - 1, 512 - 1);
 	if (problem.textures[0].id == res::null || problem.textures[1].id == res::null)
 	{
 		std::cerr << "Failed to create \"problem\"" << std::endl;
