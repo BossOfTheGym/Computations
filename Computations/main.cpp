@@ -57,7 +57,7 @@ std::string getShaderInfoLog(const res::Shader& shader)
 
 res::Shader createShaderFromSource(GLenum shaderType, const std::string& source)
 {
-	res::Shader shader;
+	res::Shader shader{};
 
 	shader.id = glCreateShader(shaderType);
 
@@ -190,6 +190,13 @@ res::Buffer createBuffer(GLsizeiptr size, GLbitfield usageFlags)
 	return buffer;
 }
 
+// query
+res::Query createTimeQuery()
+{
+	res::Query query{};
+	glGenQueries(1, &query.id);
+	return query;
+}
 
 // Problem description
 // div(grad(u)) = f
@@ -249,7 +256,7 @@ Problem createProblem(f32 x0, f32 x1, f32 y0, f32 y1, i32 xSplit, i32 ySplit)
 			f32 x = x0 + j * hx;
 
 			// condition
-			*ptr++ = 4.0 * (x * x + y * y - 1.0) * std::exp(-x * x - y * y);
+			*ptr++ = 0.0;//4.0 * (x * x + y * y - 1.0) * std::exp(-x * x - y * y);
 		}
 		// x1 boundary
 		*ptr++ = std::exp(-x1 * x1 - y * y);
@@ -266,6 +273,66 @@ Problem createProblem(f32 x0, f32 x1, f32 y0, f32 y1, i32 xSplit, i32 ySplit)
 	glTextureSubImage2D(problem.textures[1].id, 0, 0, 0, xSplit + 1, ySplit + 1, GL_RED, GL_FLOAT, data.data());
 
 	return problem;
+}
+
+struct JacobyUniformLocations
+{
+	void getLocations(const res::ShaderProgram& jacobyProgram)
+	{
+		prev = glGetUniformLocation(jacobyProgram.id, "prev");
+		next = glGetUniformLocation(jacobyProgram.id, "next");
+		x0 = glGetUniformLocation(jacobyProgram.id, "x0");
+		y0 = glGetUniformLocation(jacobyProgram.id, "y0");
+		hx = glGetUniformLocation(jacobyProgram.id, "hx");
+		hy = glGetUniformLocation(jacobyProgram.id, "hy");
+	}
+
+	GLint next{-1};
+	GLint prev{-1};
+	GLint x0{-1};
+	GLint y0{-1};
+	GLint hx{-1};
+	GLint hy{-1};
+};
+
+struct RedBlackUniformLocations
+{
+	void getLocations(const res::ShaderProgram& redBlackProgram)
+	{
+		rb = glGetUniformLocation(redBlackProgram.id, "rb");
+		w  = glGetUniformLocation(redBlackProgram.id, "w");
+		x0 = glGetUniformLocation(redBlackProgram.id, "x0");
+		y0 = glGetUniformLocation(redBlackProgram.id, "y0");
+		hx = glGetUniformLocation(redBlackProgram.id, "hx");
+		hy = glGetUniformLocation(redBlackProgram.id, "hy");
+	}
+
+	GLint rb{-1};
+	GLint w{-1};
+	GLint x0{-1};
+	GLint y0{-1};
+	GLint hx{-1};
+	GLint hy{-1};
+};
+
+f32 computeOptimalW(const Problem& problem)
+{
+	const constexpr f32 PId2 = 3.14159265359 / 2;
+
+	f32 hx = problem.hx;
+	f32 hy = problem.hy;
+	i32 sx = problem.xSplit;
+	i32 sy = problem.ySplit;
+
+	f32 hxhx = hx * hx;
+	f32 hyhy = hy * hy;
+	f32 H = hxhx + hyhy;
+	f32 sinx = std::sin(PId2 / sx);
+	f32 siny = std::sin(PId2 / sy);
+
+	f32 delta = 2.0 * hxhx / H * sinx * sinx + 2.0 * hyhy / H * siny * siny;
+
+	return 2.0 / (1.0 + std::sqrt(delta * (2.0 - delta)));
 }
 
 
@@ -290,7 +357,7 @@ int main()
 	info.title = "computations";
 	info.intHints.push_back({glfw::Resizable, glfw::False});
 	info.intHints.push_back({glfw::ContextVersionMajor, 4});
-	info.intHints.push_back({glfw::ContextVersionMinor, 6});
+	info.intHints.push_back({glfw::ContextVersionMinor, 5});
 	info.intHints.push_back({glfw::DoubleBuffer, glfw::True});
 
 	MainWindow window(info);
@@ -350,6 +417,19 @@ int main()
 	}
 	std::cout << "\"test_jacoby.comp\" shader created." << std::endl;
 
+	res::Shader testRedBlack{};
+	if (auto contents = readFileContents("shaders/test_red_black.comp"))
+	{
+		testRedBlack = createShaderFromSource(GL_COMPUTE_SHADER, *contents);
+	}
+	if (testRedBlack.id == res::null)
+	{	
+		std::cerr << "Failed to load \"test_red_black.comp\" ." << std::endl;
+
+		return 1;
+	}
+	std::cout << "\"test_red_black.comp\" shader created." << std::endl;
+
 	res::ShaderProgram showProgram = createShaderProgram(quadVert, quadFrag);
 	if (showProgram.id == res::null)
 	{
@@ -377,12 +457,14 @@ int main()
 	}
 	std::cout << "\"jacobyProgram\" program created." << std::endl;
 
-	GLint prevLoc = glGetUniformLocation(jacobyProgram.id, "prev");
-	GLint nextLoc = glGetUniformLocation(jacobyProgram.id, "next");
-	GLint x0Loc = glGetUniformLocation(jacobyProgram.id, "x0");
-	GLint y0Loc = glGetUniformLocation(jacobyProgram.id, "y0");
-	GLint hxLoc = glGetUniformLocation(jacobyProgram.id, "hx");
-	GLint hyLoc = glGetUniformLocation(jacobyProgram.id, "hy");
+	res::ShaderProgram redBlackProgram = createShaderProgram(testRedBlack);
+	if (redBlackProgram.id == res::null)
+	{
+		std::cerr << "Failed to create \"redBlackProgram\" program." << std::endl;
+
+		return 1;
+	}
+	std::cout << "\"redBlackProgram\" program created." << std::endl;
 
 	res::Texture texture = createTestTexture(WIDTH, HEIGHT);
 	std::cout << "\"texture\" created." << std::endl;
@@ -390,8 +472,17 @@ int main()
 	res::VertexArray array = createVertexArray();
 	std::cout << "\"array\" vertex array created." << std::endl;
 
+	res::Query timeQuery = createTimeQuery();
+
+	// uniforms
+	JacobyUniformLocations jacobyLocations{};
+	jacobyLocations.getLocations(jacobyProgram);
+
+	RedBlackUniformLocations redBlackLocations{};
+	redBlackLocations.getLocations(redBlackProgram);
+
 	// problem
-	Problem problem = createProblem(-1.2, +1.2, -1.2, +1.2, 256 - 1, 256 - 1); // 256 x 256 vars
+	Problem problem = createProblem(-1.2, +1.2, -1.2, +1.2, 512 - 1, 512 - 1); // 256 x 256 vars
 	if (problem.textures[0].id == res::null || problem.textures[1].id == res::null)
 	{
 		std::cerr << "Failed to create \"problem\"" << std::endl;
@@ -404,6 +495,8 @@ int main()
 	i32 prev = 0;
 	i32 curr = 1;
 
+	f32 w = computeOptimalW(problem);
+
 	window.show();
 	while(!window.shouldClose())
 	{
@@ -415,40 +508,57 @@ int main()
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-		// test compute program
-		//glUseProgram(computeProgram.id);
-		//glBindImageTexture(0, texture.id, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+		//glBeginQuery(GL_TIME_ELAPSED, timeQuery.id);
 		//
-		//glDispatchCompute(32, 32, 1);
-
 		// jacoby compute program
-		glUseProgram(jacobyProgram.id);
+		//glUseProgram(jacobyProgram.id);
+		//glBindImageTexture(0, problem.textures[prev].id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
+		//glBindImageTexture(1, problem.textures[curr].id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
+		//
+		//glUniform1f(x0Loc, problem.x0);
+		//glUniform1f(y0Loc, problem.y0);
+		//glUniform1f(hxLoc, problem.hx);
+		//glUniform1f(hyLoc, problem.hy);
+		//
+		//for (i32 i = 0; i < 16; i++)
+		//{
+		//	glUniform1i(prevLoc, prev);
+		//	glUniform1i(nextLoc, curr);
+		//
+		//	// TODO : indirect dispatch
+		//	glDispatchCompute(32, 32, 1);
+		//
+		//	std::swap(prev, curr);
+		//}
+		//
+		//glEndQuery(GL_TIME_ELAPSED);
+
+		// red-black compute program
+		glBeginQuery(GL_TIME_ELAPSED, timeQuery.id);
+
+		glUseProgram(redBlackProgram.id);
 		glBindImageTexture(0, problem.textures[0].id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
-		glBindImageTexture(1, problem.textures[1].id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
 
-		glUniform1i(prevLoc, prev);
-		glUniform1i(nextLoc, curr);
-		glUniform1f(x0Loc, problem.x0);
-		glUniform1f(y0Loc, problem.y0);
-		glUniform1f(hxLoc, problem.hx);
-		glUniform1f(hyLoc, problem.hy);
-		glDispatchCompute(16, 16, 1);
+		glUniform1f(redBlackLocations.w, w);
+		glUniform1f(redBlackLocations.x0, problem.x0);
+		glUniform1f(redBlackLocations.y0, problem.y0);
+		glUniform1f(redBlackLocations.hx, problem.hx);
+		glUniform1f(redBlackLocations.hy, problem.hy);
 
-		std::swap(prev, curr);
+		for (i32 i = 0; i < 1; i++)
+		{
+			glUniform1i(redBlackLocations.rb, 0);
+			glDispatchCompute(32, 32, 1);
 
-		glUniform1i(prevLoc, prev);
-		glUniform1i(nextLoc, curr);
-		glUniform1f(x0Loc, problem.x0);
-		glUniform1f(y0Loc, problem.y0);
-		glUniform1f(hxLoc, problem.hx);
-		glUniform1f(hyLoc, problem.hy);
-		glDispatchCompute(16, 16, 1);
+			glUniform1i(redBlackLocations.rb, 1);
+			glDispatchCompute(32, 32, 1);
+		}
 
-		std::swap(prev, curr);
+		glEndQuery(GL_TIME_ELAPSED);
 
 		// show program
 		glUseProgram(showProgram.id); 
-		glBindTextureUnit(0, problem.textures[curr].id); 
+		glBindTextureUnit(0, problem.textures[0].id); 
 
 		glBindVertexArray(array.id);
 
@@ -456,6 +566,12 @@ int main()
 
 		// swap
 		window.swapBuffers();
+
+		// queries
+		GLint64 t{};
+		glGetQueryObjecti64v(timeQuery.id, GL_QUERY_RESULT, &t);
+
+		std::cout << "elapsed: " << t / 1000 << "us" << std::endl;
 	}
 
 

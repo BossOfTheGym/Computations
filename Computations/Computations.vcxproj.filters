@@ -76,5 +76,14 @@
     <None Include="shaders\test_jacoby.comp">
       <Filter>shaders</Filter>
     </None>
+    <None Include="shaders\test_jacoby_tiled.comp">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\test_red_black.comp">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\test_red_black_tiled.comp">
+      <Filter>shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -12,7 +12,6 @@ namespace res
 	constexpr const Id null = 0; 
 
 
-	// TODO : this looks pretty bloaty
 	struct Resource
 	{
 		Resource(Id resource = null) : id{resource}
@@ -46,11 +45,7 @@ namespace res
 
 	struct Shader : Resource
 	{		
-		Shader(Id resource = null) : Resource(resource)
-		{}
-
-		Shader(Shader&& another) noexcept : Resource(std::move(another)) 
-		{}
+		Shader(Shader&&) noexcept = default;
 
 		~Shader()
 		{
@@ -60,21 +55,12 @@ namespace res
 			}
 		}
 
-		Shader& operator = (Shader&& another) noexcept
-		{
-			static_cast<Resource&>(*this) = std::move(another);
-
-			return *this;
-		}
+		Shader& operator = (Shader&&) noexcept = default;
 	};
 
 	struct ShaderProgram : Resource
 	{
-		ShaderProgram(Id resource = null) : Resource(resource)
-		{}
-
-		ShaderProgram(ShaderProgram&& another) noexcept : Resource(std::move(another))
-		{}
+		ShaderProgram(ShaderProgram&&) noexcept = default;
 
 		~ShaderProgram()
 		{
@@ -84,21 +70,12 @@ namespace res
 			}
 		}
 
-		ShaderProgram& operator = (ShaderProgram&& another) noexcept
-		{
-			static_cast<Resource&>(*this) =  std::move(another);
-
-			return *this;
-		}
+		ShaderProgram& operator = (ShaderProgram&&) noexcept = default;
 	};
 
 	struct Buffer : Resource
 	{
-		Buffer(Id resource = null) : Resource(resource)
-		{}
-
-		Buffer(Buffer&& another) noexcept : Resource(std::move(another))
-		{}
+		Buffer(Buffer&&) = default;
 
 		~Buffer()
 		{
@@ -108,21 +85,12 @@ namespace res
 			}
 		}
 
-		Buffer& operator = (Buffer&& another) noexcept
-		{
-			static_cast<Resource&>(*this) =  std::move(another);
-
-			return *this;
-		}
+		Buffer& operator = (Buffer&& another) noexcept = default;
 	};
 
 	struct VertexArray : Resource
 	{
-		VertexArray(Id resource = null) : Resource(resource)
-		{}
-
-		VertexArray(VertexArray&& another) noexcept : Resource(std::move(another))
-		{}
+		VertexArray(VertexArray&&) = default;
 
 		~VertexArray()
 		{
@@ -132,21 +100,12 @@ namespace res
 			}
 		}
 
-		VertexArray& operator = (VertexArray&& another) noexcept
-		{
-			static_cast<Resource&>(*this) =  std::move(another);
-
-			return *this;
-		}
+		VertexArray& operator = (VertexArray&& another) noexcept = default;
 	};
 
 	struct Texture : Resource
 	{
-		Texture(Id resource = null) : Resource(resource)
-		{}
-
-		Texture(Texture&& another) noexcept : Resource(std::move(another))
-		{}
+		Texture(Texture&&) = default;
 
 		~Texture()
 		{
@@ -156,11 +115,21 @@ namespace res
 			}
 		}
 
-		Texture& operator = (Texture&& another) noexcept
-		{
-			static_cast<Resource&>(*this) =  std::move(another);
+		Texture& operator = (Texture&& another) noexcept = default;
+	};
 
-			return *this;
+	struct Query : Resource
+	{
+		Query(Query&&) noexcept = default;
+
+		~Query()
+		{
+			if (id != null)
+			{
+				glDeleteQueries(1, &id);
+			}
 		}
+
+		Query& operator = (Query&&) noexcept = default;
 	};
 }
