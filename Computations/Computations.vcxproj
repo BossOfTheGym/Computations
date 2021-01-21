@@ -157,6 +157,8 @@
     <ClInclude Include="glfw-cxx\opengl-loader.h" />
     <ClInclude Include="graphics-res-util.h" />
     <ClInclude Include="graphics-res.h" />
+    <ClInclude Include="handle-pool.h" />
+    <ClInclude Include="handle.h" />
     <ClInclude Include="MainWindow.h" />
   </ItemGroup>
   <ItemGroup>
