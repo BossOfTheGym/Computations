@@ -151,6 +151,7 @@
     <ClCompile Include="MainWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="dirichlet-2d.h" />
     <ClInclude Include="gl-header.h" />
     <ClInclude Include="glfw-cxx\glfw3.h" />
     <ClInclude Include="glfw-cxx\opengl-loader.h" />
