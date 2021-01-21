@@ -1,4 +1,4 @@
-#include "MainWindow.h"
+#include "main-window.h"
 
 
 MainWindow::MainWindow(const glfw::CreationInfo& info) 
