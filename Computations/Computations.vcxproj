@@ -147,8 +147,8 @@
   <ItemGroup>
     <ClCompile Include="glfw-cxx\sources\glfw3.cpp" />
     <ClCompile Include="glfw-cxx\sources\opengl-loader.cpp" />
+    <ClCompile Include="main-window.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="MainWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="dirichlet-2d.h" />
@@ -159,7 +159,7 @@
     <ClInclude Include="graphics-res.h" />
     <ClInclude Include="handle-pool.h" />
     <ClInclude Include="handle.h" />
-    <ClInclude Include="MainWindow.h" />
+    <ClInclude Include="main-window.h" />
     <ClInclude Include="storage.h" />
   </ItemGroup>
   <ItemGroup>

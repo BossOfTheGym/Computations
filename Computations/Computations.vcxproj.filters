@@ -51,7 +51,7 @@
     <ClCompile Include="main.cpp">
       <Filter>main\sources</Filter>
     </ClCompile>
-    <ClCompile Include="MainWindow.cpp">
+    <ClCompile Include="main-window.cpp">
       <Filter>main\sources</Filter>
     </ClCompile>
   </ItemGroup>
@@ -61,9 +61,6 @@
     </ClInclude>
     <ClInclude Include="glfw-cxx\opengl-loader.h">
       <Filter>glfw-cxx\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="MainWindow.h">
-      <Filter>main\headers</Filter>
     </ClInclude>
     <ClInclude Include="gl-header.h">
       <Filter>gl-cxx\headers</Filter>
@@ -85,6 +82,9 @@
     </ClInclude>
     <ClInclude Include="storage.h">
       <Filter>storage</Filter>
+    </ClInclude>
+    <ClInclude Include="main-window.h">
+      <Filter>main\headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
