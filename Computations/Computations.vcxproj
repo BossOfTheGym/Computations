@@ -154,7 +154,8 @@
     <ClInclude Include="gl-header.h" />
     <ClInclude Include="glfw-cxx\glfw3.h" />
     <ClInclude Include="glfw-cxx\opengl-loader.h" />
-    <ClInclude Include="GraphicsResources.h" />
+    <ClInclude Include="graphics-res-util.h" />
+    <ClInclude Include="graphics-res.h" />
     <ClInclude Include="MainWindow.h" />
   </ItemGroup>
   <ItemGroup>

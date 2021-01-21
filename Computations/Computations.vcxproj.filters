@@ -56,10 +56,13 @@
     <ClInclude Include="MainWindow.h">
       <Filter>main\headers</Filter>
     </ClInclude>
-    <ClInclude Include="GraphicsResources.h">
+    <ClInclude Include="gl-header.h">
       <Filter>gl-cxx\headers</Filter>
     </ClInclude>
-    <ClInclude Include="gl-header.h">
+    <ClInclude Include="graphics-res.h">
+      <Filter>gl-cxx\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics-res-util.h">
       <Filter>gl-cxx\headers</Filter>
     </ClInclude>
   </ItemGroup>
