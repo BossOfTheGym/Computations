@@ -160,6 +160,7 @@
     <ClInclude Include="handle-pool.h" />
     <ClInclude Include="handle.h" />
     <ClInclude Include="MainWindow.h" />
+    <ClInclude Include="storage.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\quad.frag" />

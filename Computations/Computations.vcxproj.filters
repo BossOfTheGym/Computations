@@ -37,6 +37,9 @@
     <Filter Include="handle">
       <UniqueIdentifier>{d8adf1d2-4534-4a05-9b94-4833b7835b7d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="storage">
+      <UniqueIdentifier>{101b48eb-7081-46fb-9f36-a08316e39ee4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glfw-cxx\sources\glfw3.cpp">
@@ -79,6 +82,9 @@
     </ClInclude>
     <ClInclude Include="handle-pool.h">
       <Filter>handle</Filter>
+    </ClInclude>
+    <ClInclude Include="storage.h">
+      <Filter>storage</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
