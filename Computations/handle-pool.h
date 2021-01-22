@@ -39,5 +39,5 @@ public:
 private:
 	std::vector<Handle> m_handles;
 
-	Handle m_head;
+	Handle m_head{null};
 };
