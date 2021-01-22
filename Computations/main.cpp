@@ -5,6 +5,7 @@
 #include "gl-header.h"
 #include "graphics-res.h"
 #include "graphics-res-util.h"
+#include "dirichlet-2d.h"
 
 
 int main()
@@ -20,7 +21,7 @@ int main()
 
 	// window
 	const int WIDTH = 1024;
-	const int HEIGHT = 1024;
+	const int HEIGHT = 512;
 
 	glfw::CreationInfo info;
 	info.width = WIDTH;
@@ -34,8 +35,8 @@ int main()
 	MainWindow window(info);
 	window.makeContextCurrent();
 
-
 	// resources
+	// shaders
 	res::Shader quadVert{};
 	if (!try_create_shader_from_file(quadVert, GL_VERTEX_SHADER, "shaders/quad.vert"))
 	{
@@ -81,7 +82,7 @@ int main()
 	}
 	std::cout << "\"test_red_black.comp\" shader created." << std::endl;
 
-
+	// shader programs
 	res::ShaderProgram showProgram{};
 	if (!try_create_shader_program(showProgram, quadVert, quadFrag))
 	{
@@ -118,7 +119,7 @@ int main()
 	}
 	std::cout << "\"redBlackProgram\" program created." << std::endl;
 
-
+	// test texture
 	res::Texture texture{};
 	if (!try_create_test_texture(texture, WIDTH, HEIGHT))
 	{
@@ -126,7 +127,7 @@ int main()
 	}
 	std::cout << "\"texture\" created." << std::endl;
 
-
+	// vertex array
 	res::VertexArray array;
 	if (!try_create_vertex_array(array))
 	{
@@ -135,12 +136,55 @@ int main()
 	std::cout << "\"array\" vertex array created." << std::endl;
 
 
+	// dirichlet solvers
+	dir2d::Jacoby jacobyMethod; 
+	jacobyMethod.setupProgram(std::move(jacobyProgram));
+	if (!jacobyMethod.programValid())
+	{
+		std::cerr << "Jacoby program is invalid." << std::endl;
+
+		return 1;
+	}
+	std::cout << "Jacoby program is set up." << std::endl;
+
+	Handle jacobyHandle{null};
+	{
+		auto domain = dir2d::Jacoby::create_domainAabb2D(-1.1, +1.1, -1.1, +1.1, 511, 511);
+		auto data   = dir2d::Jacoby::create_dataAabb2D(domain);
+		jacobyHandle = jacobyMethod.create(domain, data, 16);
+	}
+
+	dir2d::RedBlack redBlackMethod;
+	redBlackMethod.setupProgram(std::move(redBlackProgram));
+	if (!redBlackMethod.programValid())
+	{
+		std::cerr << "Red-black program is invalid." << std::endl;
+
+		return 1;
+	}
+	std::cout << "Red-black program is set up." << std::endl;
+
+	Handle redBlackHandle{null};
+	{
+		auto domain = dir2d::RedBlack::create_domainAabb2D(-1.1, +1.1, -1.1, +1.1, 511, 511);
+		auto data   = dir2d::RedBlack::create_dataAabb2D(domain);
+		redBlackHandle = redBlackMethod.create(domain, data, 8);
+	}
+
 	// mainloop
 	window.show();
 	while(!window.shouldClose())
 	{
 		glfw::poll_events();
 
+		// compute
+		jacobyMethod.setup();
+		jacobyMethod.update();
+
+		redBlackMethod.setup();
+		redBlackMethod.update();
+
+		// rendering
 		glClearColor(1.0, 0.5, 0.2, 1.0);
 		glClearDepth(1.0);
 		glClearStencil(0);
@@ -148,11 +192,22 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 		// show program
-		glUseProgram(showProgram.id); 
-		glBindTextureUnit(0, texture.id); 
+		glUseProgram(showProgram.id);
 
 		glBindVertexArray(array.id);
 
+		glViewport(0, 0, WIDTH / 2, HEIGHT);
+		{
+			auto& data = jacobyMethod.get(jacobyHandle);
+			glBindTextureUnit(0, data.iteration[data.prev].id); 
+		}
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+		glViewport(WIDTH / 2, 0, WIDTH / 2, HEIGHT);
+		{
+			auto& data = redBlackMethod.get(redBlackHandle);
+			glBindTextureUnit(0, data.iteration.id); 
+		}
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 		// swap
