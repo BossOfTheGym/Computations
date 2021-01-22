@@ -108,7 +108,7 @@ namespace dir2d
 		static constexpr const i32 WORKGROUP_Y = WORKGROUP_Y_VAR;
 
 
-		static void create_domainAabb2D(f32 x0, f32 x1, f32 y0, f32 y1, i32 xSplit, i32 ySplit)
+		static auto create_domainAabb2D(f32 x0, f32 x1, f32 y0, f32 y1, i32 xSplit, i32 ySplit)
 		{
 			DomainAabb2D domain{x0, x1, y0, y1};
 			if ((xSplit + 1) % WORKGROUP_X != 0)
@@ -126,8 +126,50 @@ namespace dir2d
 			return domain;
 		}
 
-		template<class Solution>
-		static DataAabb2D create_dataAabb2D(const DomainAabb2D& domain, Solution&& solution)
+		//template<class Solution>
+		//static DataAabb2D create_dataAabb2D(const DomainAabb2D& domain, Solution&& solution)
+		//{
+		//	auto& [x0, x1, y0, y1, hx, hy, xSplit, ySplit] = domain;
+
+		//	DataAabb2D data(xSplit + 1, ySplit + 1);
+
+		//	auto ptr = data.get();
+		//	// y0 boundary
+		//	for (i32 j = 0; j <= xSplit; j++)
+		//	{
+		//		f32 x = x0 + j * hx;
+
+		//		*ptr++ = solution(x, y0);
+		//	}
+		//	for (i32 i = 1; i < ySplit; i++)
+		//	{
+		//		f32 y = y0 + i * hy;
+
+		//		// x0 boundary
+		//		*ptr++ = solution(x0, y);
+		//		for (i32 j = 1; j < xSplit; j++)
+		//		{
+		//			f32 x = x0 + j * hx;
+
+		//			// NOTE : precondition can be used here
+		//			// condition(precondition)
+		//			*ptr++ = 0.0;
+		//		}
+		//		// x1 boundary
+		//		*ptr++ = solution(x1, y);
+		//	}
+		//	// y1 boundary
+		//	for (i32 j = 0; j <= xSplit; j++)
+		//	{
+		//		f32 x = x0 + j * hx;
+
+		//		*ptr++ = solution(x, y1);
+		//	}
+
+		//	return data;
+		//}
+
+		static DataAabb2D create_dataAabb2D(const DomainAabb2D& domain)
 		{
 			auto& [x0, x1, y0, y1, hx, hy, xSplit, ySplit] = domain;
 
@@ -139,14 +181,14 @@ namespace dir2d
 			{
 				f32 x = x0 + j * hx;
 
-				*ptr++ = solution(x, y0);
+				*ptr++ = std::exp(-x * x - y0 * y0);
 			}
 			for (i32 i = 1; i < ySplit; i++)
 			{
 				f32 y = y0 + i * hy;
 
 				// x0 boundary
-				*ptr++ = solution(x0, y);
+				*ptr++ = std::exp(-x0 * x0 - y * y);
 				for (i32 j = 1; j < xSplit; j++)
 				{
 					f32 x = x0 + j * hx;
@@ -156,14 +198,14 @@ namespace dir2d
 					*ptr++ = 0.0;
 				}
 				// x1 boundary
-				*ptr++ = solution(x1, y);
+				*ptr++ = std::exp(-x1 * x1 - y * y);
 			}
 			// y1 boundary
 			for (i32 j = 0; j <= xSplit; j++)
 			{
 				f32 x = x0 + j * hx;
 
-				*ptr++ = solution(x, y1);
+				*ptr++ = std::exp(-x * x - y1 * y1);
 			}
 
 			return data;
@@ -278,7 +320,7 @@ namespace dir2d
 
 
 		// NOTE : general scheme, preset -> update -> some post action(no post action here)
-		void preset()
+		void setup()
 		{
 			glUseProgram(m_program.id);
 		}
