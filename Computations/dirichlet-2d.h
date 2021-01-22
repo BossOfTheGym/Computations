@@ -61,6 +61,45 @@ namespace dir2d
 	};
 
 
+	class MeasureTime
+	{
+	public:
+		struct TimeQuery
+		{
+			res::Query query{};
+			GLuint64 dt{};
+		};
+
+
+	public:
+		void addTimeQuery(Handle handle)
+		{
+			m_timeQueries.add(handle);
+
+			auto& query = m_timeQueries.get(handle);
+			assert(res::try_create_query(query.query));
+		}
+
+		void removeTimeQuery(Handle handle)
+		{
+			m_timeQueries.remove(handle);
+		}
+
+		TimeQuery& getTimeQuery(Handle handle)
+		{
+			return m_timeQueries.get(handle);
+		}
+
+		bool hasTimeQuery(Handle handle)
+		{
+			return m_timeQueries.has(handle);
+		}
+
+
+	private:
+		Storage<TimeQuery> m_timeQueries;
+	};
+
 	template<i32 WORKGROUP_X_VAR, i32 WORKGROUP_Y_VAR>
 	class BasicMethod
 	{
@@ -152,7 +191,8 @@ namespace dir2d
 		HandlePool m_handlePool;
 	};
 
-	class Jacoby : public BasicMethod<16, 16>
+	// TODO : MeasureTime should inherit from Method, add method for updating distinct data units
+	class Jacoby : public BasicMethod<16, 16>, public MeasureTime
 	{
 	public:
 		static constexpr const i32 IMG_PREV = 0;
@@ -173,6 +213,7 @@ namespace dir2d
 			GLuint xNumGroups{};
 			GLuint yNumGroups{};
 		};		
+
 
 		using UnderlyingType = BasicMethod<16, 16>;
 
@@ -244,8 +285,20 @@ namespace dir2d
 
 		void update()
 		{
-			for (auto& data : m_dataStorage)
+			for (auto handle : m_dataStorage)
 			{
+				auto& data = get(handle);
+
+				bool hasQuery = hasTimeQuery(handle);
+				if (hasQuery)
+				{
+					auto& query = getTimeQuery(handle);
+
+					glGetQueryObjectui64v(query.query.id, GL_QUERY_RESULT, &query.dt);
+
+					glBeginQuery(GL_TIME_ELAPSED, query.query.id);
+				}
+
 				glBindImageTexture(IMG_PREV, data.iteration[data.prev].id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
 				glBindImageTexture(IMG_NEXT, data.iteration[data.next].id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
 
@@ -263,6 +316,11 @@ namespace dir2d
 					glDispatchCompute(data.xNumGroups, data.yNumGroups, 1);
 
 					std::swap(data.prev, data.next);
+				}
+
+				if (hasQuery)
+				{
+					glEndQuery(GL_TIME_ELAPSED);
 				}
 			}
 		}
@@ -301,12 +359,13 @@ namespace dir2d
 
 
 	private:
-		res::ShaderProgram m_program;
-		Uniforms           m_uniforms;
-		Storage<Data>      m_dataStorage;
+		res::ShaderProgram  m_program;
+		Uniforms            m_uniforms;
+		Storage<Data>       m_dataStorage;
+		Storage<res::Query> m_timeQueries;
 	};
 
-	class RedBlack : public BasicMethod<16, 16>
+	class RedBlack : public BasicMethod<16, 16>, public MeasureTime
 	{
 	public:
 		static constexpr const i32 IMG = 0;
@@ -346,7 +405,7 @@ namespace dir2d
 
 		using UnderlyingType = BasicMethod<16, 16>;
 
-	private:
+	protected:
 		struct Uniforms
 		{
 			void getLocations(const res::ShaderProgram& redBlackProgram)
@@ -379,7 +438,6 @@ namespace dir2d
 			i32 xVar = domain.xSplit + 1;
 			i32 yVar = domain.ySplit + 1;
 
-			Data data{};
 			data.domain = domain;
 			data.iteration = res::create_texture(xVar, yVar, GL_R32F); glTextureSubImage2D(data.iteration.id, 0, 0, 0, xVar, yVar, GL_RED, GL_FLOAT, data2D.get());
 			data.w = compute_optimal_w(domain.hx, domain.hy, domain.xSplit, domain.ySplit);
@@ -394,7 +452,7 @@ namespace dir2d
 		void setupProgram(res::ShaderProgram&& program)
 		{
 			m_program = std::move(program);
-			m_uniforms.getLocations(program);
+			m_uniforms.getLocations(m_program);
 		}
 
 		bool programValid() const
@@ -411,8 +469,20 @@ namespace dir2d
 
 		void update()
 		{
-			for (auto& data : m_dataStorage)
+			for (auto& handle : m_dataStorage)
 			{
+				auto& data = get(handle);
+
+				bool hasQuery = hasTimeQuery(handle);
+				if (hasQuery)
+				{
+					auto& query = getTimeQuery(handle);
+
+					glGetQueryObjectui64v(query.query.id, GL_QUERY_RESULT, &query.dt);
+
+					glBeginQuery(GL_TIME_ELAPSED, query.query.id);
+				}
+
 				glBindImageTexture(IMG, data.iteration.id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
 
 				glUniform1f(m_uniforms.w, data.w);
@@ -428,6 +498,11 @@ namespace dir2d
 
 					glUniform1i(m_uniforms.rb, 1);
 					glDispatchCompute(data.xNumGroups, data.yNumGroups, 1);
+				}
+
+				if (hasQuery)
+				{
+					glEndQuery(GL_TIME_ELAPSED);
 				}
 			}
 		}
@@ -465,7 +540,7 @@ namespace dir2d
 		}
 
 
-	private:
+	protected:
 		res::ShaderProgram m_program{};
 		Uniforms           m_uniforms{};
 		Storage<Data>      m_dataStorage;
@@ -476,8 +551,9 @@ namespace dir2d
 	// TODO : HUGE TODO SECTION
 	// TODO
 	// red-red-black-black
-	struct MirroredRedBlack
+	class MirroredRedBlack : public BasicMethod<16, 16>, public MeasureTime
 	{
+	public:
 		struct Data
 		{};
 	};
