@@ -4,6 +4,9 @@
 
 #include <vector>
 
+// TODO : test iterator
+// TODO : emplace_back & push_back, learn the difference
+// TODO : implement emplace 
 template<class Type>
 class Storage
 {

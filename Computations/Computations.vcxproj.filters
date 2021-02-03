@@ -54,6 +54,12 @@
     <ClCompile Include="main-window.cpp">
       <Filter>main\sources</Filter>
     </ClCompile>
+    <ClCompile Include="graphics-res.cpp">
+      <Filter>gl-cxx\sources</Filter>
+    </ClCompile>
+    <ClCompile Include="graphics-res-util.cpp">
+      <Filter>gl-cxx\sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="glfw-cxx\glfw3.h">

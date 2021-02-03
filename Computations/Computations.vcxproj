@@ -147,6 +147,8 @@
   <ItemGroup>
     <ClCompile Include="glfw-cxx\sources\glfw3.cpp" />
     <ClCompile Include="glfw-cxx\sources\opengl-loader.cpp" />
+    <ClCompile Include="graphics-res-util.cpp" />
+    <ClCompile Include="graphics-res.cpp" />
     <ClCompile Include="main-window.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>

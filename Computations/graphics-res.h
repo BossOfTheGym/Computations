@@ -2,9 +2,7 @@
 
 #include <algorithm>
 
-// TODO : remove
 #include "gl-header.h"
-
 
 namespace res
 {
@@ -17,24 +15,11 @@ namespace res
 	{		
 		Shader() = default;
 
-		~Shader()
-		{
-			reset();
-		}
+		~Shader();
 
-		Shader(Shader&& another) noexcept
-		{
-			*this = std::move(another);
-		}
+		Shader(Shader&& another);
 
-		Shader& operator = (Shader&& another) noexcept
-		{
-			reset();
-
-			id = another.id; another.id = null;
-
-			return *this;
-		}
+		Shader& operator = (Shader&& another);
 
 		Shader(const Shader&) = delete;
 
@@ -64,44 +49,20 @@ namespace res
 	{
 		ShaderProgram() = default;
 
-		~ShaderProgram()
-		{
-			reset();
-		}
+		~ShaderProgram();
 
-		ShaderProgram(ShaderProgram&& another) noexcept
-		{
-			*this = std::move(another);
-		}
+		ShaderProgram(ShaderProgram&& another);
 
-		ShaderProgram& operator = (ShaderProgram&& another) noexcept
-		{
-			reset();
-
-			id = another.id; another.id = null;
-
-			return *this;
-		}
+		ShaderProgram& operator = (ShaderProgram&& another);
 
 		ShaderProgram(const ShaderProgram&) = delete;
 
 		ShaderProgram& operator = (const ShaderProgram&) = delete;
 
 
-		void reset()
-		{
-			if (id != null)
-			{
-				glDeleteProgram(id);
+		void reset();
 
-				id = null;
-			}
-		}
-
-		bool valid() const
-		{
-			return id != null;
-		}
+		bool valid() const;
 
 
 		Id id{null};
@@ -111,44 +72,20 @@ namespace res
 	{
 		Buffer() = default;
 
-		~Buffer()
-		{
-			reset();
-		}
+		~Buffer();
 
-		Buffer(Buffer&& another) noexcept
-		{
-			*this = std::move(another);
-		}
+		Buffer(Buffer&& another);
 
-		Buffer& operator = (Buffer&& another) noexcept
-		{
-			reset();
-
-			id = another.id; another.id = null;
-
-			return *this;
-		}
+		Buffer& operator = (Buffer&& another);
 
 		Buffer(const Buffer&) = delete;
 
 		Buffer& operator = (const Buffer&) = delete;
 
 
-		void reset()
-		{
-			if (id != null)
-			{
-				glDeleteBuffers(1, &id);
+		void reset();
 
-				id = null;
-			}	
-		}
-
-		bool valid() const
-		{
-			return id != null;
-		}
+		bool valid() const;
 
 
 		Id id{null};
@@ -158,24 +95,11 @@ namespace res
 	{
 		VertexArray() = default;
 
-		~VertexArray()
-		{
-			reset();
-		}
+		~VertexArray();
 
-		VertexArray(VertexArray&& another) noexcept
-		{
-			*this = std::move(another);
-		}
+		VertexArray(VertexArray&& another);
 
-		VertexArray& operator = (VertexArray&& another) noexcept
-		{
-			reset();
-
-			id = another.id; another.id = null;
-
-			return *this;
-		}
+		VertexArray& operator = (VertexArray&& another);
 
 		VertexArray(const VertexArray&) = delete;
 
@@ -205,44 +129,20 @@ namespace res
 	{
 		Texture() = default;
 
-		~Texture()
-		{
-			reset();
-		}
+		~Texture();
 
-		Texture(Texture&& another) noexcept
-		{
-			*this = std::move(another);
-		}
+		Texture(Texture&& another);
 
-		Texture& operator = (Texture&& another) noexcept
-		{
-			reset();
-
-			id = another.id; another.id = null;
-
-			return *this;
-		}
+		Texture& operator = (Texture&& another);
 
 		Texture(const Texture&) = delete;
 
 		Texture& operator = (const Texture&) = delete;
 
 
-		void reset()
-		{
-			if (id != null)
-			{
-				glDeleteTextures(1, &id);
+		void reset();
 
-				id = null;
-			}
-		}
-
-		bool valid() const
-		{
-			return id != null;
-		}
+		bool valid() const;
 
 
 		Id id{null};

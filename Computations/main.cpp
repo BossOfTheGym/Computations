@@ -20,8 +20,8 @@ int main()
 
 
 	// window
-	const int WIDTH = 1024;
 	const int HEIGHT = 512;
+	const int WIDTH = 2 * HEIGHT;
 
 	glfw::CreationInfo info;
 	info.width = WIDTH;
@@ -151,7 +151,7 @@ int main()
 	{
 		auto domain = dir2d::Jacoby::create_domainAabb2D(-1.1, +1.1, -1.1, +1.1, 511, 511);
 		auto data   = dir2d::Jacoby::create_dataAabb2D(domain);
-		jacobyHandle = jacobyMethod.create(domain, data, 16);
+		jacobyHandle = jacobyMethod.create(domain, data, 4);
 	}
 
 	dir2d::RedBlack redBlackMethod;
@@ -168,7 +168,7 @@ int main()
 	{
 		auto domain = dir2d::RedBlack::create_domainAabb2D(-1.1, +1.1, -1.1, +1.1, 511, 511);
 		auto data   = dir2d::RedBlack::create_dataAabb2D(domain);
-		redBlackHandle = redBlackMethod.create(domain, data, 8);
+		redBlackHandle = redBlackMethod.create(domain, data, 2);
 	}
 
 	// mainloop
@@ -196,6 +196,7 @@ int main()
 
 		glBindVertexArray(array.id);
 
+		// TODO : move to sampler, use static polymorphism
 		glViewport(0, 0, WIDTH / 2, HEIGHT);
 		{
 			auto& data = jacobyMethod.get(jacobyHandle);
@@ -203,6 +204,7 @@ int main()
 		}
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
+		// TODO : move to sampler, use static polymorphism
 		glViewport(WIDTH / 2, 0, WIDTH / 2, HEIGHT);
 		{
 			auto& data = redBlackMethod.get(redBlackHandle);
