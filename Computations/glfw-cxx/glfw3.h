@@ -18,8 +18,7 @@ struct GLFWmonitor;
 namespace glfw
 {
 	// TODO : add missing
-	// TODO : split to several enums according to values hint-value can have
-	enum Hint : int
+	enum class Hint : int
 	{
 		  Resizable    = GLFW_RESIZABLE
 		, Visible      = GLFW_VISIBLE
@@ -64,7 +63,7 @@ namespace glfw
 		, OpenGlProfile          = GLFW_OPENGL_PROFILE
 	};
 
-	enum HintValues : int
+	enum class HintValues : int
 	{
 		  DontCare = GLFW_DONT_CARE
 
@@ -195,7 +194,6 @@ namespace glfw
 
 	public:
 		// TODO : monitor
-		// TODO : window share
 
 		// creates empty window
 		Window();
@@ -303,6 +301,8 @@ namespace glfw
 
 		bool transparent() const;
 
+		bool fullscreen() const;
+
 
 	public: // properties(set)
 		void title(const std::string& newTitle);
@@ -319,7 +319,6 @@ namespace glfw
 
 		void clientAPI();
 
-		bool fullscreen() const;
 
 
 	public: // events
@@ -335,7 +334,7 @@ namespace glfw
 
 		virtual void scrollEvent(double xOffset, double yOffset);
 
-		virtual void dropEvent( int pathCount, const char* paths[]);
+		virtual void dropEvent(int pathCount, const char* paths[]);
 
 
 		virtual void closeEvent();
@@ -401,7 +400,10 @@ namespace glfw
 
 	Error get_error();
 
-	// TODO : decide what to to with error callback
+	// pointer to void(*)(int, const char*)
+	using ErrorCallback = GLFWerrorfun;
+
+	void set_error_callback(ErrorCallback callback);
 
 
 	// time input

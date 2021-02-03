@@ -114,11 +114,11 @@ namespace glfw
 	{
 		for (auto& [hint, value] : info.intHints)
 		{
-			glfwWindowHint(hint, value);
+			glfwWindowHint((int)hint, (int)value);
 		}
 		for (auto& [hint, value] : info.strHints)
 		{
-			glfwWindowHintString(hint, value.c_str());
+			glfwWindowHintString((int)hint, value.c_str());
 		}
 
 		m_window = glfwCreateWindow(
@@ -416,6 +416,10 @@ namespace glfw
 		return glfwGetWindowAttrib(m_window, GLFW_TRANSPARENT_FRAMEBUFFER);
 	}
 
+	bool Window::fullscreen() const
+	{
+		return glfwGetWindowMonitor(m_window) != nullptr;
+	}
 
 	// properties (set)
 	void Window::title(const std::string& newTitle)
@@ -426,15 +430,12 @@ namespace glfw
 	void Window::aspectRatio(int width, int height)
 	{
 		glfwSetWindowAspectRatio(m_window, width, height);
-		//glfwSetWindowAspectRatio(m_window, GLFW_DONT_CARE, GLFW_DONT_CARE);
 	}
 
 	void Window::sizeLimits(int minWidth, int minHeight, int maxWidth, int maxHeight)
 	{
 		glfwSetWindowSizeLimits(m_window, minWidth, minHeight, maxWidth, maxHeight);
-		//glfwSetWindowSizeLimits(m_window, GLFW_DONT_CARE, GLFW_DONT_CARE, GLFW_DONT_CARE, GLFW_DONT_CARE);
 	}
-
 
 	// properties (TODO)
 	void Window::icon()
@@ -447,13 +448,12 @@ namespace glfw
 		// TODO
 	}
 
-	bool Window::fullscreen() const
+	void Window::clientAPI()
 	{
-		return glfwGetWindowMonitor(m_window) != nullptr;
+		// TODO
 	}
 
-
-	// empty callback handlers
+	// empty callbacks
 	void Window::keyPressEvent(int key, int scancode, int action, int mods)
 	{}
 
@@ -556,6 +556,11 @@ namespace glfw
 		int errorCode = glfwGetError(&errorMsg);
 
 		return Error{errorCode, errorMsg};
+	}
+
+	void set_error_callback(ErrorCallback callback)
+	{
+		glfwSetErrorCallback(callback);
 	}
 
 
