@@ -4,6 +4,7 @@
 #include "graphics-res.h"
 
 #include <string>
+#include <iostream>
 #include <filesystem>
 
 namespace res

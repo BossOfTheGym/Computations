@@ -92,6 +92,12 @@
     <ClInclude Include="main-window.h">
       <Filter>main\headers</Filter>
     </ClInclude>
+    <ClInclude Include="app.h">
+      <Filter>main\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="app-system.h">
+      <Filter>main\headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\quad.frag">

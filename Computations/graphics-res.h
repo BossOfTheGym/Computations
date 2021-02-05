@@ -9,37 +9,25 @@ namespace res
 	using Id = GLuint;
 
 	constexpr const Id null = 0u; 
+	constexpr const Id default_framebuffer = null;
 
 
 	struct Shader
 	{		
 		Shader() = default;
 
-		~Shader();
-
-		Shader(Shader&& another);
-
-		Shader& operator = (Shader&& another);
-
+		Shader(Shader&& another) noexcept;
 		Shader(const Shader&) = delete;
 
+		Shader& operator = (Shader&& another) noexcept;
 		Shader& operator = (const Shader&) = delete;
 
+		~Shader();
 
-		void reset()
-		{
-			if (id != null)
-			{
-				glDeleteShader(id);
 
-				id = null;
-			}
-		}
+		void reset();
 
-		bool valid() const
-		{
-			return id != null;
-		}
+		bool valid() const;
 
 
 		Id id{null};
@@ -49,15 +37,13 @@ namespace res
 	{
 		ShaderProgram() = default;
 
-		~ShaderProgram();
-
-		ShaderProgram(ShaderProgram&& another);
-
-		ShaderProgram& operator = (ShaderProgram&& another);
-
+		ShaderProgram(ShaderProgram&& another) noexcept;
 		ShaderProgram(const ShaderProgram&) = delete;
 
+		ShaderProgram& operator = (ShaderProgram&& another) noexcept;
 		ShaderProgram& operator = (const ShaderProgram&) = delete;
+
+		~ShaderProgram();
 
 
 		void reset();
@@ -72,15 +58,13 @@ namespace res
 	{
 		Buffer() = default;
 
-		~Buffer();
-
-		Buffer(Buffer&& another);
-
-		Buffer& operator = (Buffer&& another);
-
+		Buffer(Buffer&& another) noexcept;
 		Buffer(const Buffer&) = delete;
 
+		Buffer& operator = (Buffer&& another) noexcept;
 		Buffer& operator = (const Buffer&) = delete;
+
+		~Buffer();
 
 
 		void reset();
@@ -95,31 +79,18 @@ namespace res
 	{
 		VertexArray() = default;
 
-		~VertexArray();
-
-		VertexArray(VertexArray&& another);
-
-		VertexArray& operator = (VertexArray&& another);
-
+		VertexArray(VertexArray&& another) noexcept;
 		VertexArray(const VertexArray&) = delete;
 
+		VertexArray& operator = (VertexArray&& another) noexcept;
 		VertexArray& operator = (const VertexArray&) = delete;
 
+		~VertexArray();
 
-		void reset()
-		{
-			if (id != null)
-			{
-				glDeleteVertexArrays(1, &id);
 
-				id = null;
-			}
-		}
+		void reset();
 
-		bool valid() const
-		{
-			return id != null;
-		}
+		bool valid() const;
 
 
 		Id id{null};
@@ -129,15 +100,13 @@ namespace res
 	{
 		Texture() = default;
 
-		~Texture();
-
-		Texture(Texture&& another);
-
-		Texture& operator = (Texture&& another);
-
+		Texture(Texture&& another) noexcept;
 		Texture(const Texture&) = delete;
 
+		Texture& operator = (Texture&& another) noexcept;
 		Texture& operator = (const Texture&) = delete;
+
+		~Texture();
 
 
 		void reset();
@@ -152,44 +121,18 @@ namespace res
 	{
 		Query() = default;
 
-		Query(Query&& another) noexcept
-		{
-			*this = std::move(another);
-		}
-
-		~Query()
-		{
-			reset();
-		}
-
-		Query& operator = (Query&& another) noexcept
-		{
-			reset();
-
-			id = another.id; another.id = null;
-
-			return *this;
-		}
-
+		Query(Query&& another) noexcept;
 		Query(const Query&) = delete;
 
+		Query& operator = (Query&& another) noexcept;
 		Query& operator = (const Query&) = delete;
 
+		~Query();
 
-		void reset()
-		{
-			if (id != null)
-			{
-				glDeleteQueries(1, &id);
 
-				id = null;
-			}
-		}
+		void reset();
 
-		bool valid() const
-		{
-			return id != null;
-		}
+		bool valid() const;
 
 
 		Id id{null};

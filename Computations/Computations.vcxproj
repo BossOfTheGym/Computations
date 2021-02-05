@@ -153,6 +153,8 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="app-system.h" />
+    <ClInclude Include="app.h" />
     <ClInclude Include="dirichlet-2d.h" />
     <ClInclude Include="gl-header.h" />
     <ClInclude Include="glfw-cxx\glfw3.h" />
