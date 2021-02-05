@@ -2,11 +2,11 @@
 
 #include "handle.h"
 
+#include <utility>
+#include <type_traits>
 #include <vector>
 
 // TODO : test iterator
-// TODO : emplace_back & push_back, learn the difference
-// TODO : implement emplace 
 template<class Type>
 class Storage
 {
@@ -161,8 +161,6 @@ private:
 		}
 	}
 
-
-public:
 	void add(Handle handle)
 	{
 		assert(handle != null && !has(handle));
@@ -172,11 +170,11 @@ public:
 		{
 			m_sparse[handle] = m_packed.size();
 			m_packed.push_back(handle);
-
-			m_objects.emplace_back();
 		}			
 	}
 
+
+public:
 	bool has(Handle handle) const
 	{
 		return handle < m_sparse.size() && m_sparse[handle] != null;
@@ -200,7 +198,16 @@ public:
 	template<class ... Args>
 	void emplace(Handle handle, Args&& ... args)
 	{
-		// TODO : aggregate and not aggregate
+		add(handle);
+
+		if constexpr(std::is_aggregate_v<Type>)
+		{
+			m_objects.emplace_back(std::forward<Args>(args)...);
+		}
+		else
+		{
+			m_objects.push_back(Type(std::forward<Args>(args)...));
+		}
 	}
 
 	Type& get(Handle handle)
