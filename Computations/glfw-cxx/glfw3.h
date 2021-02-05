@@ -63,7 +63,7 @@ namespace glfw
 		, OpenGlProfile          = GLFW_OPENGL_PROFILE
 	};
 
-	enum class HintValues : int
+	enum class Value : int
 	{
 		  DontCare = GLFW_DONT_CARE
 
