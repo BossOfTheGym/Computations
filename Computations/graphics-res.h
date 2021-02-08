@@ -1,11 +1,10 @@
 #pragma once
 
-#include <algorithm>
-
 #include "gl-header.h"
 
 namespace res
 {
+	// Note: do not self-move-assign resources!!!
 	using Id = GLuint;
 
 	constexpr const Id null = 0u; 

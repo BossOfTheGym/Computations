@@ -1,17 +1,16 @@
 #include "graphics-res.h"
 
+#include <utility>
 
 namespace res
 {
 	// Shader
+	Shader::Shader(Shader&& another) noexcept : id{std::exchange(another.id, null)}
+	{}
+
 	Shader::~Shader()
 	{
 		reset();
-	}
-
-	Shader::Shader(Shader&& another) noexcept
-	{
-		*this = std::move(another);
 	}
 
 	Shader& Shader::operator = (Shader&& another) noexcept
@@ -40,14 +39,12 @@ namespace res
 
 
 	// ShaderProgram
+	ShaderProgram::ShaderProgram(ShaderProgram&& another) noexcept : id{std::exchange(another.id, null)}
+	{}
+
 	ShaderProgram::~ShaderProgram()
 	{
 		reset();
-	}
-
-	ShaderProgram::ShaderProgram(ShaderProgram&& another) noexcept
-	{
-		*this = std::move(another);
 	}
 
 	ShaderProgram& ShaderProgram::operator = (ShaderProgram&& another) noexcept
@@ -76,14 +73,12 @@ namespace res
 
 
 	// Buffer
+	Buffer::Buffer(Buffer&& another) noexcept : id{std::exchange(another.id, null)}
+	{}
+
 	Buffer::~Buffer()
 	{
 		reset();
-	}
-
-	Buffer::Buffer(Buffer&& another) noexcept
-	{
-		*this = std::move(another);
 	}
 
 	Buffer& Buffer::operator = (Buffer&& another) noexcept
@@ -112,14 +107,12 @@ namespace res
 
 
 	// VertexArray
+	VertexArray::VertexArray(VertexArray&& another) noexcept : id{std::exchange(another.id, null)}
+	{}
+
 	VertexArray::~VertexArray()
 	{
 		reset();
-	}
-
-	VertexArray::VertexArray(VertexArray&& another) noexcept
-	{
-		*this = std::move(another);
 	}
 
 	VertexArray& VertexArray::operator = (VertexArray&& another) noexcept
@@ -148,14 +141,12 @@ namespace res
 
 
 	// Texture
+	Texture::Texture(Texture&& another) noexcept : id{std::exchange(another.id, null)}
+	{}
+
 	Texture::~Texture()
 	{
 		reset();
-	}
-
-	Texture::Texture(Texture&& another) noexcept
-	{
-		*this = std::move(another);
 	}
 
 	Texture& Texture::operator = (Texture&& another) noexcept
@@ -184,10 +175,8 @@ namespace res
 
 
 	// Query
-	Query::Query(Query&& another) noexcept
-	{
-		*this = std::move(another);
-	}
+	Query::Query(Query&& another) noexcept : id{std::exchange(another.id, null)}
+	{}
 
 	Query::~Query()
 	{
