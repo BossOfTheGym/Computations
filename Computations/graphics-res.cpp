@@ -15,6 +15,11 @@ namespace res
 
 	Shader& Shader::operator = (Shader&& another) noexcept
 	{
+		if (this == &another)
+		{
+			return *this;
+		}
+
 		reset();
 
 		id = another.id; another.id = null;
@@ -49,6 +54,11 @@ namespace res
 
 	ShaderProgram& ShaderProgram::operator = (ShaderProgram&& another) noexcept
 	{
+		if (this == &another)
+		{
+			return *this;
+		}
+
 		reset();
 
 		id = another.id; another.id = null;
@@ -83,6 +93,11 @@ namespace res
 
 	Buffer& Buffer::operator = (Buffer&& another) noexcept
 	{
+		if (this == &another)
+		{
+			return *this;
+		}
+
 		reset();
 
 		id = another.id; another.id = null;
@@ -117,6 +132,11 @@ namespace res
 
 	VertexArray& VertexArray::operator = (VertexArray&& another) noexcept
 	{
+		if (this == &another)
+		{
+			return *this;
+		}
+
 		reset();
 
 		id = another.id; another.id = null;
@@ -151,6 +171,11 @@ namespace res
 
 	Texture& Texture::operator = (Texture&& another) noexcept
 	{
+		if (this == &another)
+		{
+			return *this;
+		}
+
 		reset();
 
 		id = another.id; another.id = null;
@@ -185,6 +210,11 @@ namespace res
 
 	Query& Query::operator = (Query&& another) noexcept
 	{
+		if (this == &another)
+		{
+			return *this;
+		}
+
 		reset();
 
 		id = another.id; another.id = null;
