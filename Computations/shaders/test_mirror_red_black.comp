@@ -6,7 +6,7 @@
 
 #define CACHE_X (WORKGROUP_X + 2)
 #define CACHE_Y (WORKGROUP_Y + 2)
-#define CACHE_SIZE (CACHE_X * CACHE_Y) 
+#define CACHE_SIZE (CACHE_X * CACHE_Y)
 
 layout(local_size_x = WORKGROUP_X, local_size_y = WORKGROUP_Y, local_size_z = WORKGROUP_Z) in;
 
@@ -102,9 +102,10 @@ void main()
 		float hyhy = hy * hy;
 		float H = -2.0 / hxhx - 2.0 / hyhy;
 		float u = f(ij) / H - (uijp1 + uijm1) / (hxhx * H) - (uip1j + uim1j) / (hyhy * H);
-		u = (1.0 - w) * uij + w * u;
+		uij = (1.0 - w) * uij + w * u;
+		uij = (1.0 - w) * uij + w * u;
 
-		imageStore(solution, ij, vec4(u));
+		imageStore(solution, ij, vec4(uij));
 	}
 
 	memoryBarrierImage();
