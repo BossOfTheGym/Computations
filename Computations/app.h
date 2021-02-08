@@ -22,7 +22,7 @@ namespace app
 	{
 	public:
 		static constexpr int HEIGHT = 512;
-		static constexpr int WIDTH = 2 * HEIGHT;
+		static constexpr int WIDTH = 3 * HEIGHT;
 
 		static inline std::string NAME = "computations";
 
@@ -49,19 +49,20 @@ namespace app
 		void mainloop()
 		{
 			// *TEST*
-			Handle jacobyHandle{null};
+			dir2d::SmartHandle jacobyHandle[2];
 			{
 				auto data = dir2d::JacobyMethod::create_dataAabb2D(-1.2, +1.2, -1.2, +1.2, 511, 511);
 
-				jacobyHandle = m_jacobySystem->create(data, 16);
+				jacobyHandle[0] = m_jacobySystem->createSmart(data, 16);
+				jacobyHandle[1] = m_jacobySystem->createSmart(data, 16);
 			}
 
 			// *TEST*
-			Handle redBlackHandle{null};
+			dir2d::SmartHandle redBlackHandle;
 			{
 				auto data = dir2d::RedBlackMethod::create_dataAabb2D(-1.2, +1.2, -1.2, +1.2, 511, 511);
 
-				redBlackHandle = m_redBlackSystem->create(data, 2);
+				redBlackHandle = m_redBlackSystem->createSmart(data, 1);
 			}
 
 			// mainloop
@@ -77,6 +78,9 @@ namespace app
 				m_redBlackSystem->setup();
 				m_redBlackSystem->update();
 
+				m_mirroredRedBlackSystem->setup();
+				m_mirroredRedBlackSystem->update();
+
 				// rendering
 				glClearColor(1.0, 0.5, 0.2, 1.0);
 				glClearDepth(1.0);
@@ -89,21 +93,18 @@ namespace app
 				glBindVertexArray(m_array.id);
 
 				// *TEST*
-				glViewport(0, 0, WIDTH / 2, HEIGHT);
-				{
-					auto& data = m_jacobySystem->get(jacobyHandle);
-
-					glBindTextureUnit(0, data.iteration[data.prev].id);
-				}
+				glViewport(0, 0, WIDTH / 3, HEIGHT);
+				glBindTextureUnit(0, jacobyHandle[0].textureId());
 				glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 				// *TEST*
-				glViewport(WIDTH / 2, 0, WIDTH / 2, HEIGHT);
-				{
-					auto& data = m_redBlackSystem->get(redBlackHandle);
+				glViewport(WIDTH / 3, 0, WIDTH / 3, HEIGHT);
+				glBindTextureUnit(0, redBlackHandle.textureId());
+				glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-					glBindTextureUnit(0, data.iteration.id);
-				}
+				// *TEST*
+				glViewport(2 * WIDTH / 3, 0, WIDTH / 3, HEIGHT);
+				glBindTextureUnit(0, jacobyHandle[1].textureId());
 				glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 				// swap
@@ -203,7 +204,7 @@ namespace app
 			}
 			std::cout << "\"test_compute.comp\" shader created." << std::endl;
 
-			if (!try_create_shader_from_file(m_testJacoby, GL_COMPUTE_SHADER, "shaders/test_jacoby.comp"))
+			if (!try_create_shader_from_file(m_jacoby, GL_COMPUTE_SHADER, "shaders/test_jacoby.comp"))
 			{	
 				std::cerr << "Failed to load \"test_jacoby.comp\" ." << std::endl;
 
@@ -211,13 +212,21 @@ namespace app
 			}
 			std::cout << "\"test_jacoby.comp\" shader created." << std::endl;
 
-			if (!try_create_shader_from_file(m_testRedBlack, GL_COMPUTE_SHADER, "shaders/test_red_black.comp"))
+			if (!try_create_shader_from_file(m_redBlack, GL_COMPUTE_SHADER, "shaders/test_red_black.comp"))
 			{	
 				std::cerr << "Failed to load \"test_red_black.comp\" ." << std::endl;
 
 				return false;
 			}
 			std::cout << "\"test_red_black.comp\" shader created." << std::endl;
+
+			if (!try_create_shader_from_file(m_mirroredRedBlack, GL_COMPUTE_SHADER, "shaders/test_mirror_red_black.comp"))
+			{	
+				std::cerr << "Failed to load \"test_mirror_red_black.comp\" ." << std::endl;
+
+				return false;
+			}
+			std::cout << "\"test_mirror_red_black.comp\" shader created." << std::endl;
 
 			// shader programs
 			if (!try_create_shader_program(m_showProgram, m_quadVert, m_quadFrag))
@@ -228,7 +237,7 @@ namespace app
 			}
 			std::cout << "\"showProgram\" program created." << std::endl;
 
-			if (!try_create_shader_program(m_computeProgram, m_testCompute))
+			if (!try_create_shader_program(m_testComputeProgram, m_testCompute))
 			{
 				std::cerr << "Failed to create \"computeProgram\" program." << std::endl;
 
@@ -236,7 +245,7 @@ namespace app
 			}
 			std::cout << "\"computeProgram\" program created." << std::endl;
 
-			if (!try_create_shader_program(m_jacobyProgram, m_testJacoby))
+			if (!try_create_shader_program(m_jacobyProgram, m_jacoby))
 			{
 				std::cerr << "Failed to create \"jacobyProgram\" program." << std::endl;
 
@@ -244,13 +253,21 @@ namespace app
 			}
 			std::cout << "\"jacobyProgram\" program created." << std::endl;
 
-			if (!try_create_shader_program(m_redBlackProgram, m_testRedBlack))
+			if (!try_create_shader_program(m_redBlackProgram, m_redBlack))
 			{
 				std::cerr << "Failed to create \"redBlackProgram\" program." << std::endl;
 
 				return false;
 			}
 			std::cout << "\"redBlackProgram\" program created." << std::endl;
+
+			if (!try_create_shader_program(m_mirroredRedBlackProgram, m_mirroredRedBlack))
+			{
+				std::cerr << "Failed to create \"mirroredRedBlackProgram\" program." << std::endl;
+
+				return false;
+			}
+			std::cout << "\"mirroredRedBlackProgram\" program created." << std::endl;
 
 			// test texture
 			if (!try_create_test_texture(m_texture, WIDTH, HEIGHT))
@@ -277,13 +294,15 @@ namespace app
 
 			m_texture.reset();
 
+			m_mirroredRedBlackProgram.reset();
 			m_redBlackProgram.reset();
 			m_jacobyProgram.reset();
 			m_showProgram.reset();
-			m_computeProgram.reset();
+			m_testComputeProgram.reset();
 
-			m_testRedBlack.reset();
-			m_testJacoby.reset();
+			m_mirroredRedBlack.reset();
+			m_redBlack.reset();
+			m_jacoby.reset();
 			m_testCompute.reset();
 			m_quadFrag.reset();
 			m_quadVert.reset();
@@ -294,7 +313,7 @@ namespace app
 			m_jacobySystem.reset(new dir2d::JacobyMethod(*this, std::move(m_jacobyProgram)));
 			if (m_jacobySystem == nullptr || !m_jacobySystem->programValid())
 			{
-				std::cerr << "Failed to initialize Jacoby system" << std::endl;
+				std::cerr << "Failed to initialize jacoby system" << std::endl;
 
 				return false;
 			}
@@ -302,7 +321,15 @@ namespace app
 			m_redBlackSystem.reset(new dir2d::RedBlackMethod(*this, std::move(m_redBlackProgram)));
 			if (m_redBlackSystem == nullptr || !m_redBlackSystem->programValid())
 			{
-				std::cerr << "Failed to initialize Red-black system" << std::endl;
+				std::cerr << "Failed to initialize red-black system" << std::endl;
+
+				return false;
+			}
+
+			m_mirroredRedBlackSystem.reset(new dir2d::MirroredRedBlackMethod(*this, std::move(m_mirroredRedBlackProgram)));
+			if (m_mirroredRedBlackSystem == nullptr || !m_mirroredRedBlackSystem->programValid())
+			{
+				std::cerr << "Failed to initialize mirrored red-black system" << std::endl;
 
 				return false;
 			}
@@ -312,6 +339,8 @@ namespace app
 
 		void deinitSystems()
 		{
+			m_mirroredRedBlackSystem.reset();
+			m_redBlackSystem.reset();
 			m_jacobySystem.reset();
 		}
 
@@ -327,13 +356,15 @@ namespace app
 		res::Shader m_quadVert;
 		res::Shader m_quadFrag;
 		res::Shader m_testCompute;
-		res::Shader m_testJacoby;
-		res::Shader m_testRedBlack;
+		res::Shader m_jacoby;
+		res::Shader m_redBlack;
+		res::Shader m_mirroredRedBlack;
 
-		res::ShaderProgram m_computeProgram;
+		res::ShaderProgram m_testComputeProgram;
 		res::ShaderProgram m_showProgram;
 		res::ShaderProgram m_jacobyProgram;
 		res::ShaderProgram m_redBlackProgram;
+		res::ShaderProgram m_mirroredRedBlackProgram;
 
 		res::Texture m_texture;
 
@@ -347,5 +378,6 @@ namespace app
 		// SYSTEMS
 		std::unique_ptr<dir2d::JacobyMethod> m_jacobySystem;
 		std::unique_ptr<dir2d::RedBlackMethod> m_redBlackSystem;
+		std::unique_ptr<dir2d::MirroredRedBlackMethod> m_mirroredRedBlackSystem;
 	};
 }

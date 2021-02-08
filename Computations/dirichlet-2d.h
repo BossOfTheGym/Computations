@@ -19,6 +19,101 @@ namespace dir2d
 	// TODO : entt::storage
 	// TODO : indirect dispatch
 	// TODO : change create_dataaabb method, xSplit, and ySplit must be xVars, yVars: resulting extents of a texture
+	// TODO : some methods differ only by shader programs that are similar in sense that they have same data and same set of uniforms
+	//		and also same setup and update logic
+	// TODO : attach WORKGROUP consts to shaders
+
+	// smart handle, used to obtain 
+	class SmartHandle
+	{
+	private:
+		using DestroyFunc = void (*)(void*, Handle);
+		using ObtainFunc = res::Id (*)(void*, Handle);
+
+		template<class T>
+		friend class BasicMethod;
+
+		SmartHandle(Handle handle, void* instance, DestroyFunc destroy, ObtainFunc obtain)
+			: m_handle{handle}
+			, m_instance{instance}
+			, m_destroyFunc{destroy}
+			, m_obtainFunc{obtain}
+		{}
+
+	public:
+		SmartHandle() = default;
+
+		SmartHandle(const SmartHandle&) = delete;
+		SmartHandle& operator = (const SmartHandle&) = delete;
+
+		SmartHandle(SmartHandle&& another) noexcept
+			: m_handle{std::exchange(another.m_handle, null)}
+			, m_instance{std::exchange(another.m_instance, nullptr)}
+			, m_obtainFunc{std::exchange(another.m_obtainFunc, nullptr)}
+			, m_destroyFunc{std::exchange(another.m_destroyFunc, nullptr)}
+		{}
+
+		SmartHandle& operator = (SmartHandle&& another) noexcept
+		{
+			// TODO : let this self-assignment guard rest here for a while
+			if (this == &another)
+			{
+				return *this;
+			}
+
+			reset();
+
+			m_handle = std::exchange(another.m_handle, null);
+			m_instance = std::exchange(another.m_instance, nullptr);
+			m_destroyFunc = std::exchange(another.m_destroyFunc, nullptr);
+			m_obtainFunc = std::exchange(another.m_obtainFunc, nullptr);
+
+			return *this;
+		}
+
+		~SmartHandle()
+		{
+			reset();
+		}
+
+
+	public:
+		void reset()
+		{
+			if (!empty())
+			{
+				m_destroyFunc(m_instance, m_handle);
+
+				m_handle = null;
+				m_instance = nullptr;
+				m_destroyFunc = nullptr;
+				m_obtainFunc = nullptr;
+			}
+		}
+
+		bool empty() const
+		{
+			return m_handle == null;
+		}
+
+		Handle handle() const
+		{
+			return m_handle;
+		}
+
+		res::Id textureId() const
+		{
+			return m_obtainFunc(m_instance, m_handle);
+		}
+
+
+	private:
+		Handle m_handle{null};
+
+		void* m_instance{};
+		DestroyFunc m_destroyFunc{};
+		ObtainFunc m_obtainFunc{};
+	};
 
 	// Data accosiated with a given problem
 	// div(grad(u)) = f
@@ -140,7 +235,7 @@ namespace dir2d
 	// basic method, holds all neccessary data, manages required resources
 	// MethodTraits must have:
 	//  1. consts: WORKGROUP_X, WORKGROUP_Y
-	//  2. types: Data, Uniforms
+	//  2. types: Data(has textureId method), Uniforms(has getLocations method)
 	template<class MethodTraits>
 	class BasicMethod 
 		: public app::System
@@ -150,6 +245,16 @@ namespace dir2d
 	private:
 		using Data = typename MethodTraits::Data;
 		using Uniforms = typename MethodTraits::Uniforms;
+
+		static void destroy(void* instance, Handle handle)
+		{
+			static_cast<BasicMethod*>(instance)->destroy(handle);
+		}
+
+		static res::Id obtain(void* instance, Handle handle)
+		{
+			return static_cast<BasicMethod*>(instance)->textureId(handle);
+		}
 
 
 	public:
@@ -183,7 +288,12 @@ namespace dir2d
 			return handle;
 		}
 
-		// destroy
+		template<class ... Args>
+		SmartHandle createSmart(Args&& ... args)
+		{
+			return SmartHandle{create(std::forward<Args>(args)...), this, destroy, obtain};
+		}
+
 		void destroy(Handle handle)
 		{
 			m_dataStorage.remove(handle);
@@ -191,22 +301,27 @@ namespace dir2d
 			release(handle);
 		}
 
-		// valid
 		bool valid(Handle handle)
 		{
 			return m_dataStorage.has(handle);
 		}
 
-	//protected:
+		res::Id textureId(Handle handle)
+		{
+			return get(handle).textureId();
+		}
+
+	protected:
 		Data& get(Handle handle)
 		{
 			return m_dataStorage.get(handle);
 		}
 
+
 	protected:
-		res::ShaderProgram m_program;
-		Uniforms m_uniforms;
-		Storage<Data> m_dataStorage;
+		res::ShaderProgram m_program; // TODO : it is directly accessed by ancestor
+		Uniforms m_uniforms; // TODO : it is directly accessed by ancestor
+		Storage<Data> m_dataStorage; // TODO : it is directly accessed by ancestor
 	};
 
 
@@ -221,15 +336,12 @@ namespace dir2d
 
 	// traits specially for methods of jacoby family
 	template<i32 WORKGROUP_X, i32 WORKGROUP_Y>
-	class JacobyTraits : public WorkgroupTraits<WORKGROUP_X, WORKGROUP_Y>
+	struct JacobyTraits : WorkgroupTraits<WORKGROUP_X, WORKGROUP_Y>
 	{
-	private:
-		friend class BasicMethod<JacobyTraits>;
-		friend class JacobyMethod;
-
 		struct Data
 		{
 			Data() = default;
+
 			Data(const Data&) = delete; // implicitly deleted because of res::Texture
 			Data(Data&&) = default;
 
@@ -254,6 +366,13 @@ namespace dir2d
 				yNumGroups = yVars / WORKGROUP_Y;
 			}
 
+
+			res::Id textureId() const
+			{
+				return iteration[prev].id;
+			}
+
+		
 			DomainAabb2D domain{};
 
 			res::Texture iteration[2]{};
@@ -346,12 +465,8 @@ namespace dir2d
 
 	// traits specially for methods of red-black family
 	template<i32 WORKGROUP_X, i32 WORKGROUP_Y>
-	class RedBlackTraits : WorkgroupTraits<WORKGROUP_X, WORKGROUP_Y>
+	struct RedBlackTraits : WorkgroupTraits<WORKGROUP_X, WORKGROUP_Y>
 	{
-	private:
-		friend class RedBlackMethod;
-		friend class BasicMethod<RedBlackTraits>;
-
 		struct Data
 		{
 			static f32 compute_optimal_w(f32 hx, f32 hy, i32 xSplit, i32 ySplit)
@@ -396,6 +511,12 @@ namespace dir2d
 
 			Data& operator = (const Data&) = delete;
 			Data& operator = (Data&&) = default;
+
+
+			res::Id textureId() const
+			{
+				return iteration.id;
+			}
 
 
 			DomainAabb2D domain{};
@@ -455,7 +576,7 @@ namespace dir2d
 			glUseProgram(m_program.id);
 		}
 
-		// TODO : direct access to members of BasicMethod, protected access modifier is workaround. This needs to be fixed.
+		// TODO : direct access to members of BasicMethod, protected access modifier is a workaround. It needs to be fixed.
 		void update()
 		{
 			for (auto& handle : m_dataStorage)
@@ -479,6 +600,57 @@ namespace dir2d
 					glDispatchCompute(data.xNumGroups, data.yNumGroups, 1);
 				}
 			}
+		}
+	};
+
+
+	// traits, are same as RedBlackTraits
+	template<i32 WORKGROUP_X, i32 WORKGROUP_Y>
+	using MirroredRedBlackTraits = RedBlackTraits<WORKGROUP_X, WORKGROUP_Y>;
+
+	// mirrored(or leap-frog) red-black method impl, in fact is same as red-black except compute program
+	// it doesn't work
+	using MirroredRedBlackMethod = RedBlackMethod;
+
+
+	// traits for tiled method family
+	template<i32 WORKGROUP_X, i32 WORKGROUP_Y>
+	struct TiledRedBlack : WorkgroupTraits<WORKGROUP_X, WORKGROUP_Y>
+	{
+		struct Data
+		{
+			// TODO
+		};
+
+		struct Uniforms
+		{
+			void getLocations(const res::ShaderProgram& program)
+			{
+				// TODO
+			}
+
+			// TODO
+		};
+	};
+
+	class TiledRedBlackMethod : public BasicMethod<TiledRedBlack<16, 16>>
+	{
+	private:
+		using UnderlyingType = BasicMethod<TiledRedBlack<16, 16>>;
+
+	public:
+		TiledRedBlackMethod(app::App& app, res::ShaderProgram&& program) : UnderlyingType(app, std::move(program))
+		{}
+
+	public:
+		void setup()
+		{
+			glUseProgram(m_program.id);
+		}
+
+		void update()
+		{
+			// TODO
 		}
 	};
 }

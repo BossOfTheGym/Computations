@@ -172,6 +172,7 @@
     <None Include="shaders\test_compute.comp" />
     <None Include="shaders\test_jacoby.comp" />
     <None Include="shaders\test_jacoby_tiled.comp" />
+    <None Include="shaders\test_mirror_red_black.comp" />
     <None Include="shaders\test_red_black.comp" />
     <None Include="shaders\test_red_black_tiled.comp" />
   </ItemGroup>
