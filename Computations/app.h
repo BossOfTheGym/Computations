@@ -22,7 +22,7 @@ namespace app
 	class App
 	{
 	public:
-		static constexpr int HEIGHT = 512;
+		static constexpr int HEIGHT = 600;
 		static constexpr int WIDTH = 3 * HEIGHT;
 
 		static inline std::string NAME = "computations";

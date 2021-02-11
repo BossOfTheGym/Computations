@@ -733,9 +733,10 @@ namespace dir2d
 				for (i32 i = 0; i < data.cycles; i++)
 				{
 					glUniform1i(m_uniforms.curr, data.curr);
-					data.curr ^= 1;
 
 					glDispatchCompute(data.xNumGroups, data.yNumGroups, 1);
+
+					data.curr ^= 1;
 				}
 			}
 		}

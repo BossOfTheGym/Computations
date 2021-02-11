@@ -2,6 +2,8 @@
 
 #define STEPS 1
 
+#define TRUE_STEPS 2 * STEPS
+
 #define WORKGROUP_X 8
 #define WORKGROUP_Y 8
 #define WORKGROUP ivec2(WORKGROUP_X, WORKGROUP_Y)
@@ -26,7 +28,7 @@ layout(local_size_x = WORKGROUP_X + STEPS * 2, local_size_y = WORKGROUP_Y + STEP
 
 // picture is stored in a row-major manner
 // used both for read and write, boundary is not calculated
-layout(binding = 0, r32f) uniform image2D solution[2];
+layout(binding = 0, r32f) uniform coherent image2D solution[2];
 
 uniform int curr; // 0 or 1
 uniform float w;
@@ -40,17 +42,38 @@ shared float cache[CACHE_SIZE];
 
 int cacheFlatIndex(ivec2 indices)
 {
+
 	return indices[0] * CACHE_Y + indices[1];
 }
 
 float cacheLoadValue(ivec2 indices)
 {
+
 	return cache[cacheFlatIndex(indices)];
+}
+
+void cacheLoadBundle(ivec2 indices, out float u00, out float u10, out float u01, out float u11)
+{
+	int base = cacheFlatIndex(indices);
+	u00 = cache[base];
+	u01 = cache[base + 1];
+	u10 = cache[base + CACHE_Y];
+	u11 = cache[base + CACHE_Y + 1];
 }
 
 void cacheStoreValue(ivec2 indices, float value)
 {
+
 	cache[cacheFlatIndex(indices)] = value;
+}
+
+void cacheStoreBundle(ivec2 indices, float u00, float u10, float u01, float u11)
+{
+	int base = cacheFlatIndex(indices);
+	cache[base] = u00;
+	cache[base + 1] = u01;
+	cache[base + CACHE_Y] = u10;
+	cache[base + CACHE_Y + 1] = u11;
 }
 
 // returns local index(zero-based), global(can be out of bounds)
@@ -59,7 +82,7 @@ void getGlobalLocalInvocationID(out ivec2 global, out ivec2 local)
 	ivec2 work = ivec2(gl_WorkGroupID.xy);
 
 	local = 2 * ivec2(gl_LocalInvocationID.xy);
-	global = local - ivec2(2 * STEPS) + work * TRUE_WORKGROUP;
+	global = local - ivec2(TRUE_STEPS) + work * TRUE_WORKGROUP;
 }
 
 bool inRegion(ivec2 coords, ivec2 start, ivec2 end)
@@ -70,6 +93,7 @@ bool inRegion(ivec2 coords, ivec2 start, ivec2 end)
 
 bool inBounds(ivec2 global, ivec2 size)
 {
+
 	return inRegion(global, ivec2(0), size);
 }
  
@@ -84,30 +108,6 @@ bool onBoundary(ivec2 global, ivec2 size)
 {
 	return global[0] == 0 || global[0] == size[0] - 1 
 		|| global[1] == 0 || global[1] == size[1] - 1;
-}
-
-bool onLeftTop(ivec2 local, int step)
-{
-	int offset = 2 * step;
-
-	ivec2 leftStart = ivec2(offset - 2, offset);
-	ivec2 leftEnd   = ivec2(offset, TRUE_WORKGROUP_Y_OVERLAP - offset);
-	ivec2 topEnd    = ivec2(TRUE_WORKGROUP_X_OVERLAP - offset, TRUE_WORKGROUP_Y_OVERLAP - offset + 2);
-
-	return inRegion(local, leftStart, leftEnd) 
-		|| inRegion(local, leftEnd, topEnd);
-}
-
-bool onRightBottom(ivec2 local, int step)
-{
-	int offset = 2 * step;
-
-	ivec2 bottomStart = ivec2(offset, offset - 2);
-	ivec2 bottomEnd   = ivec2(TRUE_WORKGROUP_X_OVERLAP - offset, offset);
-	ivec2 rightEnd    = ivec2(TRUE_WORKGROUP_X_OVERLAP - offset + 2, TRUE_WORKGROUP_Y_OVERLAP - offset);
-
-	return inRegion(local, bottomStart, bottomEnd) 
-		|| inRegion(local, bottomEnd  , rightEnd);
 }
 
 // red-black step
@@ -131,7 +131,7 @@ float update(float u00, float um10, float u10, float u0m1, float u01, float f00)
 
 void main()
 {
-	// indices & size
+	// indices & size, good
 	ivec2 global, local;
 	getGlobalLocalInvocationID(global, local);
 
@@ -144,41 +144,50 @@ void main()
 	bool u01OnBound = onBoundary(global + ivec2(0, 1), size);
 	bool u11OnBound = onBoundary(global + ivec2(1, 1), size);
 	
+	// DEBUG
+	update(0, 0, 0, 0, 0, 0);
+
 	// cache data
 	float f00, f10, f01, f11;
 	if (globalInBounds)
 	{
-		// f-function
+		// f-function, good
 		f00 = f(global              );
 		f10 = f(global + ivec2(1, 0));
 		f01 = f(global + ivec2(0, 1));
 		f11 = f(global + ivec2(1, 1));
 	
-		// solution data
-		cacheStoreValue(local              , imageLoad(solution[curr], global              ).x);
-		cacheStoreValue(local + ivec2(1, 0), imageLoad(solution[curr], global + ivec2(1, 0)).x);
-		cacheStoreValue(local + ivec2(0, 1), imageLoad(solution[curr], global + ivec2(0, 1)).x);
-		cacheStoreValue(local + ivec2(1, 1), imageLoad(solution[curr], global + ivec2(1, 1)).x);
+		// solution data, good
+		cacheStoreBundle(local, 
+			imageLoad(solution[curr], global              ).x,
+			imageLoad(solution[curr], global + ivec2(1, 0)).x,
+			imageLoad(solution[curr], global + ivec2(0, 1)).x,
+			imageLoad(solution[curr], global + ivec2(1, 1)).x);
 	}
-	memoryBarrierShared();
 	barrier();
+	memoryBarrierShared();
 	
-	// computations
+	// computations, good
+	ivec2 leftStart   = ivec2(0, 2);
+	ivec2 leftEnd     = ivec2(2, TRUE_WORKGROUP_Y_OVERLAP - 2);
+	ivec2 topEnd      = ivec2(TRUE_WORKGROUP_X_OVERLAP - 2, TRUE_WORKGROUP_Y_OVERLAP);
+	ivec2 bottomStart = ivec2(2, 0);
+	ivec2 bottomEnd   = ivec2(TRUE_WORKGROUP_X_OVERLAP - 2, 2);
+	ivec2 rightEnd    = ivec2(TRUE_WORKGROUP_X_OVERLAP, TRUE_WORKGROUP_Y_OVERLAP - 2);
+	ivec2 regionStart = ivec2(2, 2);
+	ivec2 regionEnd   = TRUE_WORKGROUP_OVERLAP - ivec2(2, 2);
 	for (int i = 1; i <= STEPS; i++)
 	{
 		// per-step checks
-		bool localInComputeRegion = inComputeRegion(local, i);
-		bool localOnLeftTop       = onLeftTop(local, i);
-		bool localOnRightBottom   = onRightBottom(local, i);
-	
+		bool localInComputeRegion = inRegion(local, regionStart, regionEnd);
+		bool localOnLeftTop       = inRegion(local, leftStart, leftEnd)     || inRegion(local, leftEnd, topEnd);
+		bool localOnRightBottom   = inRegion(local, bottomStart, bottomEnd) || inRegion(local, bottomEnd, rightEnd);
+
 		// load current invocation's values
 		float u00, u10, u01, u11;
 		if (globalInBounds)
 		{
-			u00 = cacheLoadValue(local              );
-			u10 = cacheLoadValue(local + ivec2(1, 0));
-			u01 = cacheLoadValue(local + ivec2(0, 1));
-			u11 = cacheLoadValue(local + ivec2(1, 1));
+			cacheLoadBundle(local, u00, u10, u01, u11);
 		}
 	
 		// black update
@@ -222,8 +231,19 @@ void main()
 		}
 		memoryBarrierShared();
 		barrier();
+
+		// good
+		leftStart   += ivec2( 2,  2);
+		leftEnd     += ivec2( 2, -2);
+		topEnd      += ivec2(-2, -2);
+		bottomStart += ivec2( 2,  2);
+		bottomEnd   += ivec2(-2,  2);
+		rightEnd    += ivec2(-2, -2);
+		regionStart += ivec2( 2,  2);
+		regionEnd   += ivec2(-2, -2);
 	}
 	
+	// good
 	if (inComputeRegion(local, STEPS))
 	{
 		imageStore(solution[curr ^ 1], global              , vec4(cacheLoadValue(local              )));
@@ -231,17 +251,4 @@ void main()
 		imageStore(solution[curr ^ 1], global + ivec2(0, 1), vec4(cacheLoadValue(local + ivec2(0, 1))));
 		imageStore(solution[curr ^ 1], global + ivec2(1, 1), vec4(cacheLoadValue(local + ivec2(1, 1))));
 	}
-
-	// DEBUG
-	//float dummy = hx + hy + w + x0 + y0;
-	//if (inComputeRegion(local, STEPS))
-	//{
-	//	ivec2 work = ivec2(gl_WorkGroupID.xy);
-	//	vec4 val = (((local[0] + local[1]) / 2 & 0x1) == (work[0] + work[1] & 0x1) ? vec4(0.0) : vec4(1.0));
-	//	
-	//	imageStore(solution[curr ^ 1], global              , val);
-	//	imageStore(solution[curr ^ 1], global + ivec2(1, 0), val);
-	//	imageStore(solution[curr ^ 1], global + ivec2(0, 1), val);
-	//	imageStore(solution[curr ^ 1], global + ivec2(1, 1), val);
-	//}
 }
