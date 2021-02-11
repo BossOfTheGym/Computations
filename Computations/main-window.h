@@ -49,36 +49,52 @@ namespace win
 
 
 	public: // sink methods, all return objects that are used to connect handlers
+		// params: int key, int scancode, int action, int mods
 		KeyPressSink keyPressSink();
 
+		// params: unsigned int codepoint
 		CharSink charSink();
 
+		// params: double xpos, double ypos
 		MouseMoveSink mouseMoveSink();
 
+		// params: int button, int action, int mods
 		MouseButtonSink mouseButtonSink();
 
+		// params: int entered
 		MouseEnterSink mouseEnterSink();
 
+		// params: double xOffset, double yOffset
 		ScrollSink scrollSink();
 
+		// params: int pathCount, const char* paths[]
 		DropSink dropSink();
 
+		// params : no params
 		CloseSink closeSink();
 
+		// params : int width, int height
 		ResizeSink resizeSink();
 
+		// params : int width, int height
 		FramebufferResizeSink framebufferResizeSink();
 
+		// params : int xPos, int yPos
 		MoveSink moveSink();
 
+		// params : int minimized
 		MinimizeSink minimizeSink();
 
+		// params : int maximized
 		MaximizeSink maximizeSink();
 
+		// params : int focused
 		FocusSink focusSink();
 
+		// params : no params
 		RefreshSink refreshSink();
 
+		// params : float xScale, float yScale
 		ContentScaleSink contentScaleSink();
 
 
