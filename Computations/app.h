@@ -52,31 +52,28 @@ namespace app
 			// *TEST*
 			dir2d::SmartHandle handles[3];
 			{
-				auto data = dir2d::JacobyMethod::create_dataAabb2D(-1.2, +1.2, -1.2, +1.2, 600, 511);
+				auto data = dir2d::JacobyMethod::create_dataAabb2D(-1.2, +1.2, -1.2, +1.2, 255, 255);
 
 				handles[0] = m_jacobySystem->createSmart(data, 16);
 			}
 			{
-				auto data = dir2d::RedBlackMethod::create_dataAabb2D(-1.2, +1.2, -1.2, +1.2, 600, 511);
+				auto data = dir2d::RedBlackMethod::create_dataAabb2D(-1.2, +1.2, -1.2, +1.2, 63, 63);
 
-				handles[1] = m_redBlackSystem->createSmart(data, 16);
+				handles[1] = m_redBlackSystem->createSmart(data, 1);
 			}
 			{
-				auto data = dir2d::RedBlackTiledMethod::create_dataAabb2D(-1.2, +1.2, -1.2, +1.2, 600, 511);
+				auto data = dir2d::RedBlackTiledMethod::create_dataAabb2D(-1.2, +1.2, -1.2, +1.2, 63, 63);
 
-				handles[2] = m_redBlackTiledSystem->createSmart(data, 4);
+				handles[2] = m_redBlackTiledSystem->createSmart(data, 1);
 			}
 
 			// mainloop
+			entt::scoped_connection connection{m_mainWindow->keyPressSink().connect<&App::updateSystems>(this)};
+
 			m_mainWindow->show();
 			while(!m_mainWindow->shouldClose())
 			{
 				glfw::poll_events();
-
-				// system update
-				m_jacobySystem->update();
-				m_redBlackSystem->update();
-				m_redBlackTiledSystem->update();
 
 				// rendering
 				glClearColor(1.0, 0.5, 0.2, 1.0);
@@ -88,6 +85,8 @@ namespace app
 				// show program
 				glUseProgram(m_showProgram.id);
 				glBindVertexArray(m_array.id);
+
+				glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
 
 				// *TEST*
 				glViewport(0, 0, WIDTH / 3, HEIGHT);
@@ -109,6 +108,16 @@ namespace app
 			}
 		}
 
+	private:
+		void updateSystems(int key, int scancode, int action, int mods)
+		{
+			if (key == GLFW_KEY_U)
+			{
+				m_jacobySystem->update();
+				m_redBlackSystem->update();
+				m_redBlackTiledSystem->update();
+			}
+		}
 
 	public:
 		bool init()
@@ -353,6 +362,8 @@ namespace app
 			if (m_redBlackTiledSystem == nullptr || !m_redBlackTiledSystem->programValid())
 			{
 				std::cerr << "Failed to initialize red-black tiled system" << std::endl;
+
+				return false;
 			}
 
 			return true;

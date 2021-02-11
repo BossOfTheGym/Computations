@@ -356,8 +356,10 @@ namespace dir2d
 				i32 xVars = domain.xSplit + 1;
 				i32 yVars = domain.ySplit + 1;
 
-				iteration[0] = res::create_texture(xVars, yVars, GL_R32F); glTextureSubImage2D(iteration[0].id, 0, 0, 0, xVars, yVars, GL_RED, GL_FLOAT, data2D.get());
-				iteration[1] = res::create_texture(xVars, yVars, GL_R32F); glTextureSubImage2D(iteration[1].id, 0, 0, 0, xVars, yVars, GL_RED, GL_FLOAT, data2D.get());
+				iteration[0] = res::create_texture(xVars, yVars, GL_R32F);
+				iteration[1] = res::create_texture(xVars, yVars, GL_R32F);
+				glTextureSubImage2D(iteration[0].id, 0, 0, 0, xVars, yVars, GL_RED, GL_FLOAT, data2D.get());
+				glTextureSubImage2D(iteration[1].id, 0, 0, 0, xVars, yVars, GL_RED, GL_FLOAT, data2D.get());
 
 				this->cycles = (cycles % 2 == 0 ? cycles : cycles + 1);
 
@@ -483,7 +485,8 @@ namespace dir2d
 				i32 xVar = domain.xSplit + 1;
 				i32 yVar = domain.ySplit + 1;
 
-				iteration = res::create_texture(xVar, yVar, GL_R32F); glTextureSubImage2D(iteration.id, 0, 0, 0, xVar, yVar, GL_RED, GL_FLOAT, data2D.get());
+				iteration = res::create_texture(xVar, yVar, GL_R32F);
+				glTextureSubImage2D(iteration.id, 0, 0, 0, xVar, yVar, GL_RED, GL_FLOAT, data2D.get());
 
 				w = compute_optimal_w(domain.hx, domain.hy, domain.xSplit, domain.ySplit);
 
@@ -629,12 +632,16 @@ namespace dir2d
 				i32 xVar = domain.xSplit + 1;
 				i32 yVar = domain.ySplit + 1;
 
-				iteration[0] = res::create_texture(xVar, yVar, GL_R32F); glTextureSubImage2D(iteration[0].id, 0, 0, 0, xVar, yVar, GL_RED, GL_FLOAT, data2D.get());
-				iteration[1] = res::create_texture(xVar, yVar, GL_R32F); glTextureSubImage2D(iteration[1].id, 0, 0, 0, xVar, yVar, GL_RED, GL_FLOAT, data2D.get());
+				iteration[0] = res::create_texture(xVar, yVar, GL_R32F);
+				iteration[1] = res::create_texture(xVar, yVar, GL_R32F);
+				glTextureSubImage2D(iteration[0].id, 0, 0, 0, xVar, yVar, GL_RED, GL_FLOAT, data2D.get());
+				glTextureSubImage2D(iteration[1].id, 0, 0, 0, xVar, yVar, GL_RED, GL_FLOAT, data2D.get());
 
 				w = compute_optimal_w(domain.hx, domain.hy, domain.xSplit, domain.ySplit);
 
-				this->cycles = (cycles % 2 == 0 ? cycles : cycles + 1);
+				curr = 0;
+				//this->cycles = (cycles % 2 == 0 ? cycles : cycles + 1);
+				this->cycles = cycles;
 
 				xNumGroups = xVar / WORKGROUP_X;
 				yNumGroups = yVar / WORKGROUP_Y;
@@ -659,6 +666,7 @@ namespace dir2d
 
 			f32 w{};
 
+			i32 curr{};
 			i32 updates{};
 			i32 cycles{};
 
@@ -724,7 +732,9 @@ namespace dir2d
 
 				for (i32 i = 0; i < data.cycles; i++)
 				{
-					glUniform1i(m_uniforms.curr, i & 0x1);
+					glUniform1i(m_uniforms.curr, data.curr);
+					data.curr ^= 1;
+
 					glDispatchCompute(data.xNumGroups, data.yNumGroups, 1);
 				}
 			}
