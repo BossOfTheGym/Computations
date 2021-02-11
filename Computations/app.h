@@ -18,6 +18,7 @@ namespace app
 {
 	// main application class, holds everything inside
 	// TODO : everything that is missing
+	// TODO : print to console OopenGL context information
 	class App
 	{
 	public:
@@ -49,20 +50,21 @@ namespace app
 		void mainloop()
 		{
 			// *TEST*
-			dir2d::SmartHandle jacobyHandle[2];
+			dir2d::SmartHandle handles[3];
 			{
-				auto data = dir2d::JacobyMethod::create_dataAabb2D(-1.2, +1.2, -1.2, +1.2, 511, 511);
+				auto data = dir2d::JacobyMethod::create_dataAabb2D(-1.2, +1.2, -1.2, +1.2, 600, 511);
 
-				jacobyHandle[0] = m_jacobySystem->createSmart(data, 16);
-				jacobyHandle[1] = m_jacobySystem->createSmart(data, 16);
+				handles[0] = m_jacobySystem->createSmart(data, 16);
 			}
-
-			// *TEST*
-			dir2d::SmartHandle redBlackHandle;
 			{
-				auto data = dir2d::RedBlackMethod::create_dataAabb2D(-1.2, +1.2, -1.2, +1.2, 511, 511);
+				auto data = dir2d::RedBlackMethod::create_dataAabb2D(-1.2, +1.2, -1.2, +1.2, 600, 511);
 
-				redBlackHandle = m_redBlackSystem->createSmart(data, 1);
+				handles[1] = m_redBlackSystem->createSmart(data, 16);
+			}
+			{
+				auto data = dir2d::RedBlackTiledMethod::create_dataAabb2D(-1.2, +1.2, -1.2, +1.2, 600, 511);
+
+				handles[2] = m_redBlackTiledSystem->createSmart(data, 4);
 			}
 
 			// mainloop
@@ -72,14 +74,9 @@ namespace app
 				glfw::poll_events();
 
 				// system update
-				m_jacobySystem->setup();
 				m_jacobySystem->update();
-
-				m_redBlackSystem->setup();
 				m_redBlackSystem->update();
-
-				m_mirroredRedBlackSystem->setup();
-				m_mirroredRedBlackSystem->update();
+				m_redBlackTiledSystem->update();
 
 				// rendering
 				glClearColor(1.0, 0.5, 0.2, 1.0);
@@ -94,17 +91,17 @@ namespace app
 
 				// *TEST*
 				glViewport(0, 0, WIDTH / 3, HEIGHT);
-				glBindTextureUnit(0, jacobyHandle[0].textureId());
+				glBindTextureUnit(0, handles[0].textureId());
 				glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 				// *TEST*
 				glViewport(WIDTH / 3, 0, WIDTH / 3, HEIGHT);
-				glBindTextureUnit(0, redBlackHandle.textureId());
+				glBindTextureUnit(0, handles[1].textureId());
 				glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 				// *TEST*
 				glViewport(2 * WIDTH / 3, 0, WIDTH / 3, HEIGHT);
-				glBindTextureUnit(0, jacobyHandle[1].textureId());
+				glBindTextureUnit(0, handles[2].textureId());
 				glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 				// swap
@@ -228,6 +225,14 @@ namespace app
 			}
 			std::cout << "\"test_mirror_red_black.comp\" shader created." << std::endl;
 
+			if (!try_create_shader_from_file(m_redBlackTiled, GL_COMPUTE_SHADER, "shaders/test_red_black_tiled.comp"))
+			{	
+				std::cerr << "Failed to load \"shaders/test_red_black_tiled.comp\" ." << std::endl;
+
+				return false;
+			}
+			std::cout << "\"shaders/test_red_black_tiled.comp\" shader created." << std::endl;
+
 			// shader programs
 			if (!try_create_shader_program(m_showProgram, m_quadVert, m_quadFrag))
 			{
@@ -269,6 +274,14 @@ namespace app
 			}
 			std::cout << "\"mirroredRedBlackProgram\" program created." << std::endl;
 
+			if (!try_create_shader_program(m_redBlackTiledProgram, m_redBlackTiled))
+			{
+				std::cerr << "Failed to create \"redBlackTiledProgram\" program." << std::endl;
+
+				return false;
+			}
+			std::cout << "\"redBlackTiledProgram\" program created." << std::endl;
+
 			// test texture
 			if (!try_create_test_texture(m_texture, WIDTH, HEIGHT))
 			{
@@ -294,12 +307,14 @@ namespace app
 
 			m_texture.reset();
 
+			m_redBlackTiledProgram.reset();
 			m_mirroredRedBlackProgram.reset();
 			m_redBlackProgram.reset();
 			m_jacobyProgram.reset();
 			m_showProgram.reset();
 			m_testComputeProgram.reset();
 
+			m_redBlackTiled.reset();
 			m_mirroredRedBlack.reset();
 			m_redBlack.reset();
 			m_jacoby.reset();
@@ -334,6 +349,12 @@ namespace app
 				return false;
 			}
 
+			m_redBlackTiledSystem.reset(new dir2d::RedBlackTiledMethod(*this, std::move(m_redBlackTiledProgram)));
+			if (m_redBlackTiledSystem == nullptr || !m_redBlackTiledSystem->programValid())
+			{
+				std::cerr << "Failed to initialize red-black tiled system" << std::endl;
+			}
+
 			return true;
 		}
 
@@ -359,12 +380,14 @@ namespace app
 		res::Shader m_jacoby;
 		res::Shader m_redBlack;
 		res::Shader m_mirroredRedBlack;
+		res::Shader m_redBlackTiled;
 
 		res::ShaderProgram m_testComputeProgram;
 		res::ShaderProgram m_showProgram;
 		res::ShaderProgram m_jacobyProgram;
 		res::ShaderProgram m_redBlackProgram;
 		res::ShaderProgram m_mirroredRedBlackProgram;
+		res::ShaderProgram m_redBlackTiledProgram;
 
 		res::Texture m_texture;
 
@@ -379,5 +402,6 @@ namespace app
 		std::unique_ptr<dir2d::JacobyMethod> m_jacobySystem;
 		std::unique_ptr<dir2d::RedBlackMethod> m_redBlackSystem;
 		std::unique_ptr<dir2d::MirroredRedBlackMethod> m_mirroredRedBlackSystem;
+		std::unique_ptr<dir2d::RedBlackTiledMethod> m_redBlackTiledSystem;
 	};
 }

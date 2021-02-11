@@ -22,8 +22,9 @@ namespace dir2d
 	// TODO : some methods differ only by shader programs that are similar in sense that they have same data and same set of uniforms
 	//		and also same setup and update logic
 	// TODO : attach WORKGROUP consts to shaders
+	// TODO : program must be outter resource and be accessed via app::App
 
-	// smart handle, used to obtain 
+	// smart handle, used to obtain height texture id
 	class SmartHandle
 	{
 	private:
@@ -355,13 +356,11 @@ namespace dir2d
 				i32 xVars = domain.xSplit + 1;
 				i32 yVars = domain.ySplit + 1;
 
-				prev = 0;
-				next = 1;
+				iteration[0] = res::create_texture(xVars, yVars, GL_R32F); glTextureSubImage2D(iteration[0].id, 0, 0, 0, xVars, yVars, GL_RED, GL_FLOAT, data2D.get());
+				iteration[1] = res::create_texture(xVars, yVars, GL_R32F); glTextureSubImage2D(iteration[1].id, 0, 0, 0, xVars, yVars, GL_RED, GL_FLOAT, data2D.get());
 
-				iteration[0] = res::create_texture(xVars, yVars, GL_R32F); glTextureSubImage2D(iteration[prev].id, 0, 0, 0, xVars, yVars, GL_RED, GL_FLOAT, data2D.get());
-				iteration[1] = res::create_texture(xVars, yVars, GL_R32F); glTextureSubImage2D(iteration[next].id, 0, 0, 0, xVars, yVars, GL_RED, GL_FLOAT, data2D.get());
+				this->cycles = (cycles % 2 == 0 ? cycles : cycles + 1);
 
-				this->cycles = cycles;
 				xNumGroups = xVars / WORKGROUP_X;
 				yNumGroups = yVars / WORKGROUP_Y;
 			}
@@ -369,7 +368,7 @@ namespace dir2d
 
 			res::Id textureId() const
 			{
-				return iteration[prev].id;
+				return iteration[0].id;
 			}
 
 		
@@ -377,10 +376,6 @@ namespace dir2d
 
 			res::Texture iteration[2]{};
 
-			i32 prev{};
-			i32 next{};
-
-			i32 update{};
 			i32 cycles{};
 
 			GLuint xNumGroups{};
@@ -391,8 +386,7 @@ namespace dir2d
 		{
 			void getLocations(const res::ShaderProgram& jacobyProgram)
 			{
-				prev = glGetUniformLocation(jacobyProgram.id, "prev");
-				next = glGetUniformLocation(jacobyProgram.id, "next");
+				curr = glGetUniformLocation(jacobyProgram.id, "curr");
 				x0 = glGetUniformLocation(jacobyProgram.id, "x0");
 				y0 = glGetUniformLocation(jacobyProgram.id, "y0");
 				hx = glGetUniformLocation(jacobyProgram.id, "hx");
@@ -401,13 +395,12 @@ namespace dir2d
 
 			bool valid() const
 			{
-				return next != -1 && prev != -1
+				return curr != -1
 					&& x0 != -1 && y0 != -1
 					&& hx != -1 && hy != -1;
 			}
 
-			GLint next{-1};
-			GLint prev{-1};
+			GLint curr{-1};
 			GLint x0{-1};
 			GLint y0{-1};
 			GLint hx{-1};
@@ -421,28 +414,25 @@ namespace dir2d
 	private:
 		using UnderlyingType = BasicMethod<JacobyTraits<16, 16>>;
 
-		static constexpr const i32 IMG_PREV = 0;
-		static constexpr const i32 IMG_NEXT = 1;
+		static constexpr const i32 IMG0 = 0;
+		static constexpr const i32 IMG1 = 1;
 
 	public:
 		JacobyMethod(app::App& app, res::ShaderProgram&& program) : UnderlyingType(app, std::move(program))
 		{}
 
-	public: // NOTE : general scheme, preset -> update -> some post action(no post action here)
-		void setup()
-		{
-			glUseProgram(m_program.id);
-		}
-
+	public:
 		// TODO : direct access to members of BasicMethod, protected access modifier is workaround. This needs to be fixed.
 		void update()
 		{
+			glUseProgram(m_program.id);
+
 			for (auto handle : m_dataStorage)
 			{
 				auto& data = get(handle);
 
-				glBindImageTexture(IMG_PREV, data.iteration[data.prev].id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
-				glBindImageTexture(IMG_NEXT, data.iteration[data.next].id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
+				glBindImageTexture(IMG0, data.iteration[0].id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
+				glBindImageTexture(IMG1, data.iteration[1].id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
 
 				glUniform1f(m_uniforms.x0, data.domain.x0);
 				glUniform1f(m_uniforms.y0, data.domain.y0);
@@ -451,12 +441,9 @@ namespace dir2d
 
 				for (i32 i = 0; i < data.cycles; i++)
 				{
-					glUniform1i(m_uniforms.prev, data.prev);
-					glUniform1i(m_uniforms.next, data.next);
+					glUniform1i(m_uniforms.curr, i & 1);
 
 					glDispatchCompute(data.xNumGroups, data.yNumGroups, 1);
-
-					std::swap(data.prev, data.next);
 				}
 			}
 		}
@@ -525,7 +512,6 @@ namespace dir2d
 
 			f32 w{};
 
-			i32 updates{};
 			i32 cycles{};
 
 			GLuint xNumGroups{};
@@ -571,14 +557,11 @@ namespace dir2d
 		{}
 
 	public:
-		void setup()
-		{
-			glUseProgram(m_program.id);
-		}
-
 		// TODO : direct access to members of BasicMethod, protected access modifier is a workaround. It needs to be fixed.
 		void update()
 		{
+			glUseProgram(m_program.id);
+
 			for (auto& handle : m_dataStorage)
 			{
 				auto& data = get(handle);
@@ -615,42 +598,136 @@ namespace dir2d
 
 	// traits for tiled method family
 	template<i32 WORKGROUP_X, i32 WORKGROUP_Y>
-	struct TiledRedBlack : WorkgroupTraits<WORKGROUP_X, WORKGROUP_Y>
+	struct RedBlackTiled : WorkgroupTraits<WORKGROUP_X, WORKGROUP_Y>
 	{
 		struct Data
 		{
-			// TODO
+			static f32 compute_optimal_w(f32 hx, f32 hy, i32 xSplit, i32 ySplit)
+			{
+				const constexpr f32 PId2 = 3.14159265359 / 2;
+
+				i32 sx = xSplit;
+				i32 sy = ySplit;
+
+				f32 hxhx = hx * hx;
+				f32 hyhy = hy * hy;
+				f32 H = hxhx + hyhy;
+				f32 sinx = std::sin(PId2 / sx);
+				f32 siny = std::sin(PId2 / sy);
+
+				f32 delta = 2.0 * hxhx / H * sinx * sinx + 2.0 * hyhy / H * siny * siny;
+
+				return 2.0 / (1.0 + std::sqrt(delta * (2.0 - delta)));
+			}
+
+			Data() = default;
+
+			Data(const DataAabb2D& data2D, i32 cycles)
+			{
+				domain = data2D.domain;
+
+				i32 xVar = domain.xSplit + 1;
+				i32 yVar = domain.ySplit + 1;
+
+				iteration[0] = res::create_texture(xVar, yVar, GL_R32F); glTextureSubImage2D(iteration[0].id, 0, 0, 0, xVar, yVar, GL_RED, GL_FLOAT, data2D.get());
+				iteration[1] = res::create_texture(xVar, yVar, GL_R32F); glTextureSubImage2D(iteration[1].id, 0, 0, 0, xVar, yVar, GL_RED, GL_FLOAT, data2D.get());
+
+				w = compute_optimal_w(domain.hx, domain.hy, domain.xSplit, domain.ySplit);
+
+				this->cycles = (cycles % 2 == 0 ? cycles : cycles + 1);
+
+				xNumGroups = xVar / WORKGROUP_X;
+				yNumGroups = yVar / WORKGROUP_Y;
+			}
+
+			Data(const Data&) = delete;
+			Data(Data&&) = default;
+
+			Data& operator = (const Data&) = delete;
+			Data& operator = (Data&&) = default;
+
+
+			res::Id textureId() const
+			{
+				return iteration[0].id;
+			}
+
+
+			DomainAabb2D domain{};
+
+			res::Texture iteration[2]{};
+
+			f32 w{};
+
+			i32 updates{};
+			i32 cycles{};
+
+			GLuint xNumGroups{};
+			GLuint yNumGroups{};
 		};
 
 		struct Uniforms
 		{
-			void getLocations(const res::ShaderProgram& program)
+			void getLocations(const res::ShaderProgram& redBlackProgram)
 			{
-				// TODO
+				curr = glGetUniformLocation(redBlackProgram.id, "curr");
+				w  = glGetUniformLocation(redBlackProgram.id, "w");
+				x0 = glGetUniformLocation(redBlackProgram.id, "x0");
+				y0 = glGetUniformLocation(redBlackProgram.id, "y0");
+				hx = glGetUniformLocation(redBlackProgram.id, "hx");
+				hy = glGetUniformLocation(redBlackProgram.id, "hy");
 			}
 
-			// TODO
+			bool valid() const
+			{
+				return curr != -1 && w != -1 && x0 != -1 && y0 != -1 && hx != -1 && hy != -1;
+			}
+
+			GLint curr{-1};
+			GLint w{-1};
+			GLint x0{-1};
+			GLint y0{-1};
+			GLint hx{-1};
+			GLint hy{-1};
 		};
 	};
 
-	class TiledRedBlackMethod : public BasicMethod<TiledRedBlack<16, 16>>
+	class RedBlackTiledMethod : public BasicMethod<RedBlackTiled<16, 16>>
 	{
 	private:
-		using UnderlyingType = BasicMethod<TiledRedBlack<16, 16>>;
+		using UnderlyingType = BasicMethod<RedBlackTiled<16, 16>>;
+
+		static constexpr const i32 IMG0 = 0;
+		static constexpr const i32 IMG1 = 1;
 
 	public:
-		TiledRedBlackMethod(app::App& app, res::ShaderProgram&& program) : UnderlyingType(app, std::move(program))
+		RedBlackTiledMethod(app::App& app, res::ShaderProgram&& program) : UnderlyingType(app, std::move(program))
 		{}
 
 	public:
-		void setup()
-		{
-			glUseProgram(m_program.id);
-		}
-
 		void update()
 		{
-			// TODO
+			glUseProgram(m_program.id);
+
+			for (auto& handle : m_dataStorage)
+			{
+				auto& data = get(handle);
+
+				glBindImageTexture(IMG0, data.iteration[0].id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
+				glBindImageTexture(IMG1, data.iteration[1].id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
+
+				glUniform1f(m_uniforms.w, data.w);
+				glUniform1f(m_uniforms.x0, data.domain.x0);
+				glUniform1f(m_uniforms.y0, data.domain.y0);
+				glUniform1f(m_uniforms.hx, data.domain.hx);
+				glUniform1f(m_uniforms.hy, data.domain.hy);
+
+				for (i32 i = 0; i < data.cycles; i++)
+				{
+					glUniform1i(m_uniforms.curr, i & 0x1);
+					glDispatchCompute(data.xNumGroups, data.yNumGroups, 1);
+				}
+			}
 		}
 	};
 }

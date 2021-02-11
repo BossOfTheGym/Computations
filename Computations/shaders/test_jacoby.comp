@@ -2,109 +2,142 @@
 
 #define WORKGROUP_X 16
 #define WORKGROUP_Y 16
-#define WORKGROUP_Z 1
+
+#define WORKGROUP ivec2(WORKGROUP_X, WORKGROUP_Y)
 
 #define CACHE_X (WORKGROUP_X + 2)
 #define CACHE_Y (WORKGROUP_Y + 2)
 #define CACHE_SIZE (CACHE_X * CACHE_Y)
 
-layout(local_size_x = WORKGROUP_X, local_size_y = WORKGROUP_Y, local_size_z = WORKGROUP_Z) in;
+layout(local_size_x = WORKGROUP_X, local_size_y = WORKGROUP_Y) in;
 
 // used both for read and write, boundary is not calculated
 layout(binding = 0, r32f) uniform image2D solution[2];
 
-uniform int prev;
-uniform int next;
+uniform int curr; // 0 or 1
 uniform float x0;
 uniform float y0;
 uniform float hx;
 uniform float hy;
 
+// first is x, second is y
 shared float cache[CACHE_SIZE];
 
-
-int cacheFlatIndex(ivec2 ij)
+int cacheFlatIndex(ivec2 indices)
 {
-	return (ij[0] + 1) * CACHE_X + (ij[1] + 1);
+	return (indices[0] + 1) * CACHE_Y + (indices[1] + 1);
 }
 
-float cacheLoadValue(ivec2 ij)
+float cacheLoadValue(ivec2 indices)
 {
-	return cache[cacheFlatIndex(ij)];
+	return cache[cacheFlatIndex(indices)];
 }
 
-void cacheStoreValue(ivec2 ij, float value)
+void cacheStoreValue(ivec2 indices, float value)
 {
-	cache[cacheFlatIndex(ij)] = value;
+	cache[cacheFlatIndex(indices)] = value;
 }
 
-
-// i - for y
-// j - for x
-float f(ivec2 ij)
+// returns local index(zero-based), global(can be out of bounds) 
+void getGlobalLocalInvocationID(out ivec2 global, out ivec2 local)
 {
-	float y = y0 + ij[0] * hy;
-	float x = x0 + ij[1] * hx;
+	local = ivec2(gl_LocalInvocationID.xy);
+	global = ivec2(gl_GlobalInvocationID.xy);
+}
+
+bool inInnerDomainX(ivec2 global, ivec2 size)
+{
+	return 0 < global[0] && global[0] < size[0] - 1;
+}
+
+bool inInnerDomainY(ivec2 global, ivec2 size)
+{
+	return 0 < global[1] && global[1] < size[1] - 1;
+}
+
+bool inInnerDomain(ivec2 global, ivec2 size)
+{
+	return inInnerDomainX(global, size) && inInnerDomainY(global, size); 
+}
+
+bool onUpperBoundaryX(ivec2 coord, ivec2 size)
+{
+	return coord[0] == size[0] - 1;
+}
+
+bool onLowerBoundaryX(ivec2 coord, ivec2 size)
+{
+	return coord[0] == 0;
+}
+
+bool onUpperBoundaryY(ivec2 coord, ivec2 size)
+{
+	return coord[1] == size[1] - 1;
+}
+
+bool onLowerBoundaryY(ivec2 coord, ivec2 size)
+{
+	return coord[1] == 0;
+}
+
+float f(ivec2 indices)
+{
+	float x = x0 + indices[0] * hx;
+	float y = y0 + indices[1] * hy;
 	float xxpyy = x * x + y * y;
 	return 4.0 * (xxpyy - 1.0) * exp(-xxpyy);
 }
 
+// jacoby update
+float update(float um10, float u10, float u0m1, float u01, float f00)
+{
+	float hxhx = hx * hx;
+	float hyhy = hy * hy;
+	float H = -2.0 / hxhx - 2.0 / hyhy;
+
+	return f00 / H - (um10 + u10) / (hxhx * H) - (u0m1 + u01) / (hyhy * H);
+}
+
 void main()
 {
-	ivec2 ij = ivec2(gl_GlobalInvocationID.xy);
-	ivec2 ij_local = ivec2(gl_LocalInvocationID.xy);
+	ivec2 global, local;
+	getGlobalLocalInvocationID(global, local);
+
 	ivec2 size = imageSize(solution[0]);
 
-	cacheStoreValue(ij_local, imageLoad(solution[prev], ij).x);
-	if (0 < ij[1] && ij[1] < size.x - 1)
+	cacheStoreValue(local, imageLoad(solution[curr], global).x);
+	if (inInnerDomainY(global, size))
 	{
-		if (ij_local[1] == WORKGROUP_X - 1)
+		if (onUpperBoundaryY(local, WORKGROUP))
 		{
-			ivec2 offset = ivec2(0, 1);
-
-			cacheStoreValue(ij_local + offset, imageLoad(solution[prev], ij + offset).x);
+			cacheStoreValue(local + ivec2(0, 1), imageLoad(solution[curr], global + ivec2(0, 1)).x);
 		}
-		if (ij_local[1] == 0)
+		if (onLowerBoundaryY(local, WORKGROUP))
 		{
-			ivec2 offset = ivec2(0, -1);
-
-			cacheStoreValue(ij_local + offset, imageLoad(solution[prev], ij + offset).x);
+			cacheStoreValue(local + ivec2(0, -1), imageLoad(solution[curr], global + ivec2(0, -1)).x);
 		}
 	}
-	if (0 < ij[0] && ij[0] < size.y - 1)
+	if (inInnerDomainX(global, size))
 	{
-		if (ij_local[0] == WORKGROUP_Y - 1)
+		if (onUpperBoundaryX(local, WORKGROUP))
 		{
-			ivec2 offset = ivec2(1, 0);
-
-			cacheStoreValue(ij_local + offset, imageLoad(solution[prev], ij + offset).x);
+			cacheStoreValue(local + ivec2(1, 0), imageLoad(solution[curr], global + ivec2(1, 0)).x);
 		}
-		if (ij_local[0] == 0)
+		if (onLowerBoundaryX(local, WORKGROUP))
 		{
-			ivec2 offset = ivec2(-1, 0);
-
-			cacheStoreValue(ij_local + offset, imageLoad(solution[prev], ij + offset).x);
+			cacheStoreValue(local + ivec2(-1, 0), imageLoad(solution[curr], global + ivec2(-1, 0)).x);
 		}
 	}
-
 	memoryBarrierShared();
 	barrier();
 
-	if (0 < ij[1] && ij[1] < size.x - 1 && 0 < ij[0] && ij[0] < size.y - 1)
+	if (inInnerDomain(global, size))
 	{
-		float uij = cacheLoadValue(ij_local);
-		float uijp1 = cacheLoadValue(ij_local + ivec2(0, +1));
-		float uijm1 = cacheLoadValue(ij_local + ivec2(0, -1));
-		float uip1j = cacheLoadValue(ij_local + ivec2(+1, 0));
-		float uim1j = cacheLoadValue(ij_local + ivec2(-1, 0));
+		float um10 = cacheLoadValue(local + ivec2(-1, 0));
+		float u10  = cacheLoadValue(local + ivec2(+1, 0));
+		float u0m1 = cacheLoadValue(local + ivec2(0, -1));
+		float u01  = cacheLoadValue(local + ivec2(0, +1));
 
-		float hxhx = hx * hx;
-		float hyhy = hy * hy;
-		float H = -2.0 / hxhx - 2.0 / hyhy;
-		float u = f(ij) / H - (uijp1 + uijm1) / (hxhx * H) - (uip1j + uim1j) / (hyhy * H);
-
-		imageStore(solution[next], ij, vec4(u));
+		imageStore(solution[curr ^ 1], global, vec4(update(um10, u10, u0m1, u01, f(global))));
 	}
-
-	memoryBarrierImage();
 }
