@@ -118,11 +118,11 @@ namespace app
 		void reloadRedBlackTiled()
 		{
 			m_redBlackTiled.reset();
-			if (!try_create_shader_from_file(m_redBlackTiled, GL_COMPUTE_SHADER, "shaders/test_red_black_tiled.comp"))
+			if (!try_create_shader_from_file(m_redBlackTiled, GL_COMPUTE_SHADER, "shaders/red_black_tiled.comp"))
 			{	
-				std::cerr << "Failed to reload \"shaders/test_red_black_tiled.comp\" ." << std::endl;
+				std::cerr << "Failed to reload \"shaders/red_black_tiled.comp\" ." << std::endl;
 			}
-			std::cout << "\"shaders/test_red_black_tiled.comp\" shader recreated." << std::endl;
+			std::cout << "\"shaders/red_black_tiled.comp\" shader recreated." << std::endl;
 
 			m_redBlackTiledProgram.reset();
 			if (!try_create_shader_program(m_redBlackTiledProgram, m_redBlackTiled))
@@ -237,37 +237,37 @@ namespace app
 			}
 			std::cout << "\"test_compute.comp\" shader created." << std::endl;
 
-			if (!try_create_shader_from_file(m_jacoby, GL_COMPUTE_SHADER, "shaders/test_jacoby.comp"))
+			if (!try_create_shader_from_file(m_jacoby, GL_COMPUTE_SHADER, "shaders/jacoby.comp"))
 			{	
-				std::cerr << "Failed to load \"test_jacoby.comp\" ." << std::endl;
+				std::cerr << "Failed to load \"jacoby.comp\" ." << std::endl;
 
 				return 1;
 			}
-			std::cout << "\"test_jacoby.comp\" shader created." << std::endl;
+			std::cout << "\"jacoby.comp\" shader created." << std::endl;
 
-			if (!try_create_shader_from_file(m_redBlack, GL_COMPUTE_SHADER, "shaders/test_red_black.comp"))
+			if (!try_create_shader_from_file(m_redBlack, GL_COMPUTE_SHADER, "shaders/red_black.comp"))
 			{	
-				std::cerr << "Failed to load \"test_red_black.comp\" ." << std::endl;
+				std::cerr << "Failed to load \"red_black.comp\" ." << std::endl;
 
 				return false;
 			}
-			std::cout << "\"test_red_black.comp\" shader created." << std::endl;
+			std::cout << "\"red_black.comp\" shader created." << std::endl;
 
-			if (!try_create_shader_from_file(m_mirroredRedBlack, GL_COMPUTE_SHADER, "shaders/test_mirror_red_black.comp"))
+			if (!try_create_shader_from_file(m_mirroredRedBlack, GL_COMPUTE_SHADER, "shaders/mirror_red_black.comp"))
 			{	
-				std::cerr << "Failed to load \"test_mirror_red_black.comp\" ." << std::endl;
+				std::cerr << "Failed to load \"mirror_red_black.comp\" ." << std::endl;
 
 				return false;
 			}
-			std::cout << "\"test_mirror_red_black.comp\" shader created." << std::endl;
+			std::cout << "\"mirror_red_black.comp\" shader created." << std::endl;
 
-			if (!try_create_shader_from_file(m_redBlackTiled, GL_COMPUTE_SHADER, "shaders/test_red_black_tiled.comp"))
+			if (!try_create_shader_from_file(m_redBlackTiled, GL_COMPUTE_SHADER, "shaders/red_black_tiled.comp"))
 			{	
-				std::cerr << "Failed to load \"shaders/test_red_black_tiled.comp\" ." << std::endl;
+				std::cerr << "Failed to load \"shaders/red_black_tiled.comp\" ." << std::endl;
 
 				return false;
 			}
-			std::cout << "\"shaders/test_red_black_tiled.comp\" shader created." << std::endl;
+			std::cout << "\"shaders/red_black_tiled.comp\" shader created." << std::endl;
 
 			// shader programs
 			if (!try_create_shader_program(m_showProgram, m_quadVert, m_quadFrag))

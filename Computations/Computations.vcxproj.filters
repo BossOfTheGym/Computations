@@ -109,19 +109,19 @@
     <None Include="shaders\test_compute.comp">
       <Filter>shaders</Filter>
     </None>
-    <None Include="shaders\test_jacoby.comp">
+    <None Include="shaders\jacoby.comp">
       <Filter>shaders</Filter>
     </None>
-    <None Include="shaders\test_jacoby_tiled.comp">
+    <None Include="shaders\jacoby_tiled.comp">
       <Filter>shaders</Filter>
     </None>
-    <None Include="shaders\test_red_black.comp">
+    <None Include="shaders\mirror_red_black.comp">
       <Filter>shaders</Filter>
     </None>
-    <None Include="shaders\test_red_black_tiled.comp">
+    <None Include="shaders\red_black.comp">
       <Filter>shaders</Filter>
     </None>
-    <None Include="shaders\test_mirror_red_black.comp">
+    <None Include="shaders\red_black_tiled.comp">
       <Filter>shaders</Filter>
     </None>
   </ItemGroup>
