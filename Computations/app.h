@@ -22,8 +22,11 @@ namespace app
 	class App
 	{
 	public:
-		static constexpr int HEIGHT = 600;
-		static constexpr int WIDTH = 3 * HEIGHT;
+		static constexpr int HEIGHT = 800;
+		static constexpr int WIDTH = 2 * HEIGHT;
+		static constexpr i32 WX = 255;
+		static constexpr i32 WY = 255;
+		static constexpr i32 STEPS = 4;
 
 		static inline std::string NAME = "computations";
 
@@ -51,17 +54,12 @@ namespace app
 		{
 			// *TEST*
 			{
-				auto data = dir2d::JacobyMethod::create_dataAabb2D(-1.2, +1.2, -1.2, +1.2, 255, 255);
+				auto data = dir2d::RedBlackMethod::create_dataAabb2D(-1.2, +1.2, -1.2, +1.2, WX, WY);
 
-				m_handles[0] = m_jacobySystem->createSmart(data, 16);
+				m_handles[1] = m_redBlackSystem->createSmart(data, STEPS);
 			}
 			{
-				auto data = dir2d::RedBlackMethod::create_dataAabb2D(-1.2, +1.2, -1.2, +1.2, 47, 47);
-
-				m_handles[1] = m_redBlackSystem->createSmart(data, 1);
-			}
-			{
-				auto data = dir2d::RedBlackTiledMethod::create_dataAabb2D(-1.2, +1.2, -1.2, +1.2, 47, 47);
+				auto data = dir2d::RedBlackTiledMethod::create_dataAabb2D(-1.2, +1.2, -1.2, +1.2, WX, WY);
 
 				m_handles[2] = m_redBlackTiledSystem->createSmart(data, 1);
 			}
@@ -88,17 +86,12 @@ namespace app
 				glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
 
 				// *TEST*
-				glViewport(0, 0, WIDTH / 3, HEIGHT);
-				glBindTextureUnit(0, m_handles[0].textureId());
-				glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-				// *TEST*
-				glViewport(WIDTH / 3, 0, WIDTH / 3, HEIGHT);
+				glViewport(0, 0, WIDTH / 2, HEIGHT);
 				glBindTextureUnit(0, m_handles[1].textureId());
 				glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 				// *TEST*
-				glViewport(2 * WIDTH / 3, 0, WIDTH / 3, HEIGHT);
+				glViewport(WIDTH / 2, 0, WIDTH / 2, HEIGHT);
 				glBindTextureUnit(0, m_handles[2].textureId());
 				glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
@@ -141,12 +134,12 @@ namespace app
 			m_redBlackTiledSystem->setupProgram(std::move(m_redBlackTiledProgram));
 
 			{
-				auto data = dir2d::RedBlackMethod::create_dataAabb2D(-1.2, +1.2, -1.2, +1.2, 47, 47);
+				auto data = dir2d::RedBlackMethod::create_dataAabb2D(-1.2, +1.2, -1.2, +1.2, WX, WY);
 
-				m_handles[1] = m_redBlackSystem->createSmart(data, 1);
+				m_handles[1] = m_redBlackSystem->createSmart(data, STEPS);
 			}
 			{
-				auto data = dir2d::RedBlackTiledMethod::create_dataAabb2D(-1.2, +1.2, -1.2, +1.2, 47, 47);
+				auto data = dir2d::RedBlackTiledMethod::create_dataAabb2D(-1.2, +1.2, -1.2, +1.2, WX, WY);
 
 				m_handles[2] = m_redBlackTiledSystem->createSmart(data, 1);
 			}

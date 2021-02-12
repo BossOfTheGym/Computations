@@ -214,7 +214,6 @@ namespace dir2d
 				{
 					f32 x = x0 + j * hx;
 
-					// NOTE : precondition can be used here
 					// condition(precondition)
 					*ptr++ = 0.0;
 				}
@@ -232,6 +231,7 @@ namespace dir2d
 			return data;
 		}
 	};
+
 
 	// basic method, holds all neccessary data, manages required resources
 	// MethodTraits must have:
@@ -637,11 +637,6 @@ namespace dir2d
 				glTextureSubImage2D(iteration[0].id, 0, 0, 0, xVar, yVar, GL_RED, GL_FLOAT, data2D.get());
 				glTextureSubImage2D(iteration[1].id, 0, 0, 0, xVar, yVar, GL_RED, GL_FLOAT, data2D.get());
 
-				// **DEBUG**
-				//iteration[0] = res::create_test_texture(xVar, yVar);
-				//iteration[1] = res::create_test_texture(xVar, yVar);
-				// **DEBUG**
-
 				w = compute_optimal_w(domain.hx, domain.hy, domain.xSplit, domain.ySplit);
 
 				curr = 0;
@@ -727,11 +722,6 @@ namespace dir2d
 
 				glBindImageTexture(IMG0, data.iteration[0].id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
 				glBindImageTexture(IMG1, data.iteration[1].id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
-
-				// **DEBUG**
-				//glBindImageTexture(IMG0, data.iteration[0].id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
-				//glBindImageTexture(IMG1, data.iteration[1].id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
-				// **DEBUG**
 
 				glUniform1f(m_uniforms.w, data.w);
 				glUniform1f(m_uniforms.x0, data.domain.x0);
