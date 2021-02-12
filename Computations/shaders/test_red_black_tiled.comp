@@ -30,10 +30,6 @@ layout(local_size_x = WORKGROUP_X + STEPS * 2, local_size_y = WORKGROUP_Y + STEP
 // used both for read and write, boundary is not calculated
 layout(binding = 0, r32f) uniform image2D solution[2];
 
-// **DEBUG**
-//layout(binding = 0, rgba32f) uniform image2D solution[2];
-// **DEBUG**
-
 uniform int curr; // 0 or 1
 uniform float w;
 uniform float x0;
@@ -94,7 +90,6 @@ bool onBoundary(ivec2 global, ivec2 size)
 
 
 // red-black step
-// 100% correct
 float f(ivec2 indices)
 {
 	float x = x0 + indices[0] * hx;
@@ -103,7 +98,6 @@ float f(ivec2 indices)
 	return 4.0 * (xxpyy - 1.0) * exp(-xxpyy);
 }
 
-// 100% correct
 float update(float u00, float um10, float u10, float u0m1, float u01, float f00)
 {
 	float hxhx = hx * hx;
