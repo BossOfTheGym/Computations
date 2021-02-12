@@ -61,11 +61,11 @@ namespace res
 	// textures
 	Texture create_texture(i32 width, i32 height, GLenum format);
 
-	Texture create_test_texture(i32 width, i32 height);
+	Texture create_test_texture(i32 width, i32 height, i32 period);
 
 	bool try_create_texture(Texture& texture, i32 width, i32 height, GLenum format);
 
-	bool try_create_test_texture(Texture& texture, i32 width, i32 height);
+	bool try_create_test_texture(Texture& texture, i32 width, i32 height, i32 period);
 
 
 	// vertex array

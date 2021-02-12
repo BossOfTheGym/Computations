@@ -110,7 +110,7 @@ namespace res
 		return texture;
 	}
 
-	Texture create_test_texture(i32 width, i32 height)
+	Texture create_test_texture(i32 width, i32 height, i32 period)
 	{
 		Texture texture = create_texture(width, height, GL_RGBA32F);
 		if (!texture.valid())
@@ -121,7 +121,7 @@ namespace res
 		std::vector<f32> data(width * height * 4);
 
 		const f32 PI = 3.14159265359;
-		const f32 K = 2 * PI / 64;
+		const f32 K = 2 * PI / period;
 
 		auto ptr = data.begin();
 		for (i32 i = 0; i < height; i++)
@@ -149,9 +149,9 @@ namespace res
 		return texture.valid();
 	}
 
-	bool try_create_test_texture(Texture& texture, i32 width, i32 height)
+	bool try_create_test_texture(Texture& texture, i32 width, i32 height, i32 period)
 	{
-		texture = create_test_texture(width, height);
+		texture = create_test_texture(width, height, period);
 
 		return texture.valid();
 	}

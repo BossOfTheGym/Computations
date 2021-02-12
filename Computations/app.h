@@ -19,11 +19,17 @@ namespace app
 	// main application class, holds everything inside
 	// TODO : everything that is missing
 	// TODO : print to console OopenGL context information
+	// TODO : resources
 	class App
 	{
 	public:
 		static constexpr int HEIGHT = 800;
 		static constexpr int WIDTH = 2 * HEIGHT;
+
+		static constexpr i32 TEST_TEXTURE_WIDTH  = 128;
+		static constexpr i32 TEST_TEXTURE_HEIGHT = 128;
+		static constexpr i32 TEST_TEXTURE_PERIOD = 16;
+
 		static constexpr i32 WX = 255;
 		static constexpr i32 WY = 255;
 		static constexpr i32 STEPS = 4;
@@ -149,9 +155,37 @@ namespace app
 	public:
 		bool init()
 		{
-			m_initialized = initWindow() && initGraphicalResources() && initSystems();
+			if (m_initialized)
+			{
+				std::cout << "[WARNING] App already initialized." << std::endl;
+
+				return true;
+			}
+
+			if (!initWindow())
+			{
+				std::cerr << "Failed to initialize window." << std::endl;
+
+				return false;
+			}
+
+			if (!initGraphicalResources())
+			{
+				std::cerr << "Failed to initialize graphical resources." << std::endl;
+
+				return false;
+			}
+
+			if (!initSystems())
+			{
+				std::cerr << "Failed to initialize systems." << std::endl;
+
+				return false;
+			}
 			
-			return m_initialized;
+			m_initialized = true;
+
+			return true;
 		}
 
 		void deinit()
@@ -319,7 +353,7 @@ namespace app
 			std::cout << "\"redBlackTiledProgram\" program created." << std::endl;
 
 			// test texture
-			if (!try_create_test_texture(m_texture, WIDTH, HEIGHT))
+			if (!try_create_test_texture(m_texture, TEST_TEXTURE_WIDTH, TEST_TEXTURE_HEIGHT, TEST_TEXTURE_PERIOD))
 			{
 				std::cerr << "Failed to create test texture." << std::endl;
 
