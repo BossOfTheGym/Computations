@@ -28,7 +28,11 @@ layout(local_size_x = WORKGROUP_X + STEPS * 2, local_size_y = WORKGROUP_Y + STEP
 
 // picture is stored in a row-major manner
 // used both for read and write, boundary is not calculated
-layout(binding = 0, r32f) uniform coherent image2D solution[2];
+layout(binding = 0, r32f) uniform image2D solution[2];
+
+// **DEBUG**
+//layout(binding = 0, rgba32f) uniform image2D solution[2];
+// **DEBUG**
 
 uniform int curr; // 0 or 1
 uniform float w;
@@ -110,6 +114,30 @@ bool onBoundary(ivec2 global, ivec2 size)
 		|| global[1] == 0 || global[1] == size[1] - 1;
 }
 
+bool onLeftTop(ivec2 local, int step)
+{
+	int offset = 2 * step;
+
+	ivec2 leftStart = ivec2(offset - 2, offset);
+	ivec2 leftEnd   = ivec2(offset, TRUE_WORKGROUP_Y_OVERLAP - offset);
+	ivec2 topEnd    = ivec2(TRUE_WORKGROUP_X_OVERLAP - offset, TRUE_WORKGROUP_Y_OVERLAP - offset + 2);
+
+	return inRegion(local, leftStart, leftEnd) 
+		|| inRegion(local, leftEnd, topEnd);
+}
+
+bool onRightBottom(ivec2 local, int step)
+{
+	int offset = 2 * step;
+
+	ivec2 bottomStart = ivec2(offset, offset - 2);
+	ivec2 bottomEnd   = ivec2(TRUE_WORKGROUP_X_OVERLAP - offset, offset);
+	ivec2 rightEnd    = ivec2(TRUE_WORKGROUP_X_OVERLAP - offset + 2, TRUE_WORKGROUP_Y_OVERLAP - offset);
+
+	return inRegion(local, bottomStart, bottomEnd) 
+		|| inRegion(local, bottomEnd  , rightEnd);
+}
+
 // red-black step
 float f(ivec2 indices)
 {
@@ -143,20 +171,10 @@ void main()
 	bool u10OnBound = onBoundary(global + ivec2(1, 0), size);
 	bool u01OnBound = onBoundary(global + ivec2(0, 1), size);
 	bool u11OnBound = onBoundary(global + ivec2(1, 1), size);
-	
-	// DEBUG
-	update(0, 0, 0, 0, 0, 0);
 
 	// cache data
-	float f00, f10, f01, f11;
 	if (globalInBounds)
 	{
-		// f-function, good
-		f00 = f(global              );
-		f10 = f(global + ivec2(1, 0));
-		f01 = f(global + ivec2(0, 1));
-		f11 = f(global + ivec2(1, 1));
-	
 		// solution data, good
 		cacheStoreBundle(local, 
 			imageLoad(solution[curr], global              ).x,
@@ -198,19 +216,19 @@ void main()
 				float u20  = cacheLoadValue(local + ivec2(2,  0)); // right
 				float u1m1 = cacheLoadValue(local + ivec2(1, -1)); // bottom
 	
-				cacheStoreValue(local + ivec2(1, 0), update(u10, u00, u20, u1m1, u11, f10));	
+				cacheStoreValue(local + ivec2(1, 0), update(u10, u00, u20, u1m1, u11, f(global + ivec2(1, 0))));
 			}
 			if (!u01OnBound && (localInComputeRegion || localOnRightBottom))
 			{
 				float u02  = cacheLoadValue(local + ivec2( 0, 2)); // top
 				float um11 = cacheLoadValue(local + ivec2(-1, 1)); // left
 	
-				cacheStoreValue(local + ivec2(0, 1), update(u01, um11, u11, u00, u02, f01));
+				cacheStoreValue(local + ivec2(0, 1), update(u01, um11, u11, u00, u02, f(global + ivec2(0, 1))));
 			}
 		}
-		memoryBarrierShared();
 		barrier();
-	
+		memoryBarrierShared();
+
 		// red update
 		if (globalInBounds && localInComputeRegion)
 		{
@@ -219,18 +237,18 @@ void main()
 				float u0m1 = cacheLoadValue(local + ivec2( 0, -1)); // bottom
 				float um10 = cacheLoadValue(local + ivec2(-1,  0)); // left
 	
-				cacheStoreValue(local, update(u00, um10, u10, u0m1, u01, f00));
+				cacheStoreValue(local, update(u00, um10, u10, u0m1, u01, f(global)));
 			}
 			if (!u11OnBound)
 			{
 				float u12 = cacheLoadValue(local + ivec2(1, 2)); // top
 				float u21 = cacheLoadValue(local + ivec2(2, 1)); // right
 	
-				cacheStoreValue(local + ivec2(1, 1), update(u11, u01, u21, u10, u12, f11));
+				cacheStoreValue(local + ivec2(1, 1), update(u11, u01, u21, u10, u12, f(global + ivec2(1, 1))));
 			}
 		}
-		memoryBarrierShared();
 		barrier();
+		memoryBarrierShared();
 
 		// good
 		leftStart   += ivec2( 2,  2);
@@ -242,7 +260,7 @@ void main()
 		regionStart += ivec2( 2,  2);
 		regionEnd   += ivec2(-2, -2);
 	}
-	
+
 	// good
 	if (inComputeRegion(local, STEPS))
 	{
@@ -251,4 +269,8 @@ void main()
 		imageStore(solution[curr ^ 1], global + ivec2(0, 1), vec4(cacheLoadValue(local + ivec2(0, 1))));
 		imageStore(solution[curr ^ 1], global + ivec2(1, 1), vec4(cacheLoadValue(local + ivec2(1, 1))));
 	}
+	memoryBarrierImage();
+
+	// DEBUG
+	update(0.0, 0.0, 0.0, 0.0, 0.0, f(ivec2(0)));
 }

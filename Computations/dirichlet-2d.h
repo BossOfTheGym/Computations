@@ -632,15 +632,19 @@ namespace dir2d
 				i32 xVar = domain.xSplit + 1;
 				i32 yVar = domain.ySplit + 1;
 
-				iteration[0] = res::create_texture(xVar, yVar, GL_R32F);
-				iteration[1] = res::create_texture(xVar, yVar, GL_R32F);
+				iteration[0] =  res::create_texture(xVar, yVar, GL_R32F);
+				iteration[1] =  res::create_texture(xVar, yVar, GL_R32F);
 				glTextureSubImage2D(iteration[0].id, 0, 0, 0, xVar, yVar, GL_RED, GL_FLOAT, data2D.get());
 				glTextureSubImage2D(iteration[1].id, 0, 0, 0, xVar, yVar, GL_RED, GL_FLOAT, data2D.get());
+
+				// **DEBUG**
+				//iteration[0] = res::create_test_texture(xVar, yVar);
+				//iteration[1] = res::create_test_texture(xVar, yVar);
+				// **DEBUG**
 
 				w = compute_optimal_w(domain.hx, domain.hy, domain.xSplit, domain.ySplit);
 
 				curr = 0;
-				//this->cycles = (cycles % 2 == 0 ? cycles : cycles + 1);
 				this->cycles = cycles;
 
 				xNumGroups = xVar / WORKGROUP_X;
@@ -656,7 +660,7 @@ namespace dir2d
 
 			res::Id textureId() const
 			{
-				return iteration[0].id;
+				return iteration[curr].id;
 			}
 
 
@@ -723,6 +727,11 @@ namespace dir2d
 
 				glBindImageTexture(IMG0, data.iteration[0].id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
 				glBindImageTexture(IMG1, data.iteration[1].id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
+
+				// **DEBUG**
+				//glBindImageTexture(IMG0, data.iteration[0].id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+				//glBindImageTexture(IMG1, data.iteration[1].id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+				// **DEBUG**
 
 				glUniform1f(m_uniforms.w, data.w);
 				glUniform1f(m_uniforms.x0, data.domain.x0);

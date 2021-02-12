@@ -50,21 +50,20 @@ namespace app
 		void mainloop()
 		{
 			// *TEST*
-			dir2d::SmartHandle handles[3];
 			{
 				auto data = dir2d::JacobyMethod::create_dataAabb2D(-1.2, +1.2, -1.2, +1.2, 255, 255);
 
-				handles[0] = m_jacobySystem->createSmart(data, 16);
+				m_handles[0] = m_jacobySystem->createSmart(data, 16);
 			}
 			{
-				auto data = dir2d::RedBlackMethod::create_dataAabb2D(-1.2, +1.2, -1.2, +1.2, 63, 63);
+				auto data = dir2d::RedBlackMethod::create_dataAabb2D(-1.2, +1.2, -1.2, +1.2, 47, 47);
 
-				handles[1] = m_redBlackSystem->createSmart(data, 1);
+				m_handles[1] = m_redBlackSystem->createSmart(data, 1);
 			}
 			{
-				auto data = dir2d::RedBlackTiledMethod::create_dataAabb2D(-1.2, +1.2, -1.2, +1.2, 63, 63);
+				auto data = dir2d::RedBlackTiledMethod::create_dataAabb2D(-1.2, +1.2, -1.2, +1.2, 47, 47);
 
-				handles[2] = m_redBlackTiledSystem->createSmart(data, 1);
+				m_handles[2] = m_redBlackTiledSystem->createSmart(data, 1);
 			}
 
 			// mainloop
@@ -90,17 +89,17 @@ namespace app
 
 				// *TEST*
 				glViewport(0, 0, WIDTH / 3, HEIGHT);
-				glBindTextureUnit(0, handles[0].textureId());
+				glBindTextureUnit(0, m_handles[0].textureId());
 				glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 				// *TEST*
 				glViewport(WIDTH / 3, 0, WIDTH / 3, HEIGHT);
-				glBindTextureUnit(0, handles[1].textureId());
+				glBindTextureUnit(0, m_handles[1].textureId());
 				glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 				// *TEST*
 				glViewport(2 * WIDTH / 3, 0, WIDTH / 3, HEIGHT);
-				glBindTextureUnit(0, handles[2].textureId());
+				glBindTextureUnit(0, m_handles[2].textureId());
 				glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 				// swap
@@ -111,13 +110,48 @@ namespace app
 	private:
 		void updateSystems(int key, int scancode, int action, int mods)
 		{
-			if (key == GLFW_KEY_U)
+			if (key == GLFW_KEY_U && action == GLFW_PRESS)
 			{
 				m_jacobySystem->update();
 				m_redBlackSystem->update();
 				m_redBlackTiledSystem->update();
 			}
+			if (key == GLFW_KEY_R && action == GLFW_PRESS)
+			{
+				reloadRedBlackTiled();
+			}
 		}
+
+		void reloadRedBlackTiled()
+		{
+			m_redBlackTiled.reset();
+			if (!try_create_shader_from_file(m_redBlackTiled, GL_COMPUTE_SHADER, "shaders/test_red_black_tiled.comp"))
+			{	
+				std::cerr << "Failed to reload \"shaders/test_red_black_tiled.comp\" ." << std::endl;
+			}
+			std::cout << "\"shaders/test_red_black_tiled.comp\" shader recreated." << std::endl;
+
+			m_redBlackTiledProgram.reset();
+			if (!try_create_shader_program(m_redBlackTiledProgram, m_redBlackTiled))
+			{
+				std::cerr << "Failed to recreate \"redBlackTiledProgram\" program." << std::endl;
+			}
+			std::cout << "\"redBlackTiledProgram\" program recreated." << std::endl;
+
+			m_redBlackTiledSystem->setupProgram(std::move(m_redBlackTiledProgram));
+
+			{
+				auto data = dir2d::RedBlackMethod::create_dataAabb2D(-1.2, +1.2, -1.2, +1.2, 47, 47);
+
+				m_handles[1] = m_redBlackSystem->createSmart(data, 1);
+			}
+			{
+				auto data = dir2d::RedBlackTiledMethod::create_dataAabb2D(-1.2, +1.2, -1.2, +1.2, 47, 47);
+
+				m_handles[2] = m_redBlackTiledSystem->createSmart(data, 1);
+			}
+		}
+
 
 	public:
 		bool init()
@@ -371,6 +405,11 @@ namespace app
 
 		void deinitSystems()
 		{
+			for (auto& handle : m_handles)
+			{
+				handle.reset();
+			}
+
 			m_mirroredRedBlackSystem.reset();
 			m_redBlackSystem.reset();
 			m_jacobySystem.reset();
@@ -414,5 +453,7 @@ namespace app
 		std::unique_ptr<dir2d::RedBlackMethod> m_redBlackSystem;
 		std::unique_ptr<dir2d::MirroredRedBlackMethod> m_mirroredRedBlackSystem;
 		std::unique_ptr<dir2d::RedBlackTiledMethod> m_redBlackTiledSystem;
+
+		dir2d::SmartHandle m_handles[3]{};
 	};
 }
