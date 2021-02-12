@@ -245,7 +245,6 @@ namespace app
 			m_mainWindow->makeContextCurrent();
 
 			// TODO : create a list 
-			// resources
 			// shaders
 			if (!try_create_shader_from_file(m_quadVert, GL_VERTEX_SHADER, "shaders/quad.vert"))
 			{
