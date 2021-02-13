@@ -121,10 +121,10 @@
     <None Include="shaders\red_black.comp">
       <Filter>shaders</Filter>
     </None>
-    <None Include="shaders\red_black_tiled.comp">
+    <None Include="shaders\red_black_tiled0.comp">
       <Filter>shaders</Filter>
     </None>
-    <None Include="shaders\red_black_tiled_enhanced.comp">
+    <None Include="shaders\red_black_tiled1.comp">
       <Filter>shaders</Filter>
     </None>
   </ItemGroup>

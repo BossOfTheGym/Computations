@@ -124,11 +124,11 @@ namespace app
 		void reloadRedBlackTiled()
 		{
 			m_redBlackTiled.reset();
-			if (!try_create_shader_from_file(m_redBlackTiled, GL_COMPUTE_SHADER, "shaders/red_black_tiled.comp"))
+			if (!try_create_shader_from_file(m_redBlackTiled, GL_COMPUTE_SHADER, "shaders/red_black_tiled1.comp"))
 			{	
-				std::cerr << "Failed to reload \"shaders/red_black_tiled.comp\" ." << std::endl;
+				std::cerr << "Failed to reload \"shaders/red_black_tiled1.comp\" ." << std::endl;
 			}
-			std::cout << "\"shaders/red_black_tiled.comp\" shader recreated." << std::endl;
+			std::cout << "\"shaders/red_black_tiled1.comp\" shader recreated." << std::endl;
 
 			m_redBlackTiledProgram.reset();
 			if (!try_create_shader_program(m_redBlackTiledProgram, m_redBlackTiled))
@@ -294,13 +294,13 @@ namespace app
 			}
 			std::cout << "\"mirror_red_black.comp\" shader created." << std::endl;
 
-			if (!try_create_shader_from_file(m_redBlackTiled, GL_COMPUTE_SHADER, "shaders/red_black_tiled.comp"))
+			if (!try_create_shader_from_file(m_redBlackTiled, GL_COMPUTE_SHADER, "shaders/red_black_tiled1.comp"))
 			{	
-				std::cerr << "Failed to load \"shaders/red_black_tiled.comp\" ." << std::endl;
+				std::cerr << "Failed to load \"shaders/red_black_tiled1.comp\" ." << std::endl;
 
 				return false;
 			}
-			std::cout << "\"shaders/red_black_tiled.comp\" shader created." << std::endl;
+			std::cout << "\"shaders/red_black_tiled1.comp\" shader created." << std::endl;
 
 			// shader programs
 			if (!try_create_shader_program(m_showProgram, m_quadVert, m_quadFrag))

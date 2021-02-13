@@ -173,8 +173,8 @@
     <None Include="shaders\quad.frag" />
     <None Include="shaders\quad.vert" />
     <None Include="shaders\red_black.comp" />
-    <None Include="shaders\red_black_tiled.comp" />
-    <None Include="shaders\red_black_tiled_enhanced.comp" />
+    <None Include="shaders\red_black_tiled0.comp" />
+    <None Include="shaders\red_black_tiled1.comp" />
     <None Include="shaders\test_compute.comp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
