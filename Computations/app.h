@@ -20,6 +20,8 @@ namespace app
 	// TODO : everything that is missing
 	// TODO : print to console OopenGL context information
 	// TODO : resources
+	// TODO : text rendering
+
 	class App
 	{
 	public:

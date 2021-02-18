@@ -23,6 +23,10 @@ namespace dir2d
 	//		and also same setup and update logic
 	// TODO : attach WORKGROUP consts to shaders
 	// TODO : program must be outter resource and be accessed via app::App
+	// TODO : each system must store an f-texture
+	// TODO : rework shaders, so there is no f-function but f-texture
+	// TODO : change DataProvider so it can take Function objects
+	// TODO : time measure
 
 	// smart handle, used to obtain height texture id
 	class SmartHandle
@@ -146,28 +150,6 @@ namespace dir2d
 		std::unique_ptr<f32[]> data;
 	};
 
-	// manages handles
-	class HandleProvider
-	{
-	public:
-		Handle acquire()
-		{
-			return m_handlePool.acquire();
-		}
-
-		void release(Handle handle)
-		{
-			m_handlePool.release(handle);
-		}
-
-		bool valid(Handle handle) const
-		{
-			return m_handlePool.valid(handle);
-		}
-
-	private:
-		HandlePool m_handlePool;
-	};
 
 	// ensures that generated domain description will be correct
 	template<i32 WORKGROUP_X, i32 WORKGROUP_Y>
@@ -241,7 +223,7 @@ namespace dir2d
 	class BasicMethod 
 		: public app::System
 		, public DataAabbProvider<MethodTraits::WORKGROUP_X, MethodTraits::WORKGROUP_Y>
-		, protected HandleProvider
+		, protected HandlePool
 	{
 	private:
 		using Data = typename MethodTraits::Data;
