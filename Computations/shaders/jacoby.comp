@@ -13,10 +13,9 @@ layout(local_size_x = WORKGROUP_X, local_size_y = WORKGROUP_Y) in;
 
 // used both for read and write, boundary is not calculated
 layout(binding = 0, r32f) uniform image2D solution[2];
+layout(binding = 2, r32f) uniform image2D f;
 
 uniform int curr; // 0 or 1
-uniform float x0;
-uniform float y0;
 uniform float hx;
 uniform float hy;
 
@@ -80,14 +79,6 @@ bool onLowerBoundaryY(ivec2 coord, ivec2 size)
 	return coord[1] == 0;
 }
 
-float f(ivec2 indices)
-{
-	float x = x0 + indices[0] * hx;
-	float y = y0 + indices[1] * hy;
-	float xxpyy = x * x + y * y;
-	return 4.0 * (xxpyy - 1.0) * exp(-xxpyy);
-}
-
 // jacoby update
 float update(float um10, float u10, float u0m1, float u01, float f00)
 {
@@ -131,13 +122,16 @@ void main()
 	memoryBarrierShared();
 	barrier();
 
+	
 	if (inInnerDomain(global, size))
 	{
+		float f00 = imageLoad(f, global).x;
+		
 		float um10 = cacheLoadValue(local + ivec2(-1, 0));
 		float u10  = cacheLoadValue(local + ivec2(+1, 0));
 		float u0m1 = cacheLoadValue(local + ivec2(0, -1));
 		float u01  = cacheLoadValue(local + ivec2(0, +1));
 
-		imageStore(solution[curr ^ 1], global, vec4(update(um10, u10, u0m1, u01, f(global))));
+		imageStore(solution[curr ^ 1], global, vec4(update(um10, u10, u0m1, u01, f00)));
 	}
 }

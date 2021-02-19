@@ -10,10 +10,10 @@
 template<class Type>
 class Storage
 {
-	static_assert(std::is_move_assignable_v<Type> 
-		&& std::is_move_constructible_v<Type> 
-		&& std::is_default_constructible_v<Type>
-		, "Type doesn't satisfy requirements.");
+	// static_assert(std::is_move_assignable_v<Type> 
+	// 	&& std::is_move_constructible_v<Type> 
+	// 	&& std::is_default_constructible_v<Type>
+	// 	, "Type doesn't satisfy requirements.");
 
 private:
 	// non-standart iterator

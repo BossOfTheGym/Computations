@@ -29,11 +29,10 @@ layout(local_size_x = WORKGROUP_X + STEPS * 2, local_size_y = WORKGROUP_Y + STEP
 // picture is stored in a row-major manner
 // used both for read and write, boundary is not calculated
 layout(binding = 0, r32f) uniform image2D solution[2];
+layout(binding = 2, r32f) uniform readonly image2D f;
 
 uniform int curr; // 0 or 1
 uniform float w;
-uniform float x0;
-uniform float y0;
 uniform float hx;
 uniform float hy;
 
@@ -88,16 +87,7 @@ bool onBoundary(ivec2 global, ivec2 size)
 		|| global.y == 0 || global.y == size.y - 1;
 }
 
-
 // red-black step
-float f(ivec2 indices)
-{
-	float x = x0 + indices[0] * hx;
-	float y = y0 + indices[1] * hy;
-	float xxpyy = x * x + y * y;
-	return 4.0 * (xxpyy - 1.0) * exp(-xxpyy);
-}
-
 float update(float u00, float um10, float u10, float u0m1, float u01, float f00)
 {
 	float hxhx = hx * hx;
@@ -119,15 +109,35 @@ void main()
 	// some invocation's parameters
 	bool globalInBounds = inBounds(global, size);
 
-	bool u00OnBound = onBoundary(global + ivec2(0, 0), size);
+	bool u00OnBound = onBoundary(global              , size);
 	bool u10OnBound = onBoundary(global + ivec2(1, 0), size);
 	bool u01OnBound = onBoundary(global + ivec2(0, 1), size);
 	bool u11OnBound = onBoundary(global + ivec2(1, 1), size);
 
-	// cache data
+	// cache f & solution
+	float             f12;
+	float       f01 , f11, f21;
+	float fm10, f00 , f10;
+	float       f0m1;
+
 	if (globalInBounds)
 	{
-		cacheStoreValue(local + ivec2(0, 0), imageLoad(solution[curr], global + ivec2(0, 0)).x);
+		f00 = imageLoad(f, global              ).x;
+		f10 = imageLoad(f, global + ivec2(1, 0)).x;
+		f01 = imageLoad(f, global + ivec2(0, 1)).x;
+		f11 = imageLoad(f, global + ivec2(1, 1)).x;
+		//if (!u00OnBound)
+		//{
+			fm10 = imageLoad(f, global + ivec2(-1, 0)).x;
+			f0m1 = imageLoad(f, global + ivec2(0, -1)).x;
+		//}
+		//if (!u11OnBound)
+		//{
+			f21 = imageLoad(f, global + ivec2(2, 1)).x;
+			f12 = imageLoad(f, global + ivec2(1, 2)).x;
+		//}
+
+		cacheStoreValue(local              , imageLoad(solution[curr], global              ).x);
 		cacheStoreValue(local + ivec2(1, 0), imageLoad(solution[curr], global + ivec2(1, 0)).x);
 		cacheStoreValue(local + ivec2(0, 1), imageLoad(solution[curr], global + ivec2(0, 1)).x);
 		cacheStoreValue(local + ivec2(1, 1), imageLoad(solution[curr], global + ivec2(1, 1)).x);
@@ -135,42 +145,57 @@ void main()
 	barrier();
 	memoryBarrierShared();
 	
+	// preload data that it is local to invocation and those changes must be reflecte in cache
+	float             u12;
+	float       u01 , u11, u21;
+	float um10, u00 , u10;
+	float       u0m1;
+	if (globalInBounds)
+	{
+		// it can safely load values from out of bounds since its cache(they will be just undefined)
+		// it's not bad since values involving undefined ones will not be updated(values to update are checked)
+		// it can be even better just to read them to avoid additional branch divirgency
+		u12 = cacheLoadValue(local + ivec2(1, 2));
+		u21 = cacheLoadValue(local + ivec2(2, 1));
+
+		u0m1 = cacheLoadValue(local + ivec2(0, -1));
+		um10 = cacheLoadValue(local + ivec2(-1, 0));
+
+		u00 = cacheLoadValue(local              );
+		u10 = cacheLoadValue(local + ivec2(1, 0));
+		u01 = cacheLoadValue(local + ivec2(0, 1));
+		u11 = cacheLoadValue(local + ivec2(1, 1));
+	}
 	// computations
 	for (int i = 1; i <= STEPS; i++)
 	{
-		                   float       u13 ;
-		                   float u02 , u12 ; float u22;
-		float       um11 ; float u01 , u11 ; float u21, u31;
-		float um20, um10 ; float u00 , u10 ; float u20;
-		float       um1m1; float u0m1, u1m1;
-		                   float u0m2;
+		float                    u13 ;
+		float              u02 ,       u22;
+		float       um11 ,                  u31;
+		float um20,                    u20;
+		float       um1m1,       u1m1;
+		float              u0m2;
 
 		bool localInComputeReg = inComputeRegion(local, i);
 
 		if (globalInBounds && localInComputeReg)
 		{
+			// it can safely load values from out of bounds since its cache(they will be just undefined)
+			// it's not bad since values involving undefined ones will not be updated(values to update are checked)
+			// it can be even better just to read them to avoid additional branch divirgency
 			u13 = cacheLoadValue(local + ivec2(1, 3));
 			u02 = cacheLoadValue(local + ivec2(0, 2));
-			u12 = cacheLoadValue(local + ivec2(1, 2));
 
 			u22 = cacheLoadValue(local + ivec2(2, 2));
 
 			um11 = cacheLoadValue(local + ivec2(-1, 1));
 			um20 = cacheLoadValue(local + ivec2(-2, 0));
-			um10 = cacheLoadValue(local + ivec2(-1, 0));
 
-			u01 = cacheLoadValue(local + ivec2(0, 1));
-			u11 = cacheLoadValue(local + ivec2(1, 1));
-			u00 = cacheLoadValue(local + ivec2(0, 0));
-			u10 = cacheLoadValue(local + ivec2(1, 0));
-
-			u21 = cacheLoadValue(local + ivec2(2, 1));
 			u31 = cacheLoadValue(local + ivec2(3, 1));
 			u20 = cacheLoadValue(local + ivec2(2, 0));
 
 			um1m1 = cacheLoadValue(local + ivec2(-1, -1));
 
-			u0m1 = cacheLoadValue(local + ivec2(0, -1));
 			u1m1 = cacheLoadValue(local + ivec2(1, -1));
 			u0m2 = cacheLoadValue(local + ivec2(0, -2));
 		}
@@ -181,28 +206,28 @@ void main()
 		{
 			if (!u10OnBound) // black
 			{
-				u10 = update(u10, u00, u20, u1m1, u11, f(global + ivec2(1, 0))); // black
+				u10 = update(u10, u00, u20, u1m1, u11, f10); // black
 			}
 			if (!u01OnBound) // black
 			{
-				u01 = update(u01, um11, u11, u00, u02, f(global + ivec2(0, 1))); // black
+				u01 = update(u01, um11, u11, u00, u02, f01); // black
 			}
 			if (!u11OnBound) // red
 			{
-				u12 = update(u12, u02, u22, u11, u13, f(global + ivec2(1, 2))); // black
-				u21 = update(u21, u11, u31, u20, u22, f(global + ivec2(2, 1))); // black
+				u12 = update(u12, u02, u22, u11, u13, f12); // black
+				u21 = update(u21, u11, u31, u20, u22, f21); // black
 
-				u11 = update(u11, u01, u21, u10, u12, f(global + ivec2(1, 1))); // red
+				u11 = update(u11, u01, u21, u10, u12, f11); // red
 			}
 			if (!u00OnBound) // red 
 			{
-				um10 = update(um10, um20, u00, um1m1, um11, f(global + ivec2(-1, 0))); // black
-				u0m1 = update(u0m1, um1m1, u1m1, u0m2, u00, f(global + ivec2(0, -1))); // black
+				um10 = update(um10, um20, u00, um1m1, um11, fm10); // black
+				u0m1 = update(u0m1, um1m1, u1m1, u0m2, u00, f0m1); // black
 
-				u00 = update(u00, um10, u10, u0m1, u01, f(global + ivec2(0, 0))); // red
+				u00 = update(u00, um10, u10, u0m1, u01, f00); // red
 			}
 
-			cacheStoreValue(local + ivec2(0, 0), u00);
+			cacheStoreValue(local              , u00);
 			cacheStoreValue(local + ivec2(1, 0), u10);
 			cacheStoreValue(local + ivec2(0, 1), u01);
 			cacheStoreValue(local + ivec2(1, 1), u11);
@@ -211,7 +236,6 @@ void main()
 		memoryBarrierShared();
 	}
 
-	// good
 	if (inComputeRegion(local, STEPS))
 	{
 		imageStore(solution[curr ^ 1], global              , vec4(cacheLoadValue(local              )));

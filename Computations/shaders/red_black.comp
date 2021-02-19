@@ -13,6 +13,7 @@ layout(local_size_x = WORKGROUP_X, local_size_y = WORKGROUP_Y) in;
 
 // used both for read and write, boundary is not calculated
 layout(binding = 0, r32f) uniform image2D solution;
+layout(binding = 1, r32f) uniform readonly image2D f;
 
 uniform int rb;
 uniform float w;
@@ -81,14 +82,6 @@ bool onLowerBoundaryY(ivec2 coord, ivec2 size)
 	return coord[1] == 0;
 }
 
-float f(ivec2 indices)
-{
-	float x = x0 + indices[0] * hx;
-	float y = y0 + indices[1] * hy;
-	float xxpyy = x * x + y * y;
-	return 4.0 * (xxpyy - 1.0) * exp(-xxpyy);
-}
-
 float update(float u00, float um10, float u10, float u0m1, float u01, float f00)
 {
 	float hxhx = hx * hx;
@@ -105,6 +98,8 @@ void main()
 	getGlobalLocalInvocationID(global, local);
 
 	ivec2 size = imageSize(solution);
+
+	float f00 = imageLoad(f, global).x;
 
 	cacheStoreValue(local, imageLoad(solution, global).x);
 	if (inInnerDomainY(global, size))
@@ -140,6 +135,6 @@ void main()
 		float u0m1 = cacheLoadValue(local + ivec2(0, -1));
 		float u01  = cacheLoadValue(local + ivec2(0, +1));
 
-		imageStore(solution, global, vec4(update(u00, um10, u10, u0m1, u01, f(global))));
+		imageStore(solution, global, vec4(update(u00, um10, u10, u0m1, u01, f00)));
 	}
 }

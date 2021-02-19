@@ -27,8 +27,146 @@ namespace dir2d
 	// TODO : rework shaders, so there is no f-function but f-texture
 	// TODO : change DataProvider so it can take Function objects
 	// TODO : time measure
+	// TODO : template to check if Uniform type satisfies required conditions
+	// TODO : template to check if Data type satisfies required condition
 
+	// Data accosiated with a given problem
+	// div(grad(u)) = f
+	// u(boundary) = g
+	// first coord is y(rows), second coord is x(cols) as everything is stored in row-major manner
+	// texture is 'padded' with boundary conditions
+	// stores f32 data for single-channel texture
+	using Function2D = std::function<f32(f32, f32)>;
+
+	struct DomainAabb2D
+	{
+		static bool split_aligned(i32 split, i32 alignment)
+		{
+			return (split + 1) % alignment == 0;
+		}
+
+		static i32 align_split(i32 split, i32 alignment)
+		{
+			if (!split_aligned(split, alignment))
+			{
+				split = (split + 1) - (split + 1) % alignment + alignment - 1;
+			}
+
+			return split;
+		}
+
+		static DomainAabb2D create_domain(f32 x0, f32 x1, f32 y0, f32 y1, i32 xSplit, i32 ySplit)
+		{
+			return DomainAabb2D{x0, x1, y1, y0, (x1 - x0) / xSplit, (y1 - y0) / ySplit, xSplit, ySplit};
+		}
+
+		static DomainAabb2D create_aligned_domain(f32 x0, f32 x1, f32 y0, f32 y1, i32 xSplit, i32 ySplit, i32 xAlign, i32 yAlign)
+		{
+			xSplit = align_split(xSplit, xAlign);
+			ySplit = align_split(ySplit, yAlign);
+
+			return DomainAabb2D{x0, x1, y0, y1, (x1 - x0) / xSplit, (y1 - y0) / ySplit, xSplit, ySplit};
+		}
+
+		static void align_domain(DomainAabb2D& domain, i32 xAlign, i32 yAlign)
+		{
+			domain.xSplit = align_split(domain.xSplit, xAlign);
+			domain.ySplit = align_split(domain.ySplit, yAlign);
+		}
+
+
+		f32 x0{};
+		f32 x1{};
+		f32 y0{};
+		f32 y1{};
+		f32 hx{};
+		f32 hy{};
+		i32 xSplit{};
+		i32 ySplit{};
+	};
+
+	struct DataAabb2D : DomainAabb2D
+	{
+	private:
+		static void initialize_solution_data(DataAabb2D& data, const Function2D& boundary)
+		{
+			data.solution.reset(new f32[(data.xSplit + 1) * (data.ySplit + 1)]);
+
+			auto ptr = data.solution.get();
+			for (i32 j = 0; j <= data.xSplit; j++)
+			{
+				f32 x = data.x0 + j * data.hx;
+
+				*ptr++ = boundary(x, data.y0);				
+			}
+			for (i32 i = 1; i < data.ySplit; i++)
+			{
+				f32 y = data.y0 + i * data.hy;
+
+				*ptr++ = boundary(data.x0, y);
+				for (i32 j = 1; j < data.xSplit; j++)
+				{
+					f32 x = data.x0 + j * data.hx;
+
+					*ptr++ = 0.0;
+				}
+				*ptr++ = boundary(data.x1, y);
+			}
+			for (i32 j = 0; j <= data.xSplit; j++)
+			{
+				f32 x = data.x0 + j * data.hx;
+
+				*ptr++ = boundary(x, data.y1);
+			}
+		}
+
+		static void initialize_f_data(DataAabb2D& data, const Function2D& f)
+		{
+			data.f.reset(new f32[(data.xSplit + 1) * (data.ySplit + 1)]);
+
+			auto ptr = data.f.get();
+			for (i32 j = 0; j <= data.xSplit; j++)
+			{
+				*ptr++ = 0.0f;
+			}
+			for (i32 i = 1; i < data.ySplit; i++)
+			{
+				f32 y = data.y0 + i * data.hy;
+
+				*ptr++ = 0.0f;
+				for (i32 j = 1; j < data.xSplit; j++)
+				{
+					f32 x = data.x0 + j * data.hx;
+
+					*ptr++ = f(x, y);
+				}
+				*ptr++ = 0.0;
+			}
+			for (i32 j = 0; j <= data.xSplit; j++)
+			{
+				*ptr++ = 0.0f;
+			}
+		}
+
+	public:
+		static DataAabb2D create_data(const DomainAabb2D& domain, const Function2D& boundary, const Function2D& f)
+		{
+			DataAabb2D data{domain};
+
+			initialize_solution_data(data, boundary);
+			initialize_f_data(data, f);
+
+			return data;
+		}
+
+		std::unique_ptr<f32[]> solution;
+		std::unique_ptr<f32[]> f;
+	};
+
+
+	// ensures that generated domain description will be correct
 	// smart handle, used to obtain height texture id
+	// its lifetime should not exceed the lifetime of the system it belongs
 	class SmartHandle
 	{
 	private:
@@ -60,7 +198,6 @@ namespace dir2d
 
 		SmartHandle& operator = (SmartHandle&& another) noexcept
 		{
-			// TODO : let this self-assignment guard rest here for a while
 			if (this == &another)
 			{
 				return *this;
@@ -120,113 +257,26 @@ namespace dir2d
 		ObtainFunc m_obtainFunc{};
 	};
 
-	// Data accosiated with a given problem
-	// div(grad(u)) = f
-	// u(boundary) = g
-	// first coord is y(rows), second coord is x(cols) as everything is stored in row-major manner
-	// texture is 'padded' with boundary conditions
-	// stores f32 data for single-channel texture
-	struct DomainAabb2D
+	struct BaseData : DomainAabb2D
 	{
-		f32 x0{};
-		f32 x1{};
-		f32 y0{};
-		f32 y1{};
-		f32 hx{};
-		f32 hy{};
-		i32 xSplit{};
-		i32 ySplit{};
+		BaseData() = default;
+
+		BaseData(const DomainAabb2D& domain, i32 iterationsPerUpdate) : DomainAabb2D(domain), itersPerUpdate(iterationsPerUpdate)
+		{}
+	
+		i32 itersPerUpdate{};
 	};
-
-	struct DataAabb2D
-	{	
-		f32* get() const
-		{
-			return data.get();
-		}
-
-		DomainAabb2D domain;
-
-		std::unique_ptr<f32[]> data;
-	};
-
-
-	// ensures that generated domain description will be correct
-	template<i32 WORKGROUP_X, i32 WORKGROUP_Y>
-	class DataAabbProvider
-	{
-	public:
-		static auto create_dataAabb2D(f32 x0, f32 x1, f32 y0, f32 y1, i32 xSplit, i32 ySplit)
-		{
-			DataAabb2D data{x0, x1, y0, y1};
-			if ((xSplit + 1) % WORKGROUP_X != 0)
-			{
-				xSplit = (xSplit + 1) - (xSplit + 1) % WORKGROUP_X + WORKGROUP_X - 1;
-			}
-			if ((ySplit + 1) % WORKGROUP_Y != 0)
-			{
-				ySplit = (ySplit + 1) - (ySplit + 1) % WORKGROUP_Y + WORKGROUP_Y - 1;
-			}
-			f32 hx = (x1 - x0) / xSplit;
-			f32 hy = (y1 - y0) / ySplit;
-
-			data.domain.hx = hx;
-			data.domain.hy = hy;
-			data.domain.xSplit = xSplit;
-			data.domain.ySplit = ySplit;
-
-			// domain initialization
-			data.data.reset(new f32[(xSplit + 1) * (ySplit + 1)]);
-
-			auto ptr = data.get();
-			// y0 boundary
-			for (i32 j = 0; j <= xSplit; j++)
-			{
-				f32 x = x0 + j * hx;
-
-				*ptr++ = std::exp(-x * x - y0 * y0);
-			}
-			for (i32 i = 1; i < ySplit; i++)
-			{
-				f32 y = y0 + i * hy;
-
-				// x0 boundary
-				*ptr++ = std::exp(-x0 * x0 - y * y);
-				for (i32 j = 1; j < xSplit; j++)
-				{
-					f32 x = x0 + j * hx;
-
-					// condition(precondition)
-					*ptr++ = 0.0;
-				}
-				// x1 boundary
-				*ptr++ = std::exp(-x1 * x1 - y * y);
-			}
-			// y1 boundary
-			for (i32 j = 0; j <= xSplit; j++)
-			{
-				f32 x = x0 + j * hx;
-
-				*ptr++ = std::exp(-x * x - y1 * y1);
-			}
-
-			return data;
-		}
-	};
-
 
 	// basic method, holds all neccessary data, manages required resources
 	// MethodTraits must have:
-	//  1. consts: WORKGROUP_X, WORKGROUP_Y
-	//  2. types: Data(has textureId method), Uniforms(has getLocations method)
+	//  1. types: Data(has textureId method), Uniforms(has getLocations method)
+	//
+	// All data types must be constructed from DataAabb2D structure(it always goes as first parameter)
 	template<class MethodTraits>
-	class BasicMethod 
-		: public app::System
-		, public DataAabbProvider<MethodTraits::WORKGROUP_X, MethodTraits::WORKGROUP_Y>
-		, protected HandlePool
+	class BasicMethod : public app::System, protected HandlePool
 	{
 	private:
-		using Data = typename MethodTraits::Data;
+		using Data     = typename MethodTraits::Data;
 		using Uniforms = typename MethodTraits::Uniforms;
 
 		static void destroy(void* instance, Handle handle)
@@ -241,13 +291,50 @@ namespace dir2d
 
 
 	public:
-		BasicMethod(app::App& app, res::ShaderProgram&& program) : app::System(app)
+		BasicMethod(app::App& app, i32 workgroupSizeX, i32 workgroupSizeY, res::ShaderProgram&& program) 
+			: app::System(app)
+			, m_workgroupSizeX{workgroupSizeX}
+			, m_workgroupSizeY{workgroupSizeY}
 		{
 			setupProgram(std::move(program));
 		}
 
 
-	public: // shader program & uniforms
+	public: // workgroups
+		i32 workgroupX() const
+		{
+			return m_workgroupSizeX;
+		}
+
+		void workgroupX(i32 size)
+		{
+			m_workgroupSizeX = size;
+		}
+
+		i32 workgroupY() const
+		{
+			return m_workgroupSizeY;
+		}
+
+		void workgroupY(i32 size)
+		{
+			m_workgroupSizeY = size;
+		}
+
+
+	public: // domain & data
+		DomainAabb2D createAlignedDomain(f32 x0, f32 x1, f32 y0, f32 y1, i32 xSplit, i32 ySplit)
+		{
+			return DomainAabb2D::create_aligned_domain(x0, x1, y0, y1, xSplit, ySplit, m_workgroupSizeX, m_workgroupSizeY);
+		}
+		
+		DataAabb2D createAlignedData(const DomainAabb2D& domain, const Function2D& boundary, const Function2D& f)
+		{
+			return DataAabb2D::create_data(domain, boundary, f);
+		}
+
+
+	public: // program & uniforms
 		void setupProgram(res::ShaderProgram&& program)
 		{
 			m_program = std::move(program);
@@ -260,13 +347,13 @@ namespace dir2d
 		}
 
 
-	public: // data manipulation
+	public: // data storage
 		template<class ... Args>
-		Handle create(Args&& ... args)
+		Handle create(const DataAabb2D& data, Args&& ... args)
 		{
 			auto handle = acquire();
 
-			m_dataStorage.emplace(handle, std::forward<Args>(args)...);
+			m_dataStorage.emplace(handle, data, std::forward<Args>(args)...);
 
 			return handle;
 		}
@@ -302,26 +389,21 @@ namespace dir2d
 
 
 	protected:
-		res::ShaderProgram m_program; // TODO : it is directly accessed by ancestor
-		Uniforms m_uniforms; // TODO : it is directly accessed by ancestor
-		Storage<Data> m_dataStorage; // TODO : it is directly accessed by ancestor
+		i32 m_workgroupSizeX{};
+		i32 m_workgroupSizeY{};
+
+		res::ShaderProgram m_program;
+		Uniforms           m_uniforms;
+		Storage<Data> m_dataStorage;
 	};
 
 
-	// general traits that contain workgroup's size inforamtion: along x and y
-	template<i32 WORKGROUP_X_VAR, i32 WORKGROUP_Y_VAR>
-	struct WorkgroupTraits
-	{
-		static constexpr const i32 WORKGROUP_X = WORKGROUP_X_VAR;
-		static constexpr const i32 WORKGROUP_Y = WORKGROUP_Y_VAR;
-	};
-	
+
 
 	// traits specially for methods of jacoby family
-	template<i32 WORKGROUP_X, i32 WORKGROUP_Y>
-	struct JacobyTraits : WorkgroupTraits<WORKGROUP_X, WORKGROUP_Y>
+	struct JacobyTraits
 	{
-		struct Data
+		struct Data : BaseData
 		{
 			Data() = default;
 
@@ -331,22 +413,18 @@ namespace dir2d
 			Data& operator = (const Data&) = delete; // implicitly deleted because of res::Texture
 			Data& operator = (Data&&) = default;
 
-			Data(const DataAabb2D& data2D, i32 cycles)
+			Data(const DataAabb2D& data2D, i32 iterationsPerUpdate) : BaseData(data2D, iterationsPerUpdate)
 			{
-				domain = data2D.domain;
-
-				i32 xVars = domain.xSplit + 1;
-				i32 yVars = domain.ySplit + 1;
+				i32 xVars = xSplit + 1;
+				i32 yVars = ySplit + 1;
 
 				iteration[0] = res::create_texture(xVars, yVars, GL_R32F);
 				iteration[1] = res::create_texture(xVars, yVars, GL_R32F);
-				glTextureSubImage2D(iteration[0].id, 0, 0, 0, xVars, yVars, GL_RED, GL_FLOAT, data2D.get());
-				glTextureSubImage2D(iteration[1].id, 0, 0, 0, xVars, yVars, GL_RED, GL_FLOAT, data2D.get());
+				glTextureSubImage2D(iteration[0].id, 0, 0, 0, xVars, yVars, GL_RED, GL_FLOAT, data2D.solution.get());
+				glTextureSubImage2D(iteration[1].id, 0, 0, 0, xVars, yVars, GL_RED, GL_FLOAT, data2D.solution.get());
 
-				this->cycles = (cycles % 2 == 0 ? cycles : cycles + 1);
-
-				xNumGroups = xVars / WORKGROUP_X;
-				yNumGroups = yVars / WORKGROUP_Y;
+				f = res::create_texture(xVars, yVars, GL_R32F);
+				glTextureSubImage2D(f.id, 0, 0, 0, xVars, yVars, GL_RED, GL_FLOAT, data2D.f.get());
 			}
 
 
@@ -355,15 +433,12 @@ namespace dir2d
 				return iteration[0].id;
 			}
 
-		
-			DomainAabb2D domain{};
 
+		public:
 			res::Texture iteration[2]{};
+			res::Texture f{};
 
-			i32 cycles{};
-
-			GLuint xNumGroups{};
-			GLuint yNumGroups{};
+			i32 itersPerUpdate{};
 		};		
 
 		struct Uniforms
@@ -371,42 +446,37 @@ namespace dir2d
 			void getLocations(const res::ShaderProgram& jacobyProgram)
 			{
 				curr = glGetUniformLocation(jacobyProgram.id, "curr");
-				x0 = glGetUniformLocation(jacobyProgram.id, "x0");
-				y0 = glGetUniformLocation(jacobyProgram.id, "y0");
 				hx = glGetUniformLocation(jacobyProgram.id, "hx");
 				hy = glGetUniformLocation(jacobyProgram.id, "hy");
 			}
 
 			bool valid() const
 			{
-				return curr != -1
-					&& x0 != -1 && y0 != -1
-					&& hx != -1 && hy != -1;
+				return curr != -1 && hx != -1 && hy != -1;
 			}
 
 			GLint curr{-1};
-			GLint x0{-1};
-			GLint y0{-1};
 			GLint hx{-1};
 			GLint hy{-1};
 		};
 	};
 
 	// jacoby method impl
-	class JacobyMethod : public BasicMethod<JacobyTraits<16, 16>>
+	class JacobyMethod : public BasicMethod<JacobyTraits>
 	{
 	private:
-		using UnderlyingType = BasicMethod<JacobyTraits<16, 16>>;
+		using UnderlyingType = BasicMethod<JacobyTraits>;
 
 		static constexpr const i32 IMG0 = 0;
 		static constexpr const i32 IMG1 = 1;
+		static constexpr const i32 IMGF = 2;
 
 	public:
-		JacobyMethod(app::App& app, res::ShaderProgram&& program) : UnderlyingType(app, std::move(program))
+		JacobyMethod(app::App& app, i32 workgroupSizeX, i32 workgroupSizeY, res::ShaderProgram&& program) 
+			: UnderlyingType(app, workgroupSizeX, workgroupSizeY, std::move(program))
 		{}
 
 	public:
-		// TODO : direct access to members of BasicMethod, protected access modifier is workaround. This needs to be fixed.
 		void update()
 		{
 			glUseProgram(m_program.id);
@@ -417,17 +487,22 @@ namespace dir2d
 
 				glBindImageTexture(IMG0, data.iteration[0].id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
 				glBindImageTexture(IMG1, data.iteration[1].id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
+				glBindImageTexture(IMGF, data.f.id, 0, GL_FALSE, 0, GL_READ_ONLY, GL_R32F);
 
-				glUniform1f(m_uniforms.x0, data.domain.x0);
-				glUniform1f(m_uniforms.y0, data.domain.y0);
-				glUniform1f(m_uniforms.hx, data.domain.hx);
-				glUniform1f(m_uniforms.hy, data.domain.hy);
+				glUniform1f(m_uniforms.hx, data.hx);
+				glUniform1f(m_uniforms.hy, data.hy);
 
-				for (i32 i = 0; i < data.cycles; i++)
+				u32 numWorkgroupsX = (data.xSplit + 1) / m_workgroupSizeX;
+				u32 numWorkgroupsY = (data.ySplit + 1) / m_workgroupSizeY;
+				for (i32 i = 0; i < data.itersPerUpdate; i++)
 				{
-					glUniform1i(m_uniforms.curr, i & 1);
+					glUniform1i(m_uniforms.curr, 0);
 
-					glDispatchCompute(data.xNumGroups, data.yNumGroups, 1);
+					glDispatchCompute(numWorkgroupsX, numWorkgroupsY, 1);
+
+					glUniform1i(m_uniforms.curr, 1);
+
+					glDispatchCompute(numWorkgroupsX, numWorkgroupsY, 1);
 				}
 			}
 		}
@@ -435,47 +510,42 @@ namespace dir2d
 
 
 	// traits specially for methods of red-black family
-	template<i32 WORKGROUP_X, i32 WORKGROUP_Y>
-	struct RedBlackTraits : WorkgroupTraits<WORKGROUP_X, WORKGROUP_Y>
+	struct RedBlackTraits
 	{
-		struct Data
+		static f32 compute_optimal_w(f32 hx, f32 hy, i32 xSplit, i32 ySplit)
 		{
-			static f32 compute_optimal_w(f32 hx, f32 hy, i32 xSplit, i32 ySplit)
-			{
-				const constexpr f32 PId2 = 3.14159265359 / 2;
+			const constexpr f32 PId2 = 3.14159265359 / 2;
 
-				i32 sx = xSplit;
-				i32 sy = ySplit;
+			i32 sx = xSplit;
+			i32 sy = ySplit;
 
-				f32 hxhx = hx * hx;
-				f32 hyhy = hy * hy;
-				f32 H = hxhx + hyhy;
-				f32 sinx = std::sin(PId2 / sx);
-				f32 siny = std::sin(PId2 / sy);
+			f32 hxhx = hx * hx;
+			f32 hyhy = hy * hy;
+			f32 H = hxhx + hyhy;
+			f32 sinx = std::sin(PId2 / sx);
+			f32 siny = std::sin(PId2 / sy);
 
-				f32 delta = 2.0 * hxhx / H * sinx * sinx + 2.0 * hyhy / H * siny * siny;
+			f32 delta = 2.0 * hxhx / H * sinx * sinx + 2.0 * hyhy / H * siny * siny;
 
-				return 2.0 / (1.0 + std::sqrt(delta * (2.0 - delta)));
-			}
+			return 2.0 / (1.0 + std::sqrt(delta * (2.0 - delta)));
+		}
 
+		struct Data : BaseData
+		{
 			Data() = default;
 
-			Data(const DataAabb2D& data2D, i32 cycles)
+			Data(const DataAabb2D& data2D, i32 iterationsPerUpdate) : BaseData(data2D, iterationsPerUpdate)
 			{
-				domain = data2D.domain;
-
-				i32 xVar = domain.xSplit + 1;
-				i32 yVar = domain.ySplit + 1;
+				i32 xVar = xSplit + 1;
+				i32 yVar = ySplit + 1;
 
 				iteration = res::create_texture(xVar, yVar, GL_R32F);
-				glTextureSubImage2D(iteration.id, 0, 0, 0, xVar, yVar, GL_RED, GL_FLOAT, data2D.get());
+				glTextureSubImage2D(iteration.id, 0, 0, 0, xVar, yVar, GL_RED, GL_FLOAT, data2D.solution.get());
 
-				w = compute_optimal_w(domain.hx, domain.hy, domain.xSplit, domain.ySplit);
+				f = res::create_texture(xVar, yVar, GL_R32F);
+				glTextureSubImage2D(f.id, 0, 0, 0, xVar, yVar, GL_RED, GL_FLOAT, data2D.f.get());
 
-				this->cycles = cycles;
-
-				xNumGroups = xVar / WORKGROUP_X;
-				yNumGroups = yVar / WORKGROUP_Y;
+				w = compute_optimal_w(hx, hy, xSplit, ySplit);
 			}
 
 			Data(const Data&) = delete;
@@ -491,16 +561,9 @@ namespace dir2d
 			}
 
 
-			DomainAabb2D domain{};
-
 			res::Texture iteration{};
-
+			res::Texture f{};
 			f32 w{};
-
-			i32 cycles{};
-
-			GLuint xNumGroups{};
-			GLuint yNumGroups{};
 		};
 
 		struct Uniforms
@@ -509,40 +572,37 @@ namespace dir2d
 			{
 				rb = glGetUniformLocation(redBlackProgram.id, "rb");
 				w  = glGetUniformLocation(redBlackProgram.id, "w");
-				x0 = glGetUniformLocation(redBlackProgram.id, "x0");
-				y0 = glGetUniformLocation(redBlackProgram.id, "y0");
 				hx = glGetUniformLocation(redBlackProgram.id, "hx");
 				hy = glGetUniformLocation(redBlackProgram.id, "hy");
 			}
 
 			bool valid() const
 			{
-				return rb != -1 && w != -1 && x0 != -1 && y0 != -1 && hx != -1 && hy != -1;
+				return rb != -1 && w != -1 &&  hx != -1 && hy != -1;
 			}
 
 			GLint rb{-1};
 			GLint w{-1};
-			GLint x0{-1};
-			GLint y0{-1};
 			GLint hx{-1};
 			GLint hy{-1};
 		};
 	};
 
 	// red-black method impl
-	class RedBlackMethod : public BasicMethod<RedBlackTraits<16, 16>>
+	class RedBlackMethod : public BasicMethod<RedBlackTraits>
 	{
 	public:
 		static constexpr const i32 IMG = 0;
+		static constexpr const i32 IMGF = 1;
 
-		using UnderlyingType = BasicMethod<RedBlackTraits<16, 16>>;	
+		using UnderlyingType = BasicMethod<RedBlackTraits>;	
 
 	public:
-		RedBlackMethod(app::App& app, res::ShaderProgram&& program) : UnderlyingType(app, std::move(program))
+		RedBlackMethod(app::App& app, i32 workgroupSizeX, i32 workgroupSizeY, res::ShaderProgram&& program) 
+			: UnderlyingType(app, workgroupSizeX, workgroupSizeY, std::move(program))
 		{}
 
 	public:
-		// TODO : direct access to members of BasicMethod, protected access modifier is a workaround. It needs to be fixed.
 		void update()
 		{
 			glUseProgram(m_program.id);
@@ -552,80 +612,48 @@ namespace dir2d
 				auto& data = get(handle);
 
 				glBindImageTexture(IMG, data.iteration.id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
+				glBindImageTexture(IMGF, data.f.id, 0, GL_FALSE, 0, GL_READ_ONLY, GL_R32F);
 
 				glUniform1f(m_uniforms.w, data.w);
-				glUniform1f(m_uniforms.x0, data.domain.x0);
-				glUniform1f(m_uniforms.y0, data.domain.y0);
-				glUniform1f(m_uniforms.hx, data.domain.hx);
-				glUniform1f(m_uniforms.hy, data.domain.hy);
+				glUniform1f(m_uniforms.hx, data.hx);
+				glUniform1f(m_uniforms.hy, data.hy);
 
-				for (i32 i = 0; i < data.cycles; i++)
+				u32 numWorkgroupsX = (data.xSplit + 1) / m_workgroupSizeX;
+				u32 numWorkgroupsY = (data.ySplit + 1) / m_workgroupSizeY;
+				for (i32 i = 0; i < data.itersPerUpdate; i++)
 				{
 					glUniform1i(m_uniforms.rb, 0);
-					glDispatchCompute(data.xNumGroups, data.yNumGroups, 1);
+					glDispatchCompute(numWorkgroupsX, numWorkgroupsY, 1);
 
 					glUniform1i(m_uniforms.rb, 1);
-					glDispatchCompute(data.xNumGroups, data.yNumGroups, 1);
+					glDispatchCompute(numWorkgroupsX, numWorkgroupsY, 1);
 				}
 			}
 		}
 	};
 
 
-	// traits, are same as RedBlackTraits
-	template<i32 WORKGROUP_X, i32 WORKGROUP_Y>
-	using MirroredRedBlackTraits = RedBlackTraits<WORKGROUP_X, WORKGROUP_Y>;
-
-	// mirrored(or leap-frog) red-black method impl, in fact is same as red-black except compute program
-	// it doesn't work
-	using MirroredRedBlackMethod = RedBlackMethod;
-
-
 	// traits for tiled method family
-	template<i32 WORKGROUP_X, i32 WORKGROUP_Y>
-	struct RedBlackTiled : WorkgroupTraits<WORKGROUP_X, WORKGROUP_Y>
+	struct RedBlackTiledTraits
 	{
-		struct Data
+		struct Data : BaseData
 		{
-			static f32 compute_optimal_w(f32 hx, f32 hy, i32 xSplit, i32 ySplit)
-			{
-				const constexpr f32 PId2 = 3.14159265359 / 2;
-
-				i32 sx = xSplit;
-				i32 sy = ySplit;
-
-				f32 hxhx = hx * hx;
-				f32 hyhy = hy * hy;
-				f32 H = hxhx + hyhy;
-				f32 sinx = std::sin(PId2 / sx);
-				f32 siny = std::sin(PId2 / sy);
-
-				f32 delta = 2.0 * hxhx / H * sinx * sinx + 2.0 * hyhy / H * siny * siny;
-
-				return 2.0 / (1.0 + std::sqrt(delta * (2.0 - delta)));
-			}
-
 			Data() = default;
 
-			Data(const DataAabb2D& data2D, i32 cycles)
+			Data(const DataAabb2D& data2D, i32 iterationsPerUpdate) : BaseData(data2D, iterationsPerUpdate)
 			{
-				domain = data2D.domain;
+				i32 xVar = xSplit + 1;
+				i32 yVar = ySplit + 1;
 
-				i32 xVar = domain.xSplit + 1;
-				i32 yVar = domain.ySplit + 1;
+				iteration[0] = res::create_texture(xVar, yVar, GL_R32F);
+				iteration[1] = res::create_texture(xVar, yVar, GL_R32F);
+				glTextureSubImage2D(iteration[0].id, 0, 0, 0, xVar, yVar, GL_RED, GL_FLOAT, data2D.solution.get());
+				glTextureSubImage2D(iteration[1].id, 0, 0, 0, xVar, yVar, GL_RED, GL_FLOAT, data2D.solution.get());
 
-				iteration[0] =  res::create_texture(xVar, yVar, GL_R32F);
-				iteration[1] =  res::create_texture(xVar, yVar, GL_R32F);
-				glTextureSubImage2D(iteration[0].id, 0, 0, 0, xVar, yVar, GL_RED, GL_FLOAT, data2D.get());
-				glTextureSubImage2D(iteration[1].id, 0, 0, 0, xVar, yVar, GL_RED, GL_FLOAT, data2D.get());
+				f = res::create_texture(xVar, yVar, GL_R32F);
+				glTextureSubImage2D(f.id, 0, 0, 0, xVar, yVar, GL_RED, GL_FLOAT, data2D.f.get());
 
-				w = compute_optimal_w(domain.hx, domain.hy, domain.xSplit, domain.ySplit);
-
-				curr = 0;
-				this->cycles = cycles;
-
-				xNumGroups = xVar / WORKGROUP_X;
-				yNumGroups = yVar / WORKGROUP_Y;
+				w = RedBlackTraits::compute_optimal_w(hx, hy, xSplit, ySplit);
 			}
 
 			Data(const Data&) = delete;
@@ -637,22 +665,14 @@ namespace dir2d
 
 			res::Id textureId() const
 			{
-				return iteration[curr].id;
+				return iteration[0].id;
 			}
 
 
-			DomainAabb2D domain{};
-
 			res::Texture iteration[2]{};
+			res::Texture f{};
 
 			f32 w{};
-
-			i32 curr{};
-			i32 updates{};
-			i32 cycles{};
-
-			GLuint xNumGroups{};
-			GLuint yNumGroups{};
 		};
 
 		struct Uniforms
@@ -661,36 +681,34 @@ namespace dir2d
 			{
 				curr = glGetUniformLocation(redBlackProgram.id, "curr");
 				w  = glGetUniformLocation(redBlackProgram.id, "w");
-				x0 = glGetUniformLocation(redBlackProgram.id, "x0");
-				y0 = glGetUniformLocation(redBlackProgram.id, "y0");
 				hx = glGetUniformLocation(redBlackProgram.id, "hx");
 				hy = glGetUniformLocation(redBlackProgram.id, "hy");
 			}
 
 			bool valid() const
 			{
-				return curr != -1 && w != -1 && x0 != -1 && y0 != -1 && hx != -1 && hy != -1;
+				return curr != -1 && w != -1 && hx != -1 && hy != -1;
 			}
 
 			GLint curr{-1};
 			GLint w{-1};
-			GLint x0{-1};
-			GLint y0{-1};
 			GLint hx{-1};
 			GLint hy{-1};
 		};
 	};
 
-	class RedBlackTiledMethod : public BasicMethod<RedBlackTiled<16, 16>>
+	class RedBlackTiledMethod : public BasicMethod<RedBlackTiledTraits>
 	{
 	private:
-		using UnderlyingType = BasicMethod<RedBlackTiled<16, 16>>;
+		using UnderlyingType = BasicMethod<RedBlackTiledTraits>;
 
-		static constexpr const i32 IMG0 = 0;
-		static constexpr const i32 IMG1 = 1;
+		static constexpr const i32 IMG0  = 0;
+		static constexpr const i32 IMG1  = 1;
+		static constexpr const i32 IMG1F = 2;
 
 	public:
-		RedBlackTiledMethod(app::App& app, res::ShaderProgram&& program) : UnderlyingType(app, std::move(program))
+		RedBlackTiledMethod(app::App& app, i32 workgroupSizeX, i32 workgroupSizeY, res::ShaderProgram&& program) 
+			: UnderlyingType(app, workgroupSizeX, workgroupSizeY, std::move(program))
 		{}
 
 	public:
@@ -704,20 +722,23 @@ namespace dir2d
 
 				glBindImageTexture(IMG0, data.iteration[0].id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
 				glBindImageTexture(IMG1, data.iteration[1].id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
+				glBindImageTexture(IMG1, data.f.id, 0, GL_FALSE, 0, GL_READ_ONLY, GL_R32F);
 
 				glUniform1f(m_uniforms.w, data.w);
-				glUniform1f(m_uniforms.x0, data.domain.x0);
-				glUniform1f(m_uniforms.y0, data.domain.y0);
-				glUniform1f(m_uniforms.hx, data.domain.hx);
-				glUniform1f(m_uniforms.hy, data.domain.hy);
+				glUniform1f(m_uniforms.hx, data.hx);
+				glUniform1f(m_uniforms.hy, data.hy);
 
-				for (i32 i = 0; i < data.cycles; i++)
+				u32 numWorkgroupsX = (data.xSplit + 1) / m_workgroupSizeX;
+				u32 numWorkgroupsY = (data.ySplit + 1) / m_workgroupSizeY;
+				for (i32 i = 0; i < data.itersPerUpdate; i++)
 				{
-					glUniform1i(m_uniforms.curr, data.curr);
+					glUniform1i(m_uniforms.curr, 0);
 
-					glDispatchCompute(data.xNumGroups, data.yNumGroups, 1);
+					glDispatchCompute(numWorkgroupsX, numWorkgroupsY, 1);
 
-					data.curr ^= 1;
+					glUniform1i(m_uniforms.curr, 1);
+
+					glDispatchCompute(numWorkgroupsX, numWorkgroupsY, 1);
 				}
 			}
 		}

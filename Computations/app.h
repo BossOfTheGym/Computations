@@ -34,7 +34,7 @@ namespace app
 
 		static constexpr i32 WX = 255;
 		static constexpr i32 WY = 255;
-		static constexpr i32 STEPS = 4;
+		static constexpr i32 STEPS = 8;
 
 		static inline std::string NAME = "computations";
 
@@ -62,12 +62,14 @@ namespace app
 		{
 			// *TEST*
 			{
-				auto data = dir2d::RedBlackMethod::create_dataAabb2D(-1.2, +1.2, -1.2, +1.2, WX, WY);
+				auto domain = m_redBlackSystem->createAlignedDomain(-1.2, +1.2, -1.2, +1.2, WX, WY);
+				auto data = m_redBlackSystem->createAlignedData(domain, m_boundary, m_f);
 
 				m_handles[1] = m_redBlackSystem->createSmart(data, STEPS);
 			}
 			{
-				auto data = dir2d::RedBlackTiledMethod::create_dataAabb2D(-1.2, +1.2, -1.2, +1.2, WX, WY);
+				auto domain = m_redBlackTiledSystem->createAlignedDomain(-1.2, +1.2, -1.2, +1.2, WX, WY);
+				auto data = m_redBlackTiledSystem->createAlignedData(domain, m_boundary, m_f);
 
 				m_handles[2] = m_redBlackTiledSystem->createSmart(data, 1);
 			}
@@ -126,11 +128,11 @@ namespace app
 		void reloadRedBlackTiled()
 		{
 			m_redBlackTiled.reset();
-			if (!try_create_shader_from_file(m_redBlackTiled, GL_COMPUTE_SHADER, "shaders/red_black_tiled1.comp"))
+			if (!try_create_shader_from_file(m_redBlackTiled, GL_COMPUTE_SHADER, "shaders/red_black_tiled0.comp"))
 			{	
-				std::cerr << "Failed to reload \"shaders/red_black_tiled1.comp\" ." << std::endl;
+				std::cerr << "Failed to reload \"shaders/red_black_tiled0.comp\" ." << std::endl;
 			}
-			std::cout << "\"shaders/red_black_tiled1.comp\" shader recreated." << std::endl;
+			std::cout << "\"shaders/red_black_tiled0.comp\" shader recreated." << std::endl;
 
 			m_redBlackTiledProgram.reset();
 			if (!try_create_shader_program(m_redBlackTiledProgram, m_redBlackTiled))
@@ -142,12 +144,14 @@ namespace app
 			m_redBlackTiledSystem->setupProgram(std::move(m_redBlackTiledProgram));
 
 			{
-				auto data = dir2d::RedBlackMethod::create_dataAabb2D(-1.2, +1.2, -1.2, +1.2, WX, WY);
+				auto domain = m_redBlackSystem->createAlignedDomain(-1.2, +1.2, -1.2, +1.2, WX, WY);
+				auto data = m_redBlackSystem->createAlignedData(domain, m_boundary, m_f);
 
 				m_handles[1] = m_redBlackSystem->createSmart(data, STEPS);
 			}
 			{
-				auto data = dir2d::RedBlackTiledMethod::create_dataAabb2D(-1.2, +1.2, -1.2, +1.2, WX, WY);
+				auto domain = m_redBlackTiledSystem->createAlignedDomain(-1.2, +1.2, -1.2, +1.2, WX, WY);
+				auto data = m_redBlackTiledSystem->createAlignedData(domain, m_boundary, m_f);
 
 				m_handles[2] = m_redBlackTiledSystem->createSmart(data, 1);
 			}
@@ -296,13 +300,13 @@ namespace app
 			}
 			std::cout << "\"mirror_red_black.comp\" shader created." << std::endl;
 
-			if (!try_create_shader_from_file(m_redBlackTiled, GL_COMPUTE_SHADER, "shaders/red_black_tiled1.comp"))
+			if (!try_create_shader_from_file(m_redBlackTiled, GL_COMPUTE_SHADER, "shaders/red_black_tiled0.comp"))
 			{	
-				std::cerr << "Failed to load \"shaders/red_black_tiled1.comp\" ." << std::endl;
+				std::cerr << "Failed to load \"shaders/red_black_tiled0.comp\" ." << std::endl;
 
 				return false;
 			}
-			std::cout << "\"shaders/red_black_tiled1.comp\" shader created." << std::endl;
+			std::cout << "\"shaders/red_black_tiled0.comp\" shader created." << std::endl;
 
 			// shader programs
 			if (!try_create_shader_program(m_showProgram, m_quadVert, m_quadFrag))
@@ -396,7 +400,7 @@ namespace app
 
 		bool initSystems()
 		{
-			m_jacobySystem.reset(new dir2d::JacobyMethod(*this, std::move(m_jacobyProgram)));
+			m_jacobySystem.reset(new dir2d::JacobyMethod(*this, 16, 16, std::move(m_jacobyProgram)));
 			if (m_jacobySystem == nullptr || !m_jacobySystem->programValid())
 			{
 				std::cerr << "Failed to initialize jacoby system" << std::endl;
@@ -404,7 +408,7 @@ namespace app
 				return false;
 			}
 
-			m_redBlackSystem.reset(new dir2d::RedBlackMethod(*this, std::move(m_redBlackProgram)));
+			m_redBlackSystem.reset(new dir2d::RedBlackMethod(*this, 16, 16, std::move(m_redBlackProgram)));
 			if (m_redBlackSystem == nullptr || !m_redBlackSystem->programValid())
 			{
 				std::cerr << "Failed to initialize red-black system" << std::endl;
@@ -412,21 +416,25 @@ namespace app
 				return false;
 			}
 
-			m_mirroredRedBlackSystem.reset(new dir2d::MirroredRedBlackMethod(*this, std::move(m_mirroredRedBlackProgram)));
-			if (m_mirroredRedBlackSystem == nullptr || !m_mirroredRedBlackSystem->programValid())
-			{
-				std::cerr << "Failed to initialize mirrored red-black system" << std::endl;
-
-				return false;
-			}
-
-			m_redBlackTiledSystem.reset(new dir2d::RedBlackTiledMethod(*this, std::move(m_redBlackTiledProgram)));
+			m_redBlackTiledSystem.reset(new dir2d::RedBlackTiledMethod(*this, 16, 16, std::move(m_redBlackTiledProgram)));
 			if (m_redBlackTiledSystem == nullptr || !m_redBlackTiledSystem->programValid())
 			{
 				std::cerr << "Failed to initialize red-black tiled system" << std::endl;
 
 				return false;
 			}
+
+			m_boundary = [] (f32 x, f32 y) -> f32
+			{
+				return std::exp(-x * x - y * y);
+			};
+
+			m_f = [] (f32 x, f32 y) -> f32
+			{
+				f32 xxpyy = x * x + y * y;
+
+				return 4.0 * (xxpyy - 1) * std::exp(-xxpyy);
+			};
 
 			return true;
 		}
@@ -438,7 +446,6 @@ namespace app
 				handle.reset();
 			}
 
-			m_mirroredRedBlackSystem.reset();
 			m_redBlackSystem.reset();
 			m_jacobySystem.reset();
 		}
@@ -477,9 +484,11 @@ namespace app
 
 		// TODO : system registry
 		// SYSTEMS
+		dir2d::Function2D m_boundary;
+		dir2d::Function2D m_f;
+
 		std::unique_ptr<dir2d::JacobyMethod> m_jacobySystem;
 		std::unique_ptr<dir2d::RedBlackMethod> m_redBlackSystem;
-		std::unique_ptr<dir2d::MirroredRedBlackMethod> m_mirroredRedBlackSystem;
 		std::unique_ptr<dir2d::RedBlackTiledMethod> m_redBlackTiledSystem;
 
 		dir2d::SmartHandle m_handles[3]{};

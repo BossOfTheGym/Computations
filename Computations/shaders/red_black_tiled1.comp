@@ -29,11 +29,10 @@ layout(local_size_x = WORKGROUP_X + STEPS * 2, local_size_y = WORKGROUP_Y + STEP
 // picture is stored in a row-major manner
 // used both for read and write, boundary is not calculated
 layout(binding = 0, r32f) uniform image2D solution[2];
+layout(binding = 2, r32f) uniform readonly image2D f;
 
 uniform int curr; // 0 or 1
 uniform float w;
-uniform float x0;
-uniform float y0;
 uniform float hx;
 uniform float hy;
 
@@ -113,14 +112,6 @@ bool onRightBottom(ivec2 local, int step)
 }
 
 // red-black step
-float f(ivec2 indices)
-{
-	float x = x0 + indices[0] * hx;
-	float y = y0 + indices[1] * hy;
-	float xxpyy = x * x + y * y;
-	return 4.0 * (xxpyy - 1.0) * exp(-xxpyy);
-}
-
 float update(float u00, float um10, float u10, float u0m1, float u01, float f00)
 {
 	float hxhx = hx * hx;
@@ -148,12 +139,27 @@ void main()
 	bool u11OnBound = onBoundary(global + ivec2(1, 1), size);
 
 	// cache data
+	float f01, f11;
+	float f00, f10;
+
+	float u01, u11;
+	float u00, u10;
 	if (globalInBounds)
 	{
-		cacheStoreValue(local + ivec2(0, 0), imageLoad(solution[curr], global + ivec2(0, 0)).x);
-		cacheStoreValue(local + ivec2(1, 0), imageLoad(solution[curr], global + ivec2(1, 0)).x);
-		cacheStoreValue(local + ivec2(0, 1), imageLoad(solution[curr], global + ivec2(0, 1)).x);
-		cacheStoreValue(local + ivec2(1, 1), imageLoad(solution[curr], global + ivec2(1, 1)).x);
+		f00 = imageLoad(f, global + ivec2(0, 0)).x; 
+		f10 = imageLoad(f, global + ivec2(1, 0)).x;
+		f01 = imageLoad(f, global + ivec2(0, 1)).x;
+		f11 = imageLoad(f, global + ivec2(1, 1)).x;
+
+		u00 = imageLoad(solution[curr], global + ivec2(0, 0)).x;
+		u10 = imageLoad(solution[curr], global + ivec2(1, 0)).x;
+		u01 = imageLoad(solution[curr], global + ivec2(0, 1)).x;
+		u11 = imageLoad(solution[curr], global + ivec2(1, 1)).x;
+
+		cacheStoreValue(local + ivec2(0, 0), u00);
+		cacheStoreValue(local + ivec2(1, 0), u10);
+		cacheStoreValue(local + ivec2(0, 1), u01);
+		cacheStoreValue(local + ivec2(1, 1), u11);
 	}
 	barrier();
 	memoryBarrierShared();
@@ -165,16 +171,6 @@ void main()
 		bool localInComputeRegion = inComputeRegion(local, i);
 		bool localOnLeftTop       = onLeftTop(local, i);
 		bool localOnRightBottom   = onRightBottom(local, i);
-
-		// load current invocation's values
-		float u00, u10, u01, u11;
-		if (globalInBounds)
-		{
-			u00 = cacheLoadValue(local + ivec2(0, 0));
-			u10 = cacheLoadValue(local + ivec2(1, 0));
-			u01 = cacheLoadValue(local + ivec2(0, 1));
-			u11 = cacheLoadValue(local + ivec2(1, 1));
-		}
 	
 		// black update
 		if (globalInBounds && (localInComputeRegion || localOnLeftTop || localOnRightBottom))
@@ -184,7 +180,7 @@ void main()
 				float u20  = cacheLoadValue(local + ivec2(2,  0)); // right
 				float u1m1 = cacheLoadValue(local + ivec2(1, -1)); // bottom
 	
-				u10 = update(u10, u00, u20, u1m1, u11, f(global + ivec2(1, 0)));
+				u10 = update(u10, u00, u20, u1m1, u11, f10);
 
 				cacheStoreValue(local + ivec2(1, 0), u10);
 			}
@@ -193,7 +189,7 @@ void main()
 				float u02  = cacheLoadValue(local + ivec2( 0, 2)); // top
 				float um11 = cacheLoadValue(local + ivec2(-1, 1)); // left
 
-				u01 = update(u01, um11, u11, u00, u02, f(global + ivec2(0, 1)));
+				u01 = update(u01, um11, u11, u00, u02, f01);
 	
 				cacheStoreValue(local + ivec2(0, 1), u01);
 			}
@@ -209,14 +205,18 @@ void main()
 				float u0m1 = cacheLoadValue(local + ivec2( 0, -1)); // bottom
 				float um10 = cacheLoadValue(local + ivec2(-1,  0)); // left
 	
-				cacheStoreValue(local, update(u00, um10, u10, u0m1, u01, f(global)));
+				u00 = update(u00, um10, u10, u0m1, u01, f00);
+
+				cacheStoreValue(local + ivec2(0, 0), u00);
 			}
 			if (!u11OnBound)
 			{
 				float u12 = cacheLoadValue(local + ivec2(1, 2)); // top
 				float u21 = cacheLoadValue(local + ivec2(2, 1)); // right
 	
-				cacheStoreValue(local + ivec2(1, 1), update(u11, u01, u21, u10, u12, f(global + ivec2(1, 1))));
+				u11 = update(u11, u01, u21, u10, u12, f11);
+
+				cacheStoreValue(local + ivec2(1, 1), u11);
 			}
 		}
 		barrier();
@@ -231,5 +231,4 @@ void main()
 		imageStore(solution[curr ^ 1], global + ivec2(0, 1), vec4(cacheLoadValue(local + ivec2(0, 1))));
 		imageStore(solution[curr ^ 1], global + ivec2(1, 1), vec4(cacheLoadValue(local + ivec2(1, 1))));
 	}
-	memoryBarrierImage();
 }
