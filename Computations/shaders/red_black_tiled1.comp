@@ -223,10 +223,9 @@ void main()
 		memoryBarrierShared();
 	}
 
-	// good
 	if (inComputeRegion(local, STEPS))
 	{
-		imageStore(solution[curr ^ 1], global + ivec2(0, 0), vec4(cacheLoadValue(local + ivec2(0, 0))));
+		imageStore(solution[curr ^ 1], global              , vec4(cacheLoadValue(local              )));
 		imageStore(solution[curr ^ 1], global + ivec2(1, 0), vec4(cacheLoadValue(local + ivec2(1, 0))));
 		imageStore(solution[curr ^ 1], global + ivec2(0, 1), vec4(cacheLoadValue(local + ivec2(0, 1))));
 		imageStore(solution[curr ^ 1], global + ivec2(1, 1), vec4(cacheLoadValue(local + ivec2(1, 1))));

@@ -126,16 +126,16 @@ void main()
 		f10 = imageLoad(f, global + ivec2(1, 0)).x;
 		f01 = imageLoad(f, global + ivec2(0, 1)).x;
 		f11 = imageLoad(f, global + ivec2(1, 1)).x;
-		//if (!u00OnBound)
-		//{
+		if (!u00OnBound)
+		{
 			fm10 = imageLoad(f, global + ivec2(-1, 0)).x;
 			f0m1 = imageLoad(f, global + ivec2(0, -1)).x;
-		//}
-		//if (!u11OnBound)
-		//{
+		}
+		if (!u11OnBound)
+		{
 			f21 = imageLoad(f, global + ivec2(2, 1)).x;
 			f12 = imageLoad(f, global + ivec2(1, 2)).x;
-		//}
+		}
 
 		cacheStoreValue(local              , imageLoad(solution[curr], global              ).x);
 		cacheStoreValue(local + ivec2(1, 0), imageLoad(solution[curr], global + ivec2(1, 0)).x);

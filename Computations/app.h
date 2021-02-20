@@ -25,15 +25,15 @@ namespace app
 	class App
 	{
 	public:
-		static constexpr int HEIGHT = 800;
-		static constexpr int WIDTH = 2 * HEIGHT;
+		static constexpr int WIDTH = 512;
+		static constexpr int HEIGHT = 2 * WIDTH;
 
 		static constexpr i32 TEST_TEXTURE_WIDTH  = 128;
 		static constexpr i32 TEST_TEXTURE_HEIGHT = 128;
 		static constexpr i32 TEST_TEXTURE_PERIOD = 16;
 
-		static constexpr i32 WX = 255;
-		static constexpr i32 WY = 255;
+		static constexpr i32 WX = 63;
+		static constexpr i32 WY = 63;
 		static constexpr i32 STEPS = 8;
 
 		static inline std::string NAME = "computations";
@@ -64,13 +64,8 @@ namespace app
 			{
 				auto domain = m_redBlackSystem->createAlignedDomain(-1.2, +1.2, -1.2, +1.2, WX, WY);
 				auto data = m_redBlackSystem->createAlignedData(domain, m_boundary, m_f);
-
+			
 				m_handles[1] = m_redBlackSystem->createSmart(data, STEPS);
-			}
-			{
-				auto domain = m_redBlackTiledSystem->createAlignedDomain(-1.2, +1.2, -1.2, +1.2, WX, WY);
-				auto data = m_redBlackTiledSystem->createAlignedData(domain, m_boundary, m_f);
-
 				m_handles[2] = m_redBlackTiledSystem->createSmart(data, 1);
 			}
 
@@ -96,12 +91,12 @@ namespace app
 				glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
 
 				// *TEST*
-				glViewport(0, 0, WIDTH / 2, HEIGHT);
+				glViewport(0, 0, WIDTH, HEIGHT / 2);
 				glBindTextureUnit(0, m_handles[1].textureId());
 				glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 				// *TEST*
-				glViewport(WIDTH / 2, 0, WIDTH / 2, HEIGHT);
+				glViewport(0, HEIGHT / 2, WIDTH, HEIGHT / 2);
 				glBindTextureUnit(0, m_handles[2].textureId());
 				glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
@@ -118,42 +113,6 @@ namespace app
 				m_jacobySystem->update();
 				m_redBlackSystem->update();
 				m_redBlackTiledSystem->update();
-			}
-			if (key == GLFW_KEY_R && action == GLFW_PRESS)
-			{
-				reloadRedBlackTiled();
-			}
-		}
-
-		void reloadRedBlackTiled()
-		{
-			m_redBlackTiled.reset();
-			if (!try_create_shader_from_file(m_redBlackTiled, GL_COMPUTE_SHADER, "shaders/red_black_tiled0.comp"))
-			{	
-				std::cerr << "Failed to reload \"shaders/red_black_tiled0.comp\" ." << std::endl;
-			}
-			std::cout << "\"shaders/red_black_tiled0.comp\" shader recreated." << std::endl;
-
-			m_redBlackTiledProgram.reset();
-			if (!try_create_shader_program(m_redBlackTiledProgram, m_redBlackTiled))
-			{
-				std::cerr << "Failed to recreate \"redBlackTiledProgram\" program." << std::endl;
-			}
-			std::cout << "\"redBlackTiledProgram\" program recreated." << std::endl;
-
-			m_redBlackTiledSystem->setupProgram(std::move(m_redBlackTiledProgram));
-
-			{
-				auto domain = m_redBlackSystem->createAlignedDomain(-1.2, +1.2, -1.2, +1.2, WX, WY);
-				auto data = m_redBlackSystem->createAlignedData(domain, m_boundary, m_f);
-
-				m_handles[1] = m_redBlackSystem->createSmart(data, STEPS);
-			}
-			{
-				auto domain = m_redBlackTiledSystem->createAlignedDomain(-1.2, +1.2, -1.2, +1.2, WX, WY);
-				auto data = m_redBlackTiledSystem->createAlignedData(domain, m_boundary, m_f);
-
-				m_handles[2] = m_redBlackTiledSystem->createSmart(data, 1);
 			}
 		}
 

@@ -13,7 +13,7 @@ layout(local_size_x = WORKGROUP_X, local_size_y = WORKGROUP_Y) in;
 
 // used both for read and write, boundary is not calculated
 layout(binding = 0, r32f) uniform image2D solution[2];
-layout(binding = 2, r32f) uniform image2D f;
+layout(binding = 2, r32f) uniform readonly image2D f;
 
 uniform int curr; // 0 or 1
 uniform float hx;

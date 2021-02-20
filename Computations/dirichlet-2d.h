@@ -68,6 +68,11 @@ namespace dir2d
 			return DomainAabb2D{x0, x1, y0, y1, (x1 - x0) / xSplit, (y1 - y0) / ySplit, xSplit, ySplit};
 		}
 
+		static bool domain_aligned(const DomainAabb2D& domain, i32 xAlign, i32 yAlign)
+		{
+			return split_aligned(domain.xSplit, xAlign) && split_aligned(domain.ySplit, yAlign);
+		}
+
 		static void align_domain(DomainAabb2D& domain, i32 xAlign, i32 yAlign)
 		{
 			domain.xSplit = align_split(domain.xSplit, xAlign);
@@ -301,19 +306,9 @@ namespace dir2d
 
 
 	public: // workgroups
-		i32 workgroupX() const
-		{
-			return m_workgroupSizeX;
-		}
-
 		void workgroupX(i32 size)
 		{
 			m_workgroupSizeX = size;
-		}
-
-		i32 workgroupY() const
-		{
-			return m_workgroupSizeY;
 		}
 
 		void workgroupY(i32 size)
@@ -351,6 +346,11 @@ namespace dir2d
 		template<class ... Args>
 		Handle create(const DataAabb2D& data, Args&& ... args)
 		{
+			if (!DataAabb2D::domain_aligned(data, m_workgroupSizeX, m_workgroupSizeY))
+			{
+				return null;
+			}
+
 			auto handle = acquire();
 
 			m_dataStorage.emplace(handle, data, std::forward<Args>(args)...);
@@ -392,12 +392,14 @@ namespace dir2d
 		i32 m_workgroupSizeX{};
 		i32 m_workgroupSizeY{};
 
+		res::Query m_timeQuery;
+		i64        m_elapsed{};
+
 		res::ShaderProgram m_program;
 		Uniforms           m_uniforms;
+
 		Storage<Data> m_dataStorage;
 	};
-
-
 
 
 	// traits specially for methods of jacoby family
@@ -437,8 +439,6 @@ namespace dir2d
 		public:
 			res::Texture iteration[2]{};
 			res::Texture f{};
-
-			i32 itersPerUpdate{};
 		};		
 
 		struct Uniforms
@@ -702,9 +702,9 @@ namespace dir2d
 	private:
 		using UnderlyingType = BasicMethod<RedBlackTiledTraits>;
 
-		static constexpr const i32 IMG0  = 0;
-		static constexpr const i32 IMG1  = 1;
-		static constexpr const i32 IMG1F = 2;
+		static constexpr const i32 IMG0 = 0;
+		static constexpr const i32 IMG1 = 1;
+		static constexpr const i32 IMGF = 2;
 
 	public:
 		RedBlackTiledMethod(app::App& app, i32 workgroupSizeX, i32 workgroupSizeY, res::ShaderProgram&& program) 
@@ -722,7 +722,7 @@ namespace dir2d
 
 				glBindImageTexture(IMG0, data.iteration[0].id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
 				glBindImageTexture(IMG1, data.iteration[1].id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
-				glBindImageTexture(IMG1, data.f.id, 0, GL_FALSE, 0, GL_READ_ONLY, GL_R32F);
+				glBindImageTexture(IMGF, data.f.id, 0, GL_FALSE, 0, GL_READ_ONLY, GL_R32F);
 
 				glUniform1f(m_uniforms.w, data.w);
 				glUniform1f(m_uniforms.hx, data.hx);
