@@ -35,9 +35,10 @@ namespace app
 		static constexpr i32 WORK_X = 16;
 		static constexpr i32 WORK_Y = 16;
 
-		static constexpr i32 WX = 511;
-		static constexpr i32 WY = 511;
+		static constexpr i32 WX = 611;
+		static constexpr i32 WY = 521;
 		static constexpr i32 STEPS = 8;
+		static constexpr i32 ITERS = 4;
 
 		static inline std::string NAME = "computations";
 
@@ -68,8 +69,8 @@ namespace app
 				auto domain = m_redBlackSystem->createAlignedDomain(-1.2, +1.2, -1.2, +1.2, WX, WY);
 				auto data = m_redBlackSystem->createAlignedData(domain, m_boundary, m_f);
 			
-				m_handles[1] = m_redBlackSystem->createSmart(data, STEPS);
-				m_handles[2] = m_redBlackTiledSystem->createSmart(data, 1);
+				m_handles[1] = m_redBlackSystem->createSmart(data, STEPS * ITERS);
+				m_handles[2] = m_redBlackTiledSystem->createSmart(data, ITERS);
 			}
 
 			// mainloop
@@ -266,13 +267,13 @@ namespace app
 			}
 			std::cout << "\"mirror_red_black.comp\" shader created." << std::endl;
 
-			if (!try_create_shader_from_file(m_redBlackTiled, GL_COMPUTE_SHADER, "shaders/red_black_tiled0.comp"))
+			if (!try_create_shader_from_file(m_redBlackTiled, GL_COMPUTE_SHADER, "shaders/red_black_tiled1.comp"))
 			{	
-				std::cerr << "Failed to load \"shaders/red_black_tiled0.comp\" ." << std::endl;
+				std::cerr << "Failed to load \"shaders/red_black_tiled1.comp\" ." << std::endl;
 
 				return false;
 			}
-			std::cout << "\"shaders/red_black_tiled0.comp\" shader created." << std::endl;
+			std::cout << "\"shaders/red_black_tiled1.comp\" shader created." << std::endl;
 
 			// shader programs
 			if (!try_create_shader_program(m_showProgram, m_quadVert, m_quadFrag))

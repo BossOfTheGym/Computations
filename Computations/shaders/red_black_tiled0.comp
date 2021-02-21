@@ -1,6 +1,6 @@
 #version 460 core
 
-#define STEPS 3
+#define STEPS 4
 
 #define TRUE_STEPS (2 * STEPS)
 
@@ -141,29 +141,13 @@ void main()
 	barrier();
 	memoryBarrierShared();
 	
-	// preload data that it is local to invocation and those changes must be reflected in cache
-	
-	//float             u12;
-	//float       u01 , u11, u21;
-	//float um10, u00 , u10;
-	//float       u0m1;
-
-	//u12 = cacheLoadValue(local + ivec2(1, 2));
-	//u21 = cacheLoadValue(local + ivec2(2, 1));
-
-	//u0m1 = cacheLoadValue(local + ivec2(0, -1));
-	//um10 = cacheLoadValue(local + ivec2(-1, 0));
-
-	//u00 = cacheLoadValue(local              );
-	//u10 = cacheLoadValue(local + ivec2(1, 0));
-	//u01 = cacheLoadValue(local + ivec2(0, 1));
-	//u11 = cacheLoadValue(local + ivec2(1, 1));
-
-	float u01 , u11;
-	float u00 , u10;
-
-	float um10, u12, u21, u0m1;
-
+	// preload some values that it are local to invocation and that can be operated locally
+	float                    u13 ;
+	float              u02 , u12 , u22;
+	float       um11 , u01 , u11 , u21, u31;
+	float um20, um10 , u00 , u10 , u20;
+	float       um1m1, u0m1, u1m1;
+	float              u0m2;
 	if (globalInBounds)
 	{
 		// it can safely load values from out of bounds since its cache(they will be just undefined)
@@ -173,20 +157,17 @@ void main()
 		u10 = cacheLoadValue(local + ivec2(1, 0));
 		u01 = cacheLoadValue(local + ivec2(0, 1));
 		u11 = cacheLoadValue(local + ivec2(1, 1));
+
+		u12 = cacheLoadValue(local + ivec2(1, 2));
+		u21 = cacheLoadValue(local + ivec2(2, 1));
+
+		u0m1 = cacheLoadValue(local + ivec2(0, -1));
+		um10 = cacheLoadValue(local + ivec2(-1, 0));
 	}
 
 	// computations
 	for (int i = 1; i <= STEPS; i++)
 	{
-		float                    u13 ;
-		float              u02 ,       u22;
-		float       um11 ,                  u31;
-		float um20,                    u20;
-		float       um1m1,       u1m1;
-		float              u0m2;
-
-		
-
 		bool localInComputeReg = inComputeRegion(local, i);
 
 		if (globalInBounds && localInComputeReg)
@@ -209,12 +190,6 @@ void main()
 
 			u1m1 = cacheLoadValue(local + ivec2(1, -1));
 			u0m2 = cacheLoadValue(local + ivec2(0, -2));
-
-			u12 = cacheLoadValue(local + ivec2(1, 2));
-			u21 = cacheLoadValue(local + ivec2(2, 1));
-
-			u0m1 = cacheLoadValue(local + ivec2(0, -1));
-			um10 = cacheLoadValue(local + ivec2(-1, 0));		
 		}
 		barrier();
 		memoryBarrierShared();
