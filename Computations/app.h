@@ -32,8 +32,11 @@ namespace app
 		static constexpr i32 TEST_TEXTURE_HEIGHT = 128;
 		static constexpr i32 TEST_TEXTURE_PERIOD = 16;
 
-		static constexpr i32 WX = 63;
-		static constexpr i32 WY = 63;
+		static constexpr i32 WORK_X = 16;
+		static constexpr i32 WORK_Y = 16;
+
+		static constexpr i32 WX = 511;
+		static constexpr i32 WY = 511;
 		static constexpr i32 STEPS = 8;
 
 		static inline std::string NAME = "computations";
@@ -110,6 +113,10 @@ namespace app
 		{
 			if (key == GLFW_KEY_U && action == GLFW_PRESS)
 			{
+				std::cout << "jacoby: " <<  m_jacobySystem->timeElapsed() / 1000000.0 << "ms \n";
+				std::cout << "red-black: " << m_redBlackSystem->timeElapsed() / 1000000.0 << "ms \n";
+				std::cout << "red-black tiled: " << m_redBlackTiledSystem->timeElapsed() / 1000000.0 << "ms \n";
+
 				m_jacobySystem->update();
 				m_redBlackSystem->update();
 				m_redBlackTiledSystem->update();
@@ -367,7 +374,7 @@ namespace app
 				return false;
 			}
 
-			m_redBlackSystem.reset(new dir2d::RedBlackMethod(*this, 16, 16, std::move(m_redBlackProgram)));
+			m_redBlackSystem.reset(new dir2d::RedBlackMethod(*this, WORK_X, WORK_Y, std::move(m_redBlackProgram)));
 			if (m_redBlackSystem == nullptr || !m_redBlackSystem->programValid())
 			{
 				std::cerr << "Failed to initialize red-black system" << std::endl;
@@ -375,7 +382,7 @@ namespace app
 				return false;
 			}
 
-			m_redBlackTiledSystem.reset(new dir2d::RedBlackTiledMethod(*this, 16, 16, std::move(m_redBlackTiledProgram)));
+			m_redBlackTiledSystem.reset(new dir2d::RedBlackTiledMethod(*this, WORK_X, WORK_Y, std::move(m_redBlackTiledProgram)));
 			if (m_redBlackTiledSystem == nullptr || !m_redBlackTiledSystem->programValid())
 			{
 				std::cerr << "Failed to initialize red-black tiled system" << std::endl;

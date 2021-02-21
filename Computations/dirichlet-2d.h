@@ -302,6 +302,8 @@ namespace dir2d
 			, m_workgroupSizeY{workgroupSizeY}
 		{
 			setupProgram(std::move(program));
+
+			m_timeQuery = res::create_query();
 		}
 
 
@@ -339,6 +341,26 @@ namespace dir2d
 		bool programValid() const
 		{
 			return m_uniforms.valid() && m_program.valid();
+		}
+
+
+	public:
+		GLuint64 timeElapsed() const
+		{
+			return m_elapsed;
+		}
+
+	protected:
+		void startTimeQuery()
+		{
+			glGetQueryObjectui64v(m_timeQuery.id, GL_QUERY_RESULT, &m_elapsed);
+
+			glBeginQuery(GL_TIME_ELAPSED, m_timeQuery.id);
+		}
+
+		void endTimeQuery()
+		{
+			glEndQuery(GL_TIME_ELAPSED);
 		}
 
 
@@ -393,7 +415,7 @@ namespace dir2d
 		i32 m_workgroupSizeY{};
 
 		res::Query m_timeQuery;
-		i64        m_elapsed{};
+		GLuint64   m_elapsed{};
 
 		res::ShaderProgram m_program;
 		Uniforms           m_uniforms;
@@ -481,6 +503,8 @@ namespace dir2d
 		{
 			glUseProgram(m_program.id);
 
+			startTimeQuery();
+
 			for (auto handle : m_dataStorage)
 			{
 				auto& data = get(handle);
@@ -505,6 +529,8 @@ namespace dir2d
 					glDispatchCompute(numWorkgroupsX, numWorkgroupsY, 1);
 				}
 			}
+
+			endTimeQuery();
 		}
 	};
 
@@ -607,6 +633,8 @@ namespace dir2d
 		{
 			glUseProgram(m_program.id);
 
+			startTimeQuery();
+
 			for (auto& handle : m_dataStorage)
 			{
 				auto& data = get(handle);
@@ -629,6 +657,8 @@ namespace dir2d
 					glDispatchCompute(numWorkgroupsX, numWorkgroupsY, 1);
 				}
 			}
+
+			endTimeQuery();
 		}
 	};
 
@@ -716,6 +746,8 @@ namespace dir2d
 		{
 			glUseProgram(m_program.id);
 
+			startTimeQuery();
+
 			for (auto& handle : m_dataStorage)
 			{
 				auto& data = get(handle);
@@ -741,6 +773,8 @@ namespace dir2d
 					glDispatchCompute(numWorkgroupsX, numWorkgroupsY, 1);
 				}
 			}
+
+			endTimeQuery();
 		}
 	};
 }
