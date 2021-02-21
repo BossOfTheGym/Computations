@@ -1,6 +1,6 @@
 #version 460 core
 
-#define STEPS 2
+#define STEPS 3
 
 #define TRUE_STEPS (2 * STEPS)
 
@@ -126,16 +126,12 @@ void main()
 		f10 = imageLoad(f, global + ivec2(1, 0)).x;
 		f01 = imageLoad(f, global + ivec2(0, 1)).x;
 		f11 = imageLoad(f, global + ivec2(1, 1)).x;
-		if (!u00OnBound)
-		{
-			fm10 = imageLoad(f, global + ivec2(-1, 0)).x;
-			f0m1 = imageLoad(f, global + ivec2(0, -1)).x;
-		}
-		if (!u11OnBound)
-		{
-			f21 = imageLoad(f, global + ivec2(2, 1)).x;
-			f12 = imageLoad(f, global + ivec2(1, 2)).x;
-		}
+		
+		fm10 = imageLoad(f, global + ivec2(-1, 0)).x;
+		f0m1 = imageLoad(f, global + ivec2(0, -1)).x;
+		
+		f21 = imageLoad(f, global + ivec2(2, 1)).x;
+		f12 = imageLoad(f, global + ivec2(1, 2)).x;
 
 		cacheStoreValue(local              , imageLoad(solution[curr], global              ).x);
 		cacheStoreValue(local + ivec2(1, 0), imageLoad(solution[curr], global + ivec2(1, 0)).x);
@@ -145,27 +141,40 @@ void main()
 	barrier();
 	memoryBarrierShared();
 	
-	// preload data that it is local to invocation and those changes must be reflecte in cache
-	float             u12;
-	float       u01 , u11, u21;
-	float um10, u00 , u10;
-	float       u0m1;
+	// preload data that it is local to invocation and those changes must be reflected in cache
+	
+	//float             u12;
+	//float       u01 , u11, u21;
+	//float um10, u00 , u10;
+	//float       u0m1;
+
+	//u12 = cacheLoadValue(local + ivec2(1, 2));
+	//u21 = cacheLoadValue(local + ivec2(2, 1));
+
+	//u0m1 = cacheLoadValue(local + ivec2(0, -1));
+	//um10 = cacheLoadValue(local + ivec2(-1, 0));
+
+	//u00 = cacheLoadValue(local              );
+	//u10 = cacheLoadValue(local + ivec2(1, 0));
+	//u01 = cacheLoadValue(local + ivec2(0, 1));
+	//u11 = cacheLoadValue(local + ivec2(1, 1));
+
+	float u01 , u11;
+	float u00 , u10;
+
+	float um10, u12, u21, u0m1;
+
 	if (globalInBounds)
 	{
 		// it can safely load values from out of bounds since its cache(they will be just undefined)
 		// it's not bad since values involving undefined ones will not be updated(values to update are checked)
 		// it can be even better just to read them to avoid additional branch divirgency
-		u12 = cacheLoadValue(local + ivec2(1, 2));
-		u21 = cacheLoadValue(local + ivec2(2, 1));
-
-		u0m1 = cacheLoadValue(local + ivec2(0, -1));
-		um10 = cacheLoadValue(local + ivec2(-1, 0));
-
 		u00 = cacheLoadValue(local              );
 		u10 = cacheLoadValue(local + ivec2(1, 0));
 		u01 = cacheLoadValue(local + ivec2(0, 1));
 		u11 = cacheLoadValue(local + ivec2(1, 1));
 	}
+
 	// computations
 	for (int i = 1; i <= STEPS; i++)
 	{
@@ -175,6 +184,8 @@ void main()
 		float um20,                    u20;
 		float       um1m1,       u1m1;
 		float              u0m2;
+
+		
 
 		bool localInComputeReg = inComputeRegion(local, i);
 
@@ -198,28 +209,34 @@ void main()
 
 			u1m1 = cacheLoadValue(local + ivec2(1, -1));
 			u0m2 = cacheLoadValue(local + ivec2(0, -2));
+
+			u12 = cacheLoadValue(local + ivec2(1, 2));
+			u21 = cacheLoadValue(local + ivec2(2, 1));
+
+			u0m1 = cacheLoadValue(local + ivec2(0, -1));
+			um10 = cacheLoadValue(local + ivec2(-1, 0));		
 		}
 		barrier();
 		memoryBarrierShared();
 
 		if (globalInBounds && localInComputeReg)
 		{
-			if (!u10OnBound) // black
+			if (!u10OnBound)
 			{
 				u10 = update(u10, u00, u20, u1m1, u11, f10); // black
 			}
-			if (!u01OnBound) // black
+			if (!u01OnBound)
 			{
 				u01 = update(u01, um11, u11, u00, u02, f01); // black
 			}
-			if (!u11OnBound) // red
+			if (!u11OnBound)
 			{
 				u12 = update(u12, u02, u22, u11, u13, f12); // black
 				u21 = update(u21, u11, u31, u20, u22, f21); // black
 
 				u11 = update(u11, u01, u21, u10, u12, f11); // red
 			}
-			if (!u00OnBound) // red 
+			if (!u00OnBound)
 			{
 				um10 = update(um10, um20, u00, um1m1, um11, fm10); // black
 				u0m1 = update(u0m1, um1m1, u1m1, u0m2, u00, f0m1); // black
