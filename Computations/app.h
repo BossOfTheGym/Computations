@@ -35,9 +35,9 @@ namespace app
 		static constexpr i32 WORK_X = 16;
 		static constexpr i32 WORK_Y = 16;
 
-		static constexpr i32 WX = 611;
-		static constexpr i32 WY = 521;
-		static constexpr i32 STEPS = 8;
+		static constexpr i32 WX = 511;
+		static constexpr i32 WY = 511;
+		static constexpr i32 STEPS = 6;
 		static constexpr i32 ITERS = 4;
 
 		static inline std::string NAME = "computations";
@@ -114,9 +114,9 @@ namespace app
 		{
 			if (key == GLFW_KEY_U && action == GLFW_PRESS)
 			{
-				std::cout << "jacoby: " <<  m_jacobySystem->timeElapsed() / 1000000.0 << "ms \n";
-				std::cout << "red-black: " << m_redBlackSystem->timeElapsed() / 1000000.0 << "ms \n";
-				std::cout << "red-black tiled: " << m_redBlackTiledSystem->timeElapsed() / 1000000.0 << "ms \n";
+				//std::cout << "jacoby: " <<  m_jacobySystem->timeElapsedMean() / 1000000.0 << "ms \n";
+				std::cout << "red-black: " << m_redBlackSystem->timeElapsedMean() / 1000000.0 << "ms \n";
+				std::cout << "red-black tiled: " << m_redBlackTiledSystem->timeElapsedMean() / 1000000.0 << "ms \n";
 
 				m_jacobySystem->update();
 				m_redBlackSystem->update();

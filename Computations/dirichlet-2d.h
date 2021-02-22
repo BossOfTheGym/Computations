@@ -350,12 +350,19 @@ namespace dir2d
 			return m_elapsed;
 		}
 
+		f64 timeElapsedMean() const
+		{
+			return m_elapsedMean;
+		}
+
 	protected:
 		void startTimeQuery()
 		{
 			glGetQueryObjectui64v(m_timeQuery.id, GL_QUERY_RESULT, &m_elapsed);
 
 			glBeginQuery(GL_TIME_ELAPSED, m_timeQuery.id);
+
+			m_elapsedMean = m_elapsed * m_measurements / (m_measurements + 1) + m_elapsed / static_cast<f64>(m_measurements + 1);
 		}
 
 		void endTimeQuery()
@@ -416,6 +423,8 @@ namespace dir2d
 
 		res::Query m_timeQuery;
 		GLuint64   m_elapsed{};
+		GLuint64   m_measurements{};
+		f64        m_elapsedMean{};
 
 		res::ShaderProgram m_program;
 		Uniforms           m_uniforms;
