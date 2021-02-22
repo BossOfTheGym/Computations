@@ -35,10 +35,10 @@ namespace app
 		static constexpr i32 WORK_X = 16;
 		static constexpr i32 WORK_Y = 16;
 
-		static constexpr i32 WX = 511;
-		static constexpr i32 WY = 511;
+		static constexpr i32 WX = 800;
+		static constexpr i32 WY = 800;
 		static constexpr i32 STEPS = 6;
-		static constexpr i32 ITERS = 4;
+		static constexpr i32 ITERS = 8;
 
 		static inline std::string NAME = "computations";
 
@@ -74,12 +74,18 @@ namespace app
 			}
 
 			// mainloop
-			entt::scoped_connection connection{m_mainWindow->keyPressSink().connect<&App::updateSystems>(this)};
+			entt::scoped_connection connection{m_mainWindow->keyPressSink().connect<&App::updateSystemsCallback>(this)};
 
 			m_mainWindow->show();
 			while(!m_mainWindow->shouldClose())
 			{
 				glfw::poll_events();
+
+
+				if (!m_paused)
+				{
+					updateSystems();
+				}
 
 				// rendering
 				glClearColor(1.0, 0.5, 0.2, 1.0);
@@ -110,18 +116,27 @@ namespace app
 		}
 
 	private:
-		void updateSystems(int key, int scancode, int action, int mods)
+		void updateSystemsCallback(int key, int scancode, int action, int mods)
 		{
 			if (key == GLFW_KEY_U && action == GLFW_PRESS)
 			{
-				//std::cout << "jacoby: " <<  m_jacobySystem->timeElapsedMean() / 1000000.0 << "ms \n";
-				std::cout << "red-black: " << m_redBlackSystem->timeElapsedMean() / 1000000.0 << "ms \n";
-				std::cout << "red-black tiled: " << m_redBlackTiledSystem->timeElapsedMean() / 1000000.0 << "ms \n";
-
-				m_jacobySystem->update();
-				m_redBlackSystem->update();
-				m_redBlackTiledSystem->update();
+				updateSystems();
 			}
+			if (key == GLFW_KEY_P && action == GLFW_PRESS)
+			{
+				m_paused = !m_paused;
+			}
+		}
+
+		void updateSystems()
+		{
+			//std::cout << "jacoby: " <<  m_jacobySystem->timeElapsedMean() / 1000000.0 << "ms \n";
+			std::cout << "red-black: " << m_redBlackSystem->timeElapsedMean() / 1000000.0 << "ms \n";
+			std::cout << "red-black tiled: " << m_redBlackTiledSystem->timeElapsedMean() / 1000000.0 << "ms \n";
+
+			//m_jacobySystem->update();
+			m_redBlackSystem->update();
+			m_redBlackTiledSystem->update();
 		}
 
 
@@ -458,6 +473,9 @@ namespace app
 		std::unique_ptr<dir2d::RedBlackMethod> m_redBlackSystem;
 		std::unique_ptr<dir2d::RedBlackTiledMethod> m_redBlackTiledSystem;
 
+		// state
 		dir2d::SmartHandle m_handles[3]{};
+		
+		bool m_paused{true};
 	};
 }
