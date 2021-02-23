@@ -1,6 +1,6 @@
 #version 460 core
 
-#define STEPS 4
+#define STEPS 2
 
 #define TRUE_STEPS (2 * STEPS)
 

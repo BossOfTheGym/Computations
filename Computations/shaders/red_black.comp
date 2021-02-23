@@ -127,7 +127,7 @@ void main()
 	memoryBarrierShared();
 	barrier();
 
-	if ((global[0] + global[1] & 0x1) == rb && inInnerDomain(global, size))
+	if ((global[0] + global[1] & 0x1) != rb && inInnerDomain(global, size))
 	{
 		float u00  = cacheLoadValue(local               );
 		float um10 = cacheLoadValue(local + ivec2(-1, 0));
