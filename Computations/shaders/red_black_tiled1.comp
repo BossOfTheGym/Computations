@@ -1,6 +1,6 @@
 #version 460 core
 
-#define STEPS 3
+#define STEPS 2
 
 #define TRUE_STEPS (2 * STEPS)
 
@@ -73,6 +73,7 @@ int getCurrStep()
 	return min(min(dx1, dy1), min(dx2, dy2));
 }
 
+// some invocation parameters
 bool inRegion(ivec2 coords, ivec2 start, ivec2 end)
 {
 	return start.x <= coords.x && coords.x < end.x 
@@ -113,6 +114,7 @@ float update(float u00, float um10, float u10, float u0m1, float u01, float f00)
 
 	return (1.0 - w) * u00 + w * u;
 }
+
 
 void main()
 {

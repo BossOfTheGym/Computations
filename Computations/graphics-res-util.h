@@ -3,15 +3,20 @@
 #include "core.h"
 #include "graphics-res.h"
 
-#include <string>
 #include <iostream>
 #include <filesystem>
+#include <string>
+#include <vector>
 
 namespace res
 {
+	// TODO : remove error output from functions/ It must be queried separately
+
 	namespace fs = std::filesystem;
 	
 	// shaders
+	GLenum shader_type_from_extension(const fs::path& file);
+
 	std::string get_shader_info_log(const Shader& shader);
 
 	Shader create_shader_from_source(GLenum shaderType, const std::string& source);
@@ -26,8 +31,8 @@ namespace res
 	// shader program
 	std::string get_shader_program_info_log(const ShaderProgram& program);
 
-	template<class ... Shader>
-	ShaderProgram create_shader_program(Shader&& ... shader)
+	template<class ... ShaderT>
+	ShaderProgram create_shader_program_var(ShaderT&& ... shader)
 	{
 		ShaderProgram shaderProgram{};
 
@@ -49,13 +54,17 @@ namespace res
 		return shaderProgram;
 	}
 
+	ShaderProgram create_shader_program(Shader** shaders, i32 count);
+
 	template<class ... Shader>
-	bool try_create_shader_program(ShaderProgram& program, Shader&& ... shader)
+	bool try_create_shader_program_var(ShaderProgram& program, Shader&& ... shader)
 	{
 		program = create_shader_program(std::forward<Shader>(shader)...);
 
 		return program.valid();
 	}
+
+	bool try_create_shader_program(ShaderProgram& program, Shader** shaders, i32 count);
 
 
 	// textures

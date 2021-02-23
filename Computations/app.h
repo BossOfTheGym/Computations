@@ -1,6 +1,10 @@
 #pragma once
 
 #include <iostream>
+#include <iomanip>
+#include <filesystem>
+#include <map>
+#include <unordered_map>
 
 #include "core.h"
 #include "graphics-res.h"
@@ -21,12 +25,17 @@ namespace app
 	// TODO : print to console OopenGL context information
 	// TODO : resources
 	// TODO : text rendering
+	// TODO : resource cache
+	// TODO : system registry
+	// TODO : assets metadata format
+
+	namespace fs = std::filesystem;
 
 	class App
 	{
 	public:
-		static constexpr int WIDTH = 512;
-		static constexpr int HEIGHT = 2 * WIDTH;
+		static constexpr int HEIGHT = 512;
+		static constexpr int WIDTH = 2 * HEIGHT;
 
 		static constexpr i32 TEST_TEXTURE_WIDTH  = 128;
 		static constexpr i32 TEST_TEXTURE_HEIGHT = 128;
@@ -35,13 +44,14 @@ namespace app
 		static constexpr i32 WORK_X = 16;
 		static constexpr i32 WORK_Y = 16;
 
-		static constexpr i32 WX = 800;
-		static constexpr i32 WY = 800;
-		static constexpr i32 STEPS = 6;
-		static constexpr i32 ITERS = 8;
+		static constexpr i32 WX = 31;
+		static constexpr i32 WY = 31;
+		static constexpr i32 STEPS = 4;
+		static constexpr i32 ITERS = 1;
 
 		static inline std::string NAME = "computations";
 
+		static inline std::string SHADER_FOLDER = "shaders/";
 
 	public:
 		App() = default;
@@ -95,18 +105,18 @@ namespace app
 				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 				// show program
-				glUseProgram(m_showProgram.id);
+				glUseProgram(m_shaderPrograms["quad"].id);
 				glBindVertexArray(m_array.id);
 
 				glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
 
 				// *TEST*
-				glViewport(0, 0, WIDTH, HEIGHT / 2);
+				glViewport(0, 0, WIDTH / 2, HEIGHT);
 				glBindTextureUnit(0, m_handles[1].textureId());
 				glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 				// *TEST*
-				glViewport(0, HEIGHT / 2, WIDTH, HEIGHT / 2);
+				glViewport(WIDTH / 2, 0, WIDTH / 2, HEIGHT);
 				glBindTextureUnit(0, m_handles[2].textureId());
 				glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
@@ -125,18 +135,22 @@ namespace app
 			if (key == GLFW_KEY_P && action == GLFW_PRESS)
 			{
 				m_paused = !m_paused;
+
+				std::cout << "paused: " << m_paused << "\n";
+			}
+			if (key == GLFW_KEY_Q && action == GLFW_PRESS)
+			{
+				m_mainWindow->shouldClose(true);
 			}
 		}
 
 		void updateSystems()
 		{
-			//std::cout << "jacoby: " <<  m_jacobySystem->timeElapsedMean() / 1000000.0 << "ms \n";
-			std::cout << "red-black: " << m_redBlackSystem->timeElapsedMean() / 1000000.0 << "ms \n";
-			std::cout << "red-black tiled: " << m_redBlackTiledSystem->timeElapsedMean() / 1000000.0 << "ms \n";
-
-			//m_jacobySystem->update();
 			m_redBlackSystem->update();
 			m_redBlackTiledSystem->update();
+
+			std::cout << "red-black: " << m_redBlackSystem->timeElapsedMean() / 1000000.0 << "ms \n";
+			std::cout << "red-black tiled: " << m_redBlackTiledSystem->timeElapsedMean() / 1000000.0 << "ms \n";
 		}
 
 
@@ -171,6 +185,18 @@ namespace app
 				return false;
 			}
 			
+			m_boundary = [] (f32 x, f32 y) -> f32
+			{
+				return std::exp(-x * x - y * y);
+			};
+
+			m_f = [] (f32 x, f32 y) -> f32
+			{
+				f32 xxpyy = x * x + y * y;
+
+				return 4.0 * (xxpyy - 1) * std::exp(-xxpyy);
+			};
+
 			m_initialized = true;
 
 			return true;
@@ -231,115 +257,92 @@ namespace app
 		bool initGraphicalResources()
 		{
 			m_mainWindow->makeContextCurrent();
-
-			// TODO : create a list 
-			// shaders
-			if (!try_create_shader_from_file(m_quadVert, GL_VERTEX_SHADER, "shaders/quad.vert"))
+			
+			std::cout << "*** SHADERS ***" << std::endl;
+			for (auto& dirEntry : fs::recursive_directory_iterator(SHADER_FOLDER))
 			{
-				std::cerr << "Failed to load \"quad.vert\" ." << std::endl;
+				auto shaderPath = dirEntry.path();
+				auto shaderPathStr = shaderPath.string();
+				auto shaderName = shaderPathStr.substr(SHADER_FOLDER.size());
 
-				return false;
+				res::Shader shader{};
+				GLenum type = res::shader_type_from_extension(shaderPath);
+				if (type != -1 && try_create_shader_from_file(shader, type, shaderPath))
+				{
+					std::cout << "Loaded shader " << std::quoted(shaderPathStr) << std::endl;
+
+					m_shaders[shaderName] = std::move(shader);
+				}
+				else
+				{
+					std::cerr << "Failed to load " << std::quoted(shaderPathStr) << std::endl;
+				}
 			}
-			std::cout << "\"quad.vert\" shader created." << std::endl;
+			std::cout << std::endl;
 
-			if (!try_create_shader_from_file(m_quadFrag, GL_FRAGMENT_SHADER, "shaders/quad.frag"))
+			// shader programs		
+			std::cout << "*** PROGRAMS ***" << std::endl;
+
+			std::vector<std::vector<const char*>> programData
 			{
-				std::cerr << "Failed to load \"quad.frag\" ." << std::endl;
+				{"quad", "quad.vert", "quad.frag"},
+				{"test_compute", "test_compute.comp"}, 
+				{"jacoby", "jacoby.comp"}, 
+				{"red_black", "red_black.comp"}, 
+				{"red_black_tiled0", "red_black_tiled0.comp"}, 
+				{"red_black_tiled1", "red_black_tiled1.comp"}
+			};
 
-				return false;
-			}
-			std::cout << "\"quad.frag\" shader created." << std::endl;
-
-			if (!try_create_shader_from_file(m_testCompute, GL_COMPUTE_SHADER, "shaders/test_compute.comp"))
+			std::vector<res::Shader*> requiredShaders;
+			for (auto& data : programData)
 			{
-				std::cerr << "Failed to load \"test_compute.comp\" ." << std::endl;
+				if (data.empty())
+				{
+					std::cerr << "Invalid data found while attempting to create shader program." << std::endl;
 
-				return false;
+					continue;
+				}
+
+				auto programName = data[0];
+
+				requiredShaders.clear();
+				for (i32 i = 1; i < data.size(); i++)
+				{
+					if (auto it = m_shaders.find(data[i]); it != m_shaders.end())
+					{
+						requiredShaders.push_back(&it->second);
+					}
+					else
+					{
+						std::cerr << "Failed to find shader " << std::quoted(data[i]) << std::endl;
+
+						break;
+					}
+				}
+
+				if (requiredShaders.size() + 1 != data.size())
+				{
+					std::cerr << "Failed to create program " << std::quoted(programName) << std::endl;
+
+					continue;
+				}
+
+				res::ShaderProgram program;
+				if (try_create_shader_program(program, requiredShaders.data(), requiredShaders.size()))
+				{
+					std::cout << std::quoted(programName) << " program created." << std::endl;
+
+					m_shaderPrograms[programName] = std::move(program);
+				}
+				else
+				{
+					std::cerr << "Failed to create " << std::quoted(programName) << " shader program." << std::endl;
+				}
 			}
-			std::cout << "\"test_compute.comp\" shader created." << std::endl;
-
-			if (!try_create_shader_from_file(m_jacoby, GL_COMPUTE_SHADER, "shaders/jacoby.comp"))
-			{	
-				std::cerr << "Failed to load \"jacoby.comp\" ." << std::endl;
-
-				return 1;
-			}
-			std::cout << "\"jacoby.comp\" shader created." << std::endl;
-
-			if (!try_create_shader_from_file(m_redBlack, GL_COMPUTE_SHADER, "shaders/red_black.comp"))
-			{	
-				std::cerr << "Failed to load \"red_black.comp\" ." << std::endl;
-
-				return false;
-			}
-			std::cout << "\"red_black.comp\" shader created." << std::endl;
-
-			if (!try_create_shader_from_file(m_mirroredRedBlack, GL_COMPUTE_SHADER, "shaders/mirror_red_black.comp"))
-			{	
-				std::cerr << "Failed to load \"mirror_red_black.comp\" ." << std::endl;
-
-				return false;
-			}
-			std::cout << "\"mirror_red_black.comp\" shader created." << std::endl;
-
-			if (!try_create_shader_from_file(m_redBlackTiled, GL_COMPUTE_SHADER, "shaders/red_black_tiled1.comp"))
-			{	
-				std::cerr << "Failed to load \"shaders/red_black_tiled1.comp\" ." << std::endl;
-
-				return false;
-			}
-			std::cout << "\"shaders/red_black_tiled1.comp\" shader created." << std::endl;
-
-			// shader programs
-			if (!try_create_shader_program(m_showProgram, m_quadVert, m_quadFrag))
-			{
-				std::cerr << "Failed to create shader program." << std::endl;
-
-				return false;
-			}
-			std::cout << "\"showProgram\" program created." << std::endl;
-
-			if (!try_create_shader_program(m_testComputeProgram, m_testCompute))
-			{
-				std::cerr << "Failed to create \"computeProgram\" program." << std::endl;
-
-				return false;
-			}
-			std::cout << "\"computeProgram\" program created." << std::endl;
-
-			if (!try_create_shader_program(m_jacobyProgram, m_jacoby))
-			{
-				std::cerr << "Failed to create \"jacobyProgram\" program." << std::endl;
-
-				return false;
-			}
-			std::cout << "\"jacobyProgram\" program created." << std::endl;
-
-			if (!try_create_shader_program(m_redBlackProgram, m_redBlack))
-			{
-				std::cerr << "Failed to create \"redBlackProgram\" program." << std::endl;
-
-				return false;
-			}
-			std::cout << "\"redBlackProgram\" program created." << std::endl;
-
-			if (!try_create_shader_program(m_mirroredRedBlackProgram, m_mirroredRedBlack))
-			{
-				std::cerr << "Failed to create \"mirroredRedBlackProgram\" program." << std::endl;
-
-				return false;
-			}
-			std::cout << "\"mirroredRedBlackProgram\" program created." << std::endl;
-
-			if (!try_create_shader_program(m_redBlackTiledProgram, m_redBlackTiled))
-			{
-				std::cerr << "Failed to create \"redBlackTiledProgram\" program." << std::endl;
-
-				return false;
-			}
-			std::cout << "\"redBlackTiledProgram\" program created." << std::endl;
 
 			// test texture
+			std::cout << "*** TEXTURES ***" << std::endl;
+
 			if (!try_create_test_texture(m_texture, TEST_TEXTURE_WIDTH, TEST_TEXTURE_HEIGHT, TEST_TEXTURE_PERIOD))
 			{
 				std::cerr << "Failed to create test texture." << std::endl;
@@ -349,6 +352,8 @@ namespace app
 			std::cout << "\"texture\" created." << std::endl;
 
 			// vertex array
+			std::cout << "*** VERTEX ARRAYS ***" << std::endl;
+
 			if (!try_create_vertex_array(m_array))
 			{
 				std::cerr << "Failed to create vertex array." << std::endl;
@@ -364,59 +369,68 @@ namespace app
 
 			m_texture.reset();
 
-			m_redBlackTiledProgram.reset();
-			m_mirroredRedBlackProgram.reset();
-			m_redBlackProgram.reset();
-			m_jacobyProgram.reset();
-			m_showProgram.reset();
-			m_testComputeProgram.reset();
-
-			m_redBlackTiled.reset();
-			m_mirroredRedBlack.reset();
-			m_redBlack.reset();
-			m_jacoby.reset();
-			m_testCompute.reset();
-			m_quadFrag.reset();
-			m_quadVert.reset();
+			m_shaders.clear();
+			m_shaderPrograms.clear();
 		}
 
 		bool initSystems()
 		{
-			m_jacobySystem.reset(new dir2d::JacobyMethod(*this, 16, 16, std::move(m_jacobyProgram)));
-			if (m_jacobySystem == nullptr || !m_jacobySystem->programValid())
+			if (auto it = m_shaderPrograms.find("jacoby"); it != m_shaderPrograms.end())
 			{
-				std::cerr << "Failed to initialize jacoby system" << std::endl;
+				m_jacobySystem.reset(new dir2d::JacobyMethod(*this, 16, 16, std::move(it->second)));
+				if (m_jacobySystem == nullptr || !m_jacobySystem->programValid())
+				{
+					std::cerr << "Failed to initialize jacoby system" << std::endl;
+
+					return false;
+				}	
+
+				m_shaderPrograms.erase(it);
+			}
+			else
+			{
+				std::cerr << std::quoted("jacoby") << " shader program wasn't created." << std::endl;
 
 				return false;
 			}
 
-			m_redBlackSystem.reset(new dir2d::RedBlackMethod(*this, WORK_X, WORK_Y, std::move(m_redBlackProgram)));
-			if (m_redBlackSystem == nullptr || !m_redBlackSystem->programValid())
+			if (auto it = m_shaderPrograms.find("red_black"); it != m_shaderPrograms.end())
 			{
-				std::cerr << "Failed to initialize red-black system" << std::endl;
+				m_redBlackSystem.reset(new dir2d::RedBlackMethod(*this, WORK_X, WORK_Y, std::move(it->second)));
+				if (m_redBlackSystem == nullptr || !m_redBlackSystem->programValid())
+				{
+					std::cerr << "Failed to initialize red-black system" << std::endl;
+
+					return false;
+				}	
+
+				m_shaderPrograms.erase(it);
+			}
+			else
+			{
+				std::cerr << std::quoted("red_black") << " shader program wasn't created." << std::endl;
 
 				return false;
 			}
-
-			m_redBlackTiledSystem.reset(new dir2d::RedBlackTiledMethod(*this, WORK_X, WORK_Y, std::move(m_redBlackTiledProgram)));
-			if (m_redBlackTiledSystem == nullptr || !m_redBlackTiledSystem->programValid())
+			 
+			if (auto it = m_shaderPrograms.find("red_black_tiled1"); it != m_shaderPrograms.end())
 			{
-				std::cerr << "Failed to initialize red-black tiled system" << std::endl;
+				m_redBlackTiledSystem.reset(new dir2d::RedBlackTiledMethod(*this, WORK_X, WORK_Y, std::move(it->second)));
+				if (m_redBlackTiledSystem == nullptr || !m_redBlackTiledSystem->programValid())
+				{
+					std::cerr << "Failed to initialize red-black tiled system" << std::endl;
+
+					return false;
+				}	
+
+				m_shaderPrograms.erase(it);
+			}
+			else
+			{
+				std::cerr << std::quoted("red_black_tiled1") << " shader program wasn't created." << std::endl;
 
 				return false;
 			}
-
-			m_boundary = [] (f32 x, f32 y) -> f32
-			{
-				return std::exp(-x * x - y * y);
-			};
-
-			m_f = [] (f32 x, f32 y) -> f32
-			{
-				f32 xxpyy = x * x + y * y;
-
-				return 4.0 * (xxpyy - 1) * std::exp(-xxpyy);
-			};
 
 			return true;
 		}
@@ -439,32 +453,17 @@ namespace app
 		entt::registry   m_registry;
 		entt::dispatcher m_dispatcher;
 
-		// TODO : it must be stored in a resource cache
-		// resources
-		res::Shader m_quadVert;
-		res::Shader m_quadFrag;
-		res::Shader m_testCompute;
-		res::Shader m_jacoby;
-		res::Shader m_redBlack;
-		res::Shader m_mirroredRedBlack;
-		res::Shader m_redBlackTiled;
-
-		res::ShaderProgram m_testComputeProgram;
-		res::ShaderProgram m_showProgram;
-		res::ShaderProgram m_jacobyProgram;
-		res::ShaderProgram m_redBlackProgram;
-		res::ShaderProgram m_mirroredRedBlackProgram;
-		res::ShaderProgram m_redBlackTiledProgram;
+		// resources 
+		std::unordered_map<std::string, res::Shader>        m_shaders;
+		std::unordered_map<std::string, res::ShaderProgram> m_shaderPrograms;
 
 		res::Texture m_texture;
 
 		res::VertexArray m_array;
 
 		// CORE SYSTEMS
-		// TODO : system registry
 		std::unique_ptr<win::MainWindow> m_mainWindow;
 
-		// TODO : system registry
 		// SYSTEMS
 		dir2d::Function2D m_boundary;
 		dir2d::Function2D m_f;

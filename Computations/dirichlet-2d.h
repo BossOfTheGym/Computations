@@ -362,7 +362,9 @@ namespace dir2d
 
 			glBeginQuery(GL_TIME_ELAPSED, m_timeQuery.id);
 
-			m_elapsedMean = m_elapsed * m_measurements / (m_measurements + 1) + m_elapsed / static_cast<f64>(m_measurements + 1);
+			m_elapsedMean = (m_elapsedMean * m_measurements + m_elapsed) / static_cast<f64>(m_measurements + 1);
+
+			++m_measurements;
 		}
 
 		void endTimeQuery()

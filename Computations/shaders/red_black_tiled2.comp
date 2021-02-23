@@ -1,0 +1,61 @@
+#version 460 core
+
+#define STEPS
+
+#define WORKGROUP_X 16
+#define WORKGROUP_Y 16
+
+layout(local_size_x = , local_size_y = ) in;
+
+// picture is stored in a row-major manner
+// used both for read and write, boundary is not calculated
+layout(binding = 0, r32f) uniform image2D solution[2];
+layout(binding = 2, r32f) uniform readonly image2D f;
+
+uniform float curr; // 0 or 1
+uniform float w;
+uniform float hx;
+uniform float hy;
+
+// first is x(i), second is y(j)
+shared float cache[CACHE_SIZE];
+
+int cacheFlatIndex(ivec2 indices)
+{
+	return indices.x * CACHE_Y + indices.y + (CACHE_Y + 1);
+}
+
+float cacheLoadValue(ivec2 indices)
+{
+	return cache[cacheFlatIndex(indices)];
+}
+
+void cacheStoreValue(ivec2 indices, float value)
+{
+	cache[cacheFlatIndex(indices)] = value;
+}
+
+// returns local index(zero-based), global(can be out of bounds)
+void getGlobalLocalInvocationID(out ivec2 global, out ivec2 local)
+{
+	ivec2 work = ivec2(gl_WorkGroupID.xy);
+
+	local = 2 * ivec2(gl_LocalInvocationID.xy);
+	global = local - ivec2(TRUE_STEPS) + work * TRUE_WORKGROUP;
+}
+
+int getCurrStep()
+{
+	int dx1 = int(gl_LocalInvocationID.x);
+	int dy1 = int(gl_LocalInvocationID.y);
+	int dx2 = (WORKGROUP_X_OVERLAP - 1) - dx1;
+	int dy2 = (WORKGROUP_Y_OVERLAP - 1) - dy1;
+
+	return min(min(dx1, dy1), min(dx2, dy2));
+}
+
+
+void main()
+{
+
+}

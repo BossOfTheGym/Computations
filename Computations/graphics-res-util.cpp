@@ -6,6 +6,24 @@
 namespace res
 {
 	// shaders
+	GLenum shader_type_from_extension(const fs::path& file)
+	{
+		auto ext = file.extension().string();
+		if (ext == ".vert")
+		{
+			return GL_VERTEX_SHADER;	
+		}
+		if (ext == ".frag")
+		{
+			return GL_FRAGMENT_SHADER;
+		}
+		if (ext == ".comp")
+		{
+			return GL_COMPUTE_SHADER;
+		}
+		return -1;
+	}
+
 	std::string get_shader_info_log(const Shader& shader)
 	{
 		GLint length{};
@@ -87,6 +105,42 @@ namespace res
 		glGetProgramInfoLog(program.id, length, nullptr, infoLog.data());
 
 		return infoLog;
+	}
+
+	ShaderProgram create_shader_program(Shader** shaders, i32 count)
+	{
+		ShaderProgram shaderProgram{};
+
+		shaderProgram.id = glCreateProgram();
+		for (i32 i = 0; i < count; i++)
+		{
+			glAttachShader(shaderProgram.id, shaders[i]->id);
+		}
+
+		glLinkProgram(shaderProgram.id);
+		for (i32 i = 0; i < count; i++)
+		{
+			glDetachShader(shaderProgram.id, shaders[i]->id);
+		}
+
+		GLint linkStatus{};
+		glGetProgramiv(shaderProgram.id, GL_LINK_STATUS, &linkStatus);
+		if (linkStatus != GL_TRUE)
+		{
+			std::cerr << "Failed to link shader program. Error log: " << std::endl;
+			std::cerr << get_shader_program_info_log(shaderProgram) << std::endl;
+
+			shaderProgram.reset();
+		}
+
+		return shaderProgram;
+	}
+
+	bool try_create_shader_program(ShaderProgram& program, Shader** shaders, i32 count)
+	{
+		program = create_shader_program(shaders, count);
+
+		return program.valid();
 	}
 
 

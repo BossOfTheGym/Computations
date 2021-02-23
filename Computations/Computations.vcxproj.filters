@@ -115,9 +115,6 @@
     <None Include="shaders\jacoby.comp">
       <Filter>shaders</Filter>
     </None>
-    <None Include="shaders\jacoby_tiled.comp">
-      <Filter>shaders</Filter>
-    </None>
     <None Include="shaders\mirror_red_black.comp">
       <Filter>shaders</Filter>
     </None>
@@ -128,6 +125,15 @@
       <Filter>shaders</Filter>
     </None>
     <None Include="shaders\red_black_tiled1.comp">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\plot.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\plot.vert">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\red_black_tiled2.comp">
       <Filter>shaders</Filter>
     </None>
   </ItemGroup>
