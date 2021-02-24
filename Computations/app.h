@@ -102,10 +102,24 @@ namespace app
 			m_model = glm::scale(m_model, glm::vec3(glm::vec2(2.0f), 1.0f));
 			m_model = glm::translate(m_model, glm::vec3(-0.5f, -0.5f, 0.0));
 
+			res::Buffer uniformBuffer;
+			if (!try_create_storage_buffer(uniformBuffer, 4 * sizeof(glm::mat4), GL_DYNAMIC_STORAGE_BIT | GL_MAP_WRITE_BIT))
+			{
+				std::cerr << "Failed to create uniform buffer" << std::endl;
+			}
+			else
+			{
+				auto buffer = (glm::mat4*)glMapNamedBuffer(uniformBuffer.id, GL_WRITE_ONLY);
+				buffer[0] = m_proj * m_view * m_model;
+				buffer[1] = m_proj;
+				buffer[2] = m_view;
+				buffer[3] = m_model;
+				glUnmapNamedBuffer(uniformBuffer.id);
+			}
+
 			i32 patchVertices = 6 * (PATCH_X - 1) * (PATCH_Y - 1);
 			res::Buffer verticesBuffer;
 			res::Buffer indicesBuffer;
-			res::Buffer uniformBuffer;
 			res::VertexArray patch;
 			{
 				f32 dx = 1.0 / (PATCH_X - 1);
@@ -171,20 +185,6 @@ namespace app
 					glEnableVertexAttribArray(0);
 					glVertexAttribFormat(0, 2, GL_FLOAT, GL_FALSE, 0);
 					glVertexAttribBinding(0, 0);
-				}
-
-				if (!try_create_storage_buffer(uniformBuffer, 4 * sizeof(glm::mat4), GL_DYNAMIC_STORAGE_BIT | GL_MAP_WRITE_BIT))
-				{
-					std::cerr << "Failed to create uniform buffer" << std::endl;
-				}
-				else
-				{
-					auto buffer = (glm::mat4*)glMapNamedBuffer(uniformBuffer.id, GL_WRITE_ONLY);
-					buffer[0] = m_proj * m_view * m_model;
-					buffer[1] = m_proj;
-					buffer[2] = m_view;
-					buffer[3] = m_model;
-					glUnmapNamedBuffer(uniformBuffer.id);
 				}
 			}
 

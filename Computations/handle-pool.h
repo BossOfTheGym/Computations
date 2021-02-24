@@ -7,6 +7,27 @@
 class HandlePool
 {
 public:
+	HandlePool() = default;
+
+	HandlePool(HandlePool&& pool) noexcept
+	{
+		*this = std::move(pool);
+	}
+
+	HandlePool& operator = (HandlePool&& pool) noexcept
+	{
+		if (this == &pool)
+		{
+			return *this;
+		}
+
+		m_handles = std::move(pool.m_handles);
+		m_head = std::exchange(pool.m_head, null);
+
+		return *this;
+	}
+	
+public:
 	Handle acquire()
 	{
 		Handle newHandle{};

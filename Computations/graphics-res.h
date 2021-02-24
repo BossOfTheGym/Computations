@@ -135,4 +135,14 @@ namespace res
 
 		Id id{null};
 	};
+
+	struct Sync
+	{
+		// TODO
+	};
+
+	struct MapPointer
+	{
+		// TODO
+	};
 }

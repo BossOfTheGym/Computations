@@ -101,6 +101,9 @@
     <ClInclude Include="core.h">
       <Filter>main\headers</Filter>
     </ClInclude>
+    <ClInclude Include="IndirectDispatchBufferStorage.h">
+      <Filter>main\headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\quad.frag">
