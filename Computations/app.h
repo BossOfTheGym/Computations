@@ -132,13 +132,13 @@ namespace app
 				{
 					for (i32 i = 0; i < PATCH_X - 1; i++)
 					{
-						*iptr++ = (j + 1) * PATCH_X + (i + 1);
-						*iptr++ = (j + 1) * PATCH_X + i;
+						*iptr++ = j * PATCH_X + i + PATCH_X + 1;
+						*iptr++ = j * PATCH_X + i + PATCH_X;
 						*iptr++ = j * PATCH_X + i;
 
-						*iptr++ = (j + 1) * PATCH_X + (i + 1);
+						*iptr++ = j * PATCH_X + i + PATCH_X + 1;
 						*iptr++ = j * PATCH_X + i;
-						*iptr++ = j * PATCH_X + (i + 1);
+						*iptr++ = j * PATCH_X + i + 1;
 					}
 				}
 
