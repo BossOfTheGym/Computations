@@ -27,7 +27,7 @@ shared float cache[CACHE_SIZE];
 
 int cacheFlatIndex(ivec2 indices)
 {
-	return (indices[0] + 1) * CACHE_Y + (indices[1] + 1);
+	return indices[0] * CACHE_Y + indices[1] + (CACHE_Y + 1);
 }
 
 float cacheLoadValue(ivec2 indices)

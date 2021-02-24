@@ -230,7 +230,7 @@ namespace res
 
 
 	// buffer
-	Buffer create_storage_buffer(GLsizeiptr size, GLbitfield usageFlags)
+	Buffer create_storage_buffer(GLsizeiptr size, GLbitfield usageFlags, void* data)
 	{
 		Buffer buffer{};
 
@@ -240,14 +240,14 @@ namespace res
 			return Buffer{};
 		}
 
-		glNamedBufferStorage(buffer.id, size, nullptr, usageFlags);
+		glNamedBufferStorage(buffer.id, size, data, usageFlags);
 
 		return buffer;
 	}
 
-	bool try_create_storage_buffer(Buffer& buffer, GLsizeiptr size, GLbitfield usageFlags)
+	bool try_create_storage_buffer(Buffer& buffer, GLsizeiptr size, GLbitfield usageFlags, void* data)
 	{
-		buffer = create_storage_buffer(size, usageFlags);
+		buffer = create_storage_buffer(size, usageFlags, data);
 
 		return buffer.valid();
 	}

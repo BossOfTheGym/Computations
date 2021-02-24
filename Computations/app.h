@@ -18,6 +18,14 @@
 #include <entt/signal/delegate.hpp>
 #include <entt/signal/dispatcher.hpp>
 
+#include <glm/glm.hpp>
+#include <glm/geometric.hpp>
+#include <glm/common.hpp>
+#include <glm/matrix.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/dual_quaternion.hpp>
+#include <glm/gtx/euler_angles.hpp>
+
 namespace app
 {
 	// main application class, holds everything inside
@@ -44,10 +52,13 @@ namespace app
 		static constexpr i32 WORK_X = 16;
 		static constexpr i32 WORK_Y = 16;
 
-		static constexpr i32 WX = 31;
-		static constexpr i32 WY = 31;
+		static constexpr i32 WX = 511;
+		static constexpr i32 WY = 511;
 		static constexpr i32 STEPS = 4;
 		static constexpr i32 ITERS = 1;
+
+		static constexpr i32 PATCH_X = 32;
+		static constexpr i32 PATCH_Y = 32;
 
 		static inline std::string NAME = "computations";
 
@@ -76,15 +87,111 @@ namespace app
 		{
 			// *TEST*
 			{
-				auto domain = m_redBlackSystem->createAlignedDomain(-1.2, +1.2, -1.2, +1.2, WX, WY);
+				auto domain = m_redBlackSystem->createAlignedDomain(-1.0, +1.0, -1.0, +1.0, WX, WY);
 				auto data = m_redBlackSystem->createAlignedData(domain, m_boundary, m_f);
 			
 				m_handles[1] = m_redBlackSystem->createSmart(data, STEPS * ITERS);
 				m_handles[2] = m_redBlackTiledSystem->createSmart(data, ITERS);
 			}
 
+			// *TEST*
+			m_proj  = glm::perspective(glm::radians(60.0f), static_cast<f32>(WIDTH / 2) / HEIGHT, 0.1f, 100.0f);
+			m_view  = glm::lookAt(glm::vec3(3.0f), glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+
+			m_model = glm::mat4(1.0f);
+			m_model = glm::scale(m_model, glm::vec3(glm::vec2(2.0f), 1.0f));
+			m_model = glm::translate(m_model, glm::vec3(-0.5f, -0.5f, 0.0));
+
+			i32 patchVertices = 6 * (PATCH_X - 1) * (PATCH_Y - 1);
+			res::Buffer verticesBuffer;
+			res::Buffer indicesBuffer;
+			res::Buffer uniformBuffer;
+			res::VertexArray patch;
+			{
+				f32 dx = 1.0 / (PATCH_X - 1);
+				f32 dy = 1.0 / (PATCH_Y - 1);
+
+				std::vector<glm::vec2> vertices(PATCH_X * PATCH_Y);
+
+				auto vptr = vertices.begin();
+				for (i32 j = 0; j < PATCH_Y; j++)
+				{
+					f32 y = j * dy;
+					for (i32 i = 0; i < PATCH_X; i++)
+					{
+						f32 x = i * dx;
+
+						*vptr++ = glm::vec2(x, y);
+					}
+				}
+
+				std::vector<u16> indices(6 * (PATCH_X - 1) * (PATCH_Y - 1));
+
+				auto iptr = indices.begin();
+				for (i32 j = 0; j < PATCH_Y - 1; j++)
+				{
+					for (i32 i = 0; i < PATCH_X - 1; i++)
+					{
+						*iptr++ = (j + 1) * PATCH_X + (i + 1);
+						*iptr++ = (j + 1) * PATCH_X + i;
+						*iptr++ = j * PATCH_X + i;
+
+						*iptr++ = (j + 1) * PATCH_X + (i + 1);
+						*iptr++ = j * PATCH_X + i;
+						*iptr++ = j * PATCH_X + (i + 1);
+					}
+				}
+
+				bool anyFailed = false;
+				if (!try_create_storage_buffer(verticesBuffer, vertices.size() * sizeof(glm::vec2), 0, vertices.data()))
+				{
+					anyFailed = true;
+
+					std::cerr << "Failed to create vertices buffer for patch." << std::endl;
+				}
+				if (!try_create_storage_buffer(indicesBuffer, indices.size() * sizeof(i16), 0, indices.data()))
+				{
+					anyFailed = true;
+
+					std::cerr << "Failed to create indices buffer for patch." << std::endl;
+				}
+				if (!try_create_vertex_array(patch))
+				{
+					anyFailed = true;
+
+					std::cerr << "Failed to create patch vertex array." << std::endl;
+				}
+				if (!anyFailed)
+				{
+					glBindVertexArray(patch.id);
+
+					glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indicesBuffer.id);
+
+					glBindVertexBuffer(0, verticesBuffer.id, 0, sizeof(glm::vec2));
+					glEnableVertexAttribArray(0);
+					glVertexAttribFormat(0, 2, GL_FLOAT, GL_FALSE, 0);
+					glVertexAttribBinding(0, 0);
+				}
+
+				if (!try_create_storage_buffer(uniformBuffer, 4 * sizeof(glm::mat4), GL_DYNAMIC_STORAGE_BIT | GL_MAP_WRITE_BIT))
+				{
+					std::cerr << "Failed to create uniform buffer" << std::endl;
+				}
+				else
+				{
+					auto buffer = (glm::mat4*)glMapNamedBuffer(uniformBuffer.id, GL_WRITE_ONLY);
+					buffer[0] = m_proj * m_view * m_model;
+					buffer[1] = m_proj;
+					buffer[2] = m_view;
+					buffer[3] = m_model;
+					glUnmapNamedBuffer(uniformBuffer.id);
+				}
+			}
+
 			// mainloop
 			entt::scoped_connection connection{m_mainWindow->keyPressSink().connect<&App::updateSystemsCallback>(this)};
+
+			glEnable(GL_DEPTH_TEST);
 
 			m_mainWindow->show();
 			while(!m_mainWindow->shouldClose())
@@ -98,27 +205,28 @@ namespace app
 				}
 
 				// rendering
-				glClearColor(1.0, 0.5, 0.2, 1.0);
+				glClearColor(0.1, 0.1, 0.1, 1.0);
 				glClearDepth(1.0);
 				glClearStencil(0);
 
 				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 				// show program
-				glUseProgram(m_shaderPrograms["quad"].id);
-				glBindVertexArray(m_array.id);
+				glUseProgram(m_shaderPrograms["plot"].id);
 
-				glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
+				glBindBufferBase(GL_UNIFORM_BUFFER, 0, uniformBuffer.id);
+
+				glBindVertexArray(patch.id);
 
 				// *TEST*
 				glViewport(0, 0, WIDTH / 2, HEIGHT);
 				glBindTextureUnit(0, m_handles[1].textureId());
-				glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+				glDrawElements(GL_TRIANGLES, patchVertices, GL_UNSIGNED_SHORT, nullptr);
 
 				// *TEST*
 				glViewport(WIDTH / 2, 0, WIDTH / 2, HEIGHT);
 				glBindTextureUnit(0, m_handles[2].textureId());
-				glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+				glDrawElements(GL_TRIANGLES, patchVertices, GL_UNSIGNED_SHORT, nullptr);
 
 				// swap
 				m_mainWindow->swapBuffers();
@@ -286,6 +394,7 @@ namespace app
 			std::vector<std::vector<const char*>> programData
 			{
 				{"quad", "quad.vert", "quad.frag"},
+				{"plot", "plot.vert", "plot.frag"},
 				{"test_compute", "test_compute.comp"}, 
 				{"jacoby", "jacoby.comp"}, 
 				{"red_black", "red_black.comp"}, 
@@ -340,6 +449,8 @@ namespace app
 				}
 			}
 
+			std::cout << std::endl;
+
 			// test texture
 			std::cout << "*** TEXTURES ***" << std::endl;
 
@@ -351,6 +462,8 @@ namespace app
 			}
 			std::cout << "\"texture\" created." << std::endl;
 
+			std::cout << std::endl;
+
 			// vertex array
 			std::cout << "*** VERTEX ARRAYS ***" << std::endl;
 
@@ -359,6 +472,8 @@ namespace app
 				std::cerr << "Failed to create vertex array." << std::endl;
 			}
 			std::cout << "\"array\" vertex array created." << std::endl;
+
+			std::cout << std::endl;
 
 			return true;
 		}
@@ -475,6 +590,10 @@ namespace app
 		// state
 		dir2d::SmartHandle m_handles[3]{};
 		
+		glm::mat4 m_proj;
+		glm::mat4 m_view;
+		glm::mat4 m_model;
+
 		bool m_paused{true};
 	};
 }

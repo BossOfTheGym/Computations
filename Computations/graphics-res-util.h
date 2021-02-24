@@ -84,9 +84,9 @@ namespace res
 
 
 	// buffer
-	Buffer create_storage_buffer(GLsizeiptr size, GLbitfield usageFlags);
+	Buffer create_storage_buffer(GLsizeiptr size, GLbitfield usageFlags, void* data = nullptr);
 
-	bool try_create_storage_buffer(Buffer& buffer, GLsizeiptr size, GLbitfield usageFlags);
+	bool try_create_storage_buffer(Buffer& buffer, GLsizeiptr size, GLbitfield usageFlags, void* data = nullptr);
 
 
 	// queries
