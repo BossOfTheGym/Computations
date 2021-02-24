@@ -31,7 +31,7 @@ layout(local_size_x = WORKGROUP_X + 2 * STEPS, local_size_y = WORKGROUP_Y + 2 * 
 layout(binding = 0, r32f) uniform image2D solution[2];
 layout(binding = 2, r32f) uniform readonly image2D f;
 
-uniform float curr; // 0 or 1
+uniform int curr; // 0 or 1
 uniform float w;
 uniform float hx;
 uniform float hy;

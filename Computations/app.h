@@ -378,7 +378,7 @@ namespace app
 				if (type != -1 && try_create_shader_from_file(shader, type, shaderPath))
 				{
 					std::cout << "Loaded shader " << std::quoted(shaderPathStr) << std::endl;
-
+					
 					m_shaders[shaderName] = std::move(shader);
 				}
 				else
@@ -399,7 +399,8 @@ namespace app
 				{"jacoby", "jacoby.comp"}, 
 				{"red_black", "red_black.comp"}, 
 				{"red_black_tiled0", "red_black_tiled0.comp"}, 
-				{"red_black_tiled1", "red_black_tiled1.comp"}
+				{"red_black_tiled1", "red_black_tiled1.comp"},
+				{"red_black_tiled2", "red_black_tiled2.comp"}
 			};
 
 			std::vector<res::Shader*> requiredShaders;
