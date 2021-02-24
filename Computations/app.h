@@ -96,7 +96,7 @@ namespace app
 
 			// *TEST*
 			m_proj  = glm::perspective(glm::radians(60.0f), static_cast<f32>(WIDTH / 2) / HEIGHT, 0.1f, 100.0f);
-			m_view  = glm::lookAt(glm::vec3(3.0f), glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+			m_view  = glm::lookAt(glm::vec3(2.0f), glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
 			m_model = glm::mat4(1.0f);
 			m_model = glm::scale(m_model, glm::vec3(glm::vec2(2.0f), 1.0f));
