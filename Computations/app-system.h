@@ -5,7 +5,7 @@ namespace app
 {
 	class App;
 
-	// All systems, must have reference to App
+	// All systems must have reference to App
 	class System
 	{
 	public:
@@ -13,17 +13,17 @@ namespace app
 		{}
 
 		System(const System&) = delete;
-		System(System&&) = delete;
+		System(System&&)      = delete;
 
 		System& operator = (const System&) = delete;
-		System& operator = (System&&) = delete;
+		System& operator = (System&&)      = delete;
 
-		virtual ~System() = default;
-
+		virtual ~System() = default; // do I need this to be virtual?
+		
 	public:
-		App* app() const
+		App& app() const
 		{
-			return m_app;
+			return *m_app;
 		}
 
 	private:
