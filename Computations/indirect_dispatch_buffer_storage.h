@@ -18,6 +18,8 @@ struct IndirectDispatchBuffer
 };
 
 // TODO : checks
+// TODO : wiki says that it's bad to access mapped pointer non-sequentially(like random access to array)
+// TODO : in will be probably used in along with Storage<>
 class IndirectDispatchBufferStorage : public HandlePool
 {
 public:

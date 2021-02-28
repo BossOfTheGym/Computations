@@ -7,10 +7,12 @@
 #include <unordered_map>
 
 #include "core.h"
+#include "gl-state-info.h"
 #include "graphics-res.h"
 #include "graphics-res-util.h"
 #include "main-window.h"
 #include "dirichlet-2d.h"
+#include "dirichlet_system.h"
 
 #include <entt/entity/storage.hpp>
 #include <entt/entity/entity.hpp>
@@ -28,21 +30,24 @@
 
 namespace app
 {
-	// main application class, holds everything inside
-	// TODO : everything that is missing
-	// TODO : print to console OopenGL context information
-	// TODO : resources
+	// TODO : this whole list
 	// TODO : text rendering
-	// TODO : resource cache
 	// TODO : system registry
 	// TODO : assets metadata format
+	// TODO : asset system
+	// TODO : plot system
+	// TODO : dirichlet system
+	// TODO : gl-state-info
+	// TODO : buffer's mapped range, struct that holds buffer id, buffer offset and mapping size
+	// TODO : systems' programs
 
 	namespace fs = std::filesystem;
 
+	// main application class, holds everything inside
 	class App
 	{
 	public:
-		static constexpr int HEIGHT = 512;
+		static constexpr int HEIGHT = 720;
 		static constexpr int WIDTH = 2 * HEIGHT;
 
 		static constexpr i32 TEST_TEXTURE_WIDTH  = 128;
@@ -57,8 +62,8 @@ namespace app
 		static constexpr i32 STEPS = 4;
 		static constexpr i32 ITERS = 1;
 
-		static constexpr i32 PATCH_X = 32;
-		static constexpr i32 PATCH_Y = 32;
+		static constexpr i32 PATCH_X = 64;
+		static constexpr i32 PATCH_Y = 64;
 
 		static inline std::string NAME = "computations";
 
@@ -87,16 +92,19 @@ namespace app
 		{
 			// *TEST*
 			{
-				auto domain = m_redBlackSystem->createAlignedDomain(-1.0, +1.0, -1.0, +1.0, WX, WY);
-				auto data = m_redBlackSystem->createAlignedData(domain, m_boundary, m_f);
+				auto& rb = m_dirichletSystem->get<dir2d::RedBlackMethod>();
+				auto& rbTiled = m_dirichletSystem->get<dir2d::RedBlackTiledMethod>();
+
+				auto domain = rb.createAlignedDomain(-1.0, +1.0, -1.0, +1.0, WX, WY);
+				auto data = rb.createAlignedData(domain, m_boundary, m_f);
 			
-				m_handles[1] = m_redBlackSystem->createSmart(data, STEPS * ITERS);
-				m_handles[2] = m_redBlackTiledSystem->createSmart(data, ITERS);
+				m_handles[1] = rb.createSmart(data, STEPS * ITERS);
+				m_handles[2] = rbTiled.createSmart(data, ITERS);
 			}
 
 			// *TEST*
 			m_proj  = glm::perspective(glm::radians(60.0f), static_cast<f32>(WIDTH / 2) / HEIGHT, 0.1f, 100.0f);
-			m_view  = glm::lookAt(glm::vec3(2.0f), glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+			m_view  = glm::lookAt(glm::vec3(1.5f), glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
 			m_model = glm::mat4(1.0f);
 			m_model = glm::scale(m_model, glm::vec3(glm::vec2(2.0f), 1.0f));
@@ -198,7 +206,6 @@ namespace app
 			{
 				glfw::poll_events();
 
-
 				if (!m_paused)
 				{
 					updateSystems();
@@ -250,15 +257,24 @@ namespace app
 			{
 				m_mainWindow->shouldClose(true);
 			}
+			if (key == GLFW_KEY_R && action == GLFW_PRESS)
+			{
+				loadShader(fs::path(SHADER_FOLDER) / "plot.vert");
+				loadShader(fs::path(SHADER_FOLDER) / "plot.frag");
+				createProgram({"plot", "plot.vert", "plot.frag"});
+			}
 		}
 
 		void updateSystems()
 		{
-			m_redBlackSystem->update();
-			m_redBlackTiledSystem->update();
+			auto& rb = m_dirichletSystem->get<dir2d::RedBlackMethod>();
+			auto& rbTiled = m_dirichletSystem->get<dir2d::RedBlackTiledMethod>();
 
-			std::cout << "red-black: " << m_redBlackSystem->timeElapsedMean() / 1000000.0 << "ms \n";
-			std::cout << "red-black tiled: " << m_redBlackTiledSystem->timeElapsedMean() / 1000000.0 << "ms \n";
+			rb.update();
+			rbTiled.update();
+
+			std::cout << "red-black: " << rb.timeElapsedMean() / 1000000.0 << "ms \n";
+			std::cout << "red-black tiled: " << rbTiled.timeElapsedMean() / 1000000.0 << "ms \n";
 		}
 
 
@@ -366,25 +382,15 @@ namespace app
 		{
 			m_mainWindow->makeContextCurrent();
 			
+			m_glStateInfo = std::make_unique<res::GlStateInfo>();
+			m_glStateInfo->acquireInfo();
+			m_glStateInfo->printAll(std::cout);
+			std::cout << std::endl;
+
 			std::cout << "*** SHADERS ***" << std::endl;
 			for (auto& dirEntry : fs::recursive_directory_iterator(SHADER_FOLDER))
 			{
-				auto shaderPath = dirEntry.path();
-				auto shaderPathStr = shaderPath.string();
-				auto shaderName = shaderPathStr.substr(SHADER_FOLDER.size());
-
-				res::Shader shader{};
-				GLenum type = res::shader_type_from_extension(shaderPath);
-				if (type != -1 && try_create_shader_from_file(shader, type, shaderPath))
-				{
-					std::cout << "Loaded shader " << std::quoted(shaderPathStr) << std::endl;
-					
-					m_shaders[shaderName] = std::move(shader);
-				}
-				else
-				{
-					std::cerr << "Failed to load " << std::quoted(shaderPathStr) << std::endl;
-				}
+				loadShader(dirEntry.path());
 			}
 			std::cout << std::endl;
 
@@ -403,51 +409,9 @@ namespace app
 				{"red_black_tiled2", "red_black_tiled2.comp"}
 			};
 
-			std::vector<res::Shader*> requiredShaders;
 			for (auto& data : programData)
 			{
-				if (data.empty())
-				{
-					std::cerr << "Invalid data found while attempting to create shader program." << std::endl;
-
-					continue;
-				}
-
-				auto programName = data[0];
-
-				requiredShaders.clear();
-				for (i32 i = 1; i < data.size(); i++)
-				{
-					if (auto it = m_shaders.find(data[i]); it != m_shaders.end())
-					{
-						requiredShaders.push_back(&it->second);
-					}
-					else
-					{
-						std::cerr << "Failed to find shader " << std::quoted(data[i]) << std::endl;
-
-						break;
-					}
-				}
-
-				if (requiredShaders.size() + 1 != data.size())
-				{
-					std::cerr << "Failed to create program " << std::quoted(programName) << std::endl;
-
-					continue;
-				}
-
-				res::ShaderProgram program;
-				if (try_create_shader_program(program, requiredShaders.data(), requiredShaders.size()))
-				{
-					std::cout << std::quoted(programName) << " program created." << std::endl;
-
-					m_shaderPrograms[programName] = std::move(program);
-				}
-				else
-				{
-					std::cerr << "Failed to create " << std::quoted(programName) << " shader program." << std::endl;
-				}
+				createProgram(data);
 			}
 
 			std::cout << std::endl;
@@ -473,7 +437,7 @@ namespace app
 				std::cerr << "Failed to create vertex array." << std::endl;
 			}
 			std::cout << "\"array\" vertex array created." << std::endl;
-
+			
 			std::cout << std::endl;
 
 			return true;
@@ -487,63 +451,105 @@ namespace app
 
 			m_shaders.clear();
 			m_shaderPrograms.clear();
+
+			m_glStateInfo.reset();
+		}
+
+		void loadShader(const fs::path& path)
+		{
+			auto shaderPathStr = path.string();
+			auto shaderName = shaderPathStr.substr(SHADER_FOLDER.size());
+
+			res::Shader shader{};
+			GLenum type = res::shader_type_from_extension(path);
+			if (type != -1 && try_create_shader_from_file(shader, type, path))
+			{
+				std::cout << "Loaded shader " << std::quoted(shaderPathStr) << std::endl;
+
+				m_shaders[shaderName] = std::move(shader);
+			}
+			else
+			{
+				std::cerr << "Failed to load " << std::quoted(shaderPathStr) << std::endl;
+			}
+		}
+
+		void createProgram(const std::vector<const char*>& data)
+		{
+			std::vector<res::Shader*> requiredShaders;
+			if (data.empty())
+			{
+				std::cerr << "Invalid data found while attempting to create shader program." << std::endl;
+
+				return;
+			}
+
+			auto programName = data[0];
+
+			for (i32 i = 1; i < data.size(); i++)
+			{
+				if (auto it = m_shaders.find(data[i]); it != m_shaders.end())
+				{
+					requiredShaders.push_back(&it->second);
+				}
+				else
+				{
+					std::cerr << "Failed to find shader " << std::quoted(data[i]) << std::endl;
+
+					break;
+				}
+			}
+
+			if (requiredShaders.size() + 1 != data.size())
+			{
+				std::cerr << "Failed to create program " << std::quoted(programName) << std::endl;
+
+				return;
+			}
+
+			res::ShaderProgram program;
+			if (try_create_shader_program(program, requiredShaders.data(), requiredShaders.size()))
+			{
+				std::cout << std::quoted(programName) << " program created." << std::endl;
+
+				m_shaderPrograms[programName] = std::move(program);
+			}
+			else
+			{
+				std::cerr << "Failed to create " << std::quoted(programName) << " shader program." << std::endl;
+			}
 		}
 
 		bool initSystems()
 		{
-			if (auto it = m_shaderPrograms.find("jacoby"); it != m_shaderPrograms.end())
+			m_dirichletSystem = std::make_unique<DirichletSystem>(*this);
+			if (m_dirichletSystem == nullptr)
 			{
-				m_jacobySystem.reset(new dir2d::JacobyMethod(*this, 16, 16, std::move(it->second)));
-				if (m_jacobySystem == nullptr || !m_jacobySystem->programValid())
-				{
-					std::cerr << "Failed to initialize jacoby system" << std::endl;
-
-					return false;
-				}	
-
-				m_shaderPrograms.erase(it);
-			}
-			else
-			{
-				std::cerr << std::quoted("jacoby") << " shader program wasn't created." << std::endl;
+				std::cerr << "Failed to initialize dirichlet system." << std::endl;
 
 				return false;
 			}
 
-			if (auto it = m_shaderPrograms.find("red_black"); it != m_shaderPrograms.end())
+			m_dirichletSystem->add<dir2d::JacobyMethod>(*this, 16, 16, "jacoby");
+			if (!m_dirichletSystem->has<dir2d::JacobyMethod>() || !m_dirichletSystem->get<dir2d::JacobyMethod>().programValid())
 			{
-				m_redBlackSystem.reset(new dir2d::RedBlackMethod(*this, WORK_X, WORK_Y, std::move(it->second)));
-				if (m_redBlackSystem == nullptr || !m_redBlackSystem->programValid())
-				{
-					std::cerr << "Failed to initialize red-black system" << std::endl;
+				std::cerr << "Failed to initialize jacoby system" << std::endl;
 
-					return false;
-				}	
-
-				m_shaderPrograms.erase(it);
+				return false;
 			}
-			else
+
+			m_dirichletSystem->add<dir2d::RedBlackMethod>(*this, WORK_X, WORK_Y, "red_black");
+			if (!m_dirichletSystem->has<dir2d::RedBlackMethod>() || !m_dirichletSystem->get<dir2d::RedBlackMethod>().programValid())
 			{
-				std::cerr << std::quoted("red_black") << " shader program wasn't created." << std::endl;
+				std::cerr << "Failed to initialize red-black system" << std::endl;
 
 				return false;
 			}
 			 
-			if (auto it = m_shaderPrograms.find("red_black_tiled1"); it != m_shaderPrograms.end())
+			m_dirichletSystem->add<dir2d::RedBlackTiledMethod>(*this, WORK_X, WORK_Y, "red_black_tiled1");
+			if (!m_dirichletSystem->has<dir2d::RedBlackTiledMethod>() || !m_dirichletSystem->get<dir2d::RedBlackTiledMethod>().programValid())
 			{
-				m_redBlackTiledSystem.reset(new dir2d::RedBlackTiledMethod(*this, WORK_X, WORK_Y, std::move(it->second)));
-				if (m_redBlackTiledSystem == nullptr || !m_redBlackTiledSystem->programValid())
-				{
-					std::cerr << "Failed to initialize red-black tiled system" << std::endl;
-
-					return false;
-				}	
-
-				m_shaderPrograms.erase(it);
-			}
-			else
-			{
-				std::cerr << std::quoted("red_black_tiled1") << " shader program wasn't created." << std::endl;
+				std::cerr << "Failed to initialize red-black tiled system" << std::endl;
 
 				return false;
 			}
@@ -558,10 +564,19 @@ namespace app
 				handle.reset();
 			}
 
-			m_redBlackSystem.reset();
-			m_jacobySystem.reset();
+			m_dirichletSystem.reset();
 		}
 
+
+	public:
+		res::Id getProgramId(const std::string& program)
+		{
+			if (auto it = m_shaderPrograms.find(program); it != m_shaderPrograms.end())
+			{
+				return it->second.id;
+			}
+			return res::null;
+		}
 
 	private:
 		bool m_initialized{false};
@@ -578,15 +593,14 @@ namespace app
 		res::VertexArray m_array;
 
 		// CORE SYSTEMS
+		std::unique_ptr<res::GlStateInfo> m_glStateInfo;
 		std::unique_ptr<win::MainWindow> m_mainWindow;
 
 		// SYSTEMS
 		dir2d::Function2D m_boundary;
 		dir2d::Function2D m_f;
 
-		std::unique_ptr<dir2d::JacobyMethod> m_jacobySystem;
-		std::unique_ptr<dir2d::RedBlackMethod> m_redBlackSystem;
-		std::unique_ptr<dir2d::RedBlackTiledMethod> m_redBlackTiledSystem;
+		std::unique_ptr<DirichletSystem> m_dirichletSystem;
 
 		// state
 		dir2d::SmartHandle m_handles[3]{};

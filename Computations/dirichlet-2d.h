@@ -16,19 +16,12 @@
 
 namespace dir2d
 {
-	// TODO : entt::storage
 	// TODO : indirect dispatch
-	// TODO : change create_dataaabb method, xSplit, and ySplit must be xVars, yVars: resulting extents of a texture
-	// TODO : some methods differ only by shader programs that are similar in sense that they have same data and same set of uniforms
-	//		and also same setup and update logic
+	// TODO : multiple programs per system(maybe)
 	// TODO : attach WORKGROUP consts to shaders
-	// TODO : program must be outter resource and be accessed via app::App
-	// TODO : each system must store an f-texture
-	// TODO : rework shaders, so there is no f-function but f-texture
-	// TODO : change DataProvider so it can take Function objects
-	// TODO : time measure
 	// TODO : template to check if Uniform type satisfies required conditions
 	// TODO : template to check if Data type satisfies required condition
+	// TODO : smart handle must return data bundle: domain info and texture id
 
 	// Data accosiated with a given problem
 	// div(grad(u)) = f
@@ -296,12 +289,12 @@ namespace dir2d
 
 
 	public:
-		BasicMethod(app::App& app, i32 workgroupSizeX, i32 workgroupSizeY, res::ShaderProgram&& program) 
+		BasicMethod(app::App& app, i32 workgroupSizeX, i32 workgroupSizeY, const std::string& program) 
 			: app::System(app)
 			, m_workgroupSizeX{workgroupSizeX}
 			, m_workgroupSizeY{workgroupSizeY}
 		{
-			setupProgram(std::move(program));
+			setupProgram(program);
 
 			m_timeQuery = res::create_query();
 		}
@@ -332,15 +325,29 @@ namespace dir2d
 
 
 	public: // program & uniforms
-		void setupProgram(res::ShaderProgram&& program)
+		void setupProgram(const std::string& program)
 		{
-			m_program = std::move(program);
-			m_uniforms.getLocations(m_program);
+			m_program = program;
+
+			updateUniforms();
+		}
+
+		void updateUniforms()
+		{
+			if (auto id = getShaderProgramId(); id != res::null)
+			{
+				m_uniforms.getLocations(id);
+			}
+		}
+
+		res::Id getShaderProgramId() const
+		{
+			return app().getProgramId(m_program);
 		}
 
 		bool programValid() const
 		{
-			return m_uniforms.valid() && m_program.valid();
+			return m_uniforms.valid() && getShaderProgramId() != res::null;
 		}
 
 
@@ -428,8 +435,8 @@ namespace dir2d
 		GLuint64   m_measurements{};
 		f64        m_elapsedMean{};
 
-		res::ShaderProgram m_program;
-		Uniforms           m_uniforms;
+		std::string m_program;
+		Uniforms    m_uniforms;
 
 		Storage<Data> m_dataStorage;
 	};
@@ -476,11 +483,11 @@ namespace dir2d
 
 		struct Uniforms
 		{
-			void getLocations(const res::ShaderProgram& jacobyProgram)
+			void getLocations(res::Id jacobyProgram)
 			{
-				curr = glGetUniformLocation(jacobyProgram.id, "curr");
-				hx = glGetUniformLocation(jacobyProgram.id, "hx");
-				hy = glGetUniformLocation(jacobyProgram.id, "hy");
+				curr = glGetUniformLocation(jacobyProgram, "curr");
+				hx = glGetUniformLocation(jacobyProgram, "hx");
+				hy = glGetUniformLocation(jacobyProgram, "hy");
 			}
 
 			bool valid() const
@@ -505,14 +512,14 @@ namespace dir2d
 		static constexpr const i32 IMGF = 2;
 
 	public:
-		JacobyMethod(app::App& app, i32 workgroupSizeX, i32 workgroupSizeY, res::ShaderProgram&& program) 
-			: UnderlyingType(app, workgroupSizeX, workgroupSizeY, std::move(program))
+		JacobyMethod(app::App& app, i32 workgroupSizeX, i32 workgroupSizeY, const std::string& program) 
+			: UnderlyingType(app, workgroupSizeX, workgroupSizeY, program)
 		{}
 
 	public:
 		void update()
 		{
-			glUseProgram(m_program.id);
+			glUseProgram(getShaderProgramId());
 
 			startTimeQuery();
 
@@ -605,12 +612,12 @@ namespace dir2d
 
 		struct Uniforms
 		{
-			void getLocations(const res::ShaderProgram& redBlackProgram)
+			void getLocations(res::Id redBlackProgram)
 			{
-				rb = glGetUniformLocation(redBlackProgram.id, "rb");
-				w  = glGetUniformLocation(redBlackProgram.id, "w");
-				hx = glGetUniformLocation(redBlackProgram.id, "hx");
-				hy = glGetUniformLocation(redBlackProgram.id, "hy");
+				rb = glGetUniformLocation(redBlackProgram, "rb");
+				w  = glGetUniformLocation(redBlackProgram, "w");
+				hx = glGetUniformLocation(redBlackProgram, "hx");
+				hy = glGetUniformLocation(redBlackProgram, "hy");
 			}
 
 			bool valid() const
@@ -635,14 +642,14 @@ namespace dir2d
 		using UnderlyingType = BasicMethod<RedBlackTraits>;	
 
 	public:
-		RedBlackMethod(app::App& app, i32 workgroupSizeX, i32 workgroupSizeY, res::ShaderProgram&& program) 
-			: UnderlyingType(app, workgroupSizeX, workgroupSizeY, std::move(program))
+		RedBlackMethod(app::App& app, i32 workgroupSizeX, i32 workgroupSizeY, const std::string& program) 
+			: UnderlyingType(app, workgroupSizeX, workgroupSizeY, program)
 		{}
 
 	public:
 		void update()
 		{
-			glUseProgram(m_program.id);
+			glUseProgram(getShaderProgramId());
 
 			startTimeQuery();
 
@@ -718,12 +725,12 @@ namespace dir2d
 
 		struct Uniforms
 		{
-			void getLocations(const res::ShaderProgram& redBlackProgram)
+			void getLocations(res::Id redBlackProgram)
 			{
-				curr = glGetUniformLocation(redBlackProgram.id, "curr");
-				w  = glGetUniformLocation(redBlackProgram.id, "w");
-				hx = glGetUniformLocation(redBlackProgram.id, "hx");
-				hy = glGetUniformLocation(redBlackProgram.id, "hy");
+				curr = glGetUniformLocation(redBlackProgram, "curr");
+				w  = glGetUniformLocation(redBlackProgram, "w");
+				hx = glGetUniformLocation(redBlackProgram, "hx");
+				hy = glGetUniformLocation(redBlackProgram, "hy");
 			}
 
 			bool valid() const
@@ -748,14 +755,14 @@ namespace dir2d
 		static constexpr const i32 IMGF = 2;
 
 	public:
-		RedBlackTiledMethod(app::App& app, i32 workgroupSizeX, i32 workgroupSizeY, res::ShaderProgram&& program) 
-			: UnderlyingType(app, workgroupSizeX, workgroupSizeY, std::move(program))
+		RedBlackTiledMethod(app::App& app, i32 workgroupSizeX, i32 workgroupSizeY, const std::string& program) 
+			: UnderlyingType(app, workgroupSizeX, workgroupSizeY, program)
 		{}
 
 	public:
 		void update()
 		{
-			glUseProgram(m_program.id);
+			glUseProgram(getShaderProgramId());
 
 			startTimeQuery();
 

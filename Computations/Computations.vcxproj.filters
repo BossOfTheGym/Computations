@@ -101,7 +101,19 @@
     <ClInclude Include="core.h">
       <Filter>main\headers</Filter>
     </ClInclude>
-    <ClInclude Include="IndirectDispatchBufferStorage.h">
+    <ClInclude Include="dirichlet_system.h">
+      <Filter>main\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="element_registry.h">
+      <Filter>main\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="gl-state-info.h">
+      <Filter>main\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="indirect_dispatch_buffer_storage.h">
+      <Filter>main\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="plot_system.h">
       <Filter>main\headers</Filter>
     </ClInclude>
   </ItemGroup>
