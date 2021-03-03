@@ -29,14 +29,6 @@ namespace res
 		{
 			return GL_FRAGMENT_SHADER;
 		}
-		if (ext == ".tcs")
-		{
-			return GL_TESS_CONTROL_SHADER;
-		}
-		if (ext == ".tes")
-		{
-			return GL_TESS_EVALUATION_SHADER;
-		}
 		if (ext == ".comp")
 		{
 			return GL_COMPUTE_SHADER;
