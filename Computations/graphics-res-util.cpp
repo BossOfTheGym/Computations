@@ -13,6 +13,18 @@ namespace res
 		{
 			return GL_VERTEX_SHADER;	
 		}
+		if (ext == ".tesc")
+		{
+			return GL_TESS_CONTROL_SHADER;
+		}
+		if (ext == ".tese")
+		{
+			return GL_TESS_EVALUATION_SHADER;
+		}
+		if (ext == ".geom")
+		{
+			return GL_GEOMETRY_SHADER;
+		}
 		if (ext == ".frag")
 		{
 			return GL_FRAGMENT_SHADER;
@@ -253,7 +265,7 @@ namespace res
 	}
 
 
-	// queries
+	// query
 	Query create_query()
 	{
 		Query query{};
@@ -268,5 +280,25 @@ namespace res
 		query = create_query();
 
 		return query.valid();
+	}
+
+
+	// fence
+	FenceSync create_fence_sync()
+	{
+		FenceSync sync{};
+
+		// GL_SYNC_GPU_COMMANDS_COMPLETE is the only available option for now
+		// flags must be zero for now
+		sync.id = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+
+		return sync;
+	}
+
+	bool try_create_sync(FenceSync& sync)
+	{
+		sync = create_fence_sync();
+
+		return sync.valid();
 	}
 }
