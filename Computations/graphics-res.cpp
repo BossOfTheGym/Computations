@@ -22,7 +22,7 @@ namespace res
 
 		reset();
 
-		id = another.id; another.id = null;
+		id = std::exchange(another.id, null);
 
 		return *this;
 	}
@@ -61,7 +61,7 @@ namespace res
 
 		reset();
 
-		id = another.id; another.id = null;
+		id = std::exchange(another.id, null);
 
 		return *this;
 	}
@@ -100,7 +100,7 @@ namespace res
 
 		reset();
 
-		id = another.id; another.id = null;
+		id = std::exchange(another.id, null);
 
 		return *this;
 	}
@@ -139,7 +139,7 @@ namespace res
 
 		reset();
 
-		id = another.id; another.id = null;
+		id = std::exchange(another.id, null);
 
 		return *this;
 	}
@@ -178,7 +178,7 @@ namespace res
 
 		reset();
 
-		id = another.id; another.id = null;
+		id = std::exchange(another.id, null);
 
 		return *this;
 	}
@@ -217,7 +217,7 @@ namespace res
 
 		reset();
 
-		id = another.id; another.id = null;
+		id = std::exchange(another.id, null);
 
 		return *this;
 	}
@@ -235,5 +235,137 @@ namespace res
 	bool Query::valid() const
 	{
 		return id != null;
+	}
+
+
+
+	// FenceSync
+	FenceSync::FenceSync(FenceSync&& another) noexcept : id{std::exchange(another.id, null)}
+	{}
+
+	FenceSync::~FenceSync()
+	{
+		reset();
+	}
+
+	FenceSync& FenceSync::operator = (FenceSync&& another) noexcept
+	{
+		if (this == &another)
+		{
+			return *this;
+		}
+
+		reset();
+
+		id = std::exchange(another.id, null);
+
+		return *this;
+	}
+
+	void FenceSync::reset()
+	{
+		if (id != null)
+		{
+			glDeleteSync(id);
+			
+			id = null;
+		}
+	}
+
+	bool FenceSync::valid() const
+	{
+		return id != null;
+	}
+
+
+
+	// BufferRange
+	BufferRange::BufferRange(BufferRange&& another) noexcept
+		: bufferId{std::exchange(another.bufferId, null)}
+		, offset{std::exchange(another.offset, 0)}
+		, size(std::exchange(another.size, 0))
+	{}
+
+	BufferRange::~BufferRange()
+	{
+		reset();
+	}
+
+	BufferRange& BufferRange::operator = (BufferRange&& another) noexcept
+	{
+		if (this == &another)
+		{
+			return *this;
+		}
+
+		bufferId = std::exchange(another.bufferId, null);
+		offset = std::exchange(another.bufferId, 0);
+		size = std::exchange(another.bufferId, 0);
+
+		return *this;
+	}
+
+	void BufferRange::reset()
+	{
+		if (bufferId != null)
+		{
+			bufferId = null;
+			offset = 0;
+			size = 0;
+		}
+	}
+
+	bool BufferRange::valid() const
+	{
+		return bufferId != null;
+	}
+
+
+	// MapPointer
+	MapPointer::MapPointer(MapPointer&& another) noexcept
+		: bufferId{std::exchange(another.bufferId, null)}
+		, offset{std::exchange(another.offset, 0)}
+		, size{std::exchange(another.size, 0)}
+		, ptr{std::exchange(another.ptr, nullptr)}
+	{}
+
+	MapPointer::~MapPointer()
+	{
+		reset();
+	}
+
+	MapPointer& MapPointer::operator = (MapPointer&& another) noexcept
+	{
+		if (this == &another)
+		{
+			return *this;
+		}
+
+		reset();
+
+		bufferId = std::exchange(another.bufferId, null);
+		offset = std::exchange(another.offset, 0);
+		size = std::exchange(another.size, 0);
+		ptr = std::exchange(another.ptr, nullptr);
+
+		return *this;
+	}
+
+	void MapPointer::reset()
+	{
+		if (bufferId != null)
+		{
+			glUnmapNamedBuffer(bufferId);
+
+			bufferId = null;
+			offset = 0;
+			size = 0;
+			ptr = nullptr;
+		}
+	}
+
+	bool MapPointer::valid() const
+	{
+		return bufferId != null;
 	}
 }

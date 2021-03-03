@@ -11,6 +11,7 @@
 namespace res
 {
 	// TODO : remove error output from functions/ It must be queried separately
+	// TODO : return error status
 
 	namespace fs = std::filesystem;
 	
@@ -89,8 +90,14 @@ namespace res
 	bool try_create_storage_buffer(Buffer& buffer, GLsizeiptr size, GLbitfield usageFlags, void* data = nullptr);
 
 
-	// queries
+	// query
 	Query create_query();
 
 	bool try_create_query(Query& query);
+
+
+	// fence
+	FenceSync create_fence_sync();
+
+	bool try_create_sync(FenceSync& sync);
 }

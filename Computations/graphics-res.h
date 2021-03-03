@@ -4,6 +4,9 @@
 
 namespace res
 {
+	// all resources are just guards, their only purpose is to maintain scoped lifetime
+	// header "graphics-res-util.h" contains utility functions that create some resources
+
 	using Id = GLuint;
 
 	constexpr const Id null = 0u; 
@@ -17,10 +20,10 @@ namespace res
 		Shader(Shader&& another) noexcept;
 		Shader(const Shader&) = delete;
 
+		~Shader();
+
 		Shader& operator = (Shader&& another) noexcept;
 		Shader& operator = (const Shader&) = delete;
-
-		~Shader();
 
 
 		void reset();
@@ -38,10 +41,10 @@ namespace res
 		ShaderProgram(ShaderProgram&& another) noexcept;
 		ShaderProgram(const ShaderProgram&) = delete;
 
+		~ShaderProgram();
+
 		ShaderProgram& operator = (ShaderProgram&& another) noexcept;
 		ShaderProgram& operator = (const ShaderProgram&) = delete;
-
-		~ShaderProgram();
 
 
 		void reset();
@@ -59,10 +62,10 @@ namespace res
 		Buffer(Buffer&& another) noexcept;
 		Buffer(const Buffer&) = delete;
 
+		~Buffer();
+
 		Buffer& operator = (Buffer&& another) noexcept;
 		Buffer& operator = (const Buffer&) = delete;
-
-		~Buffer();
 
 
 		void reset();
@@ -80,10 +83,10 @@ namespace res
 		VertexArray(VertexArray&& another) noexcept;
 		VertexArray(const VertexArray&) = delete;
 
+		~VertexArray();
+
 		VertexArray& operator = (VertexArray&& another) noexcept;
 		VertexArray& operator = (const VertexArray&) = delete;
-
-		~VertexArray();
 
 
 		void reset();
@@ -101,10 +104,10 @@ namespace res
 		Texture(Texture&& another) noexcept;
 		Texture(const Texture&) = delete;
 
+		~Texture();
+
 		Texture& operator = (Texture&& another) noexcept;
 		Texture& operator = (const Texture&) = delete;
-
-		~Texture();
 
 
 		void reset();
@@ -136,13 +139,76 @@ namespace res
 		Id id{null};
 	};
 
-	struct Sync
+
+	struct FenceSync
 	{
-		// TODO
+		FenceSync() = default;
+
+		FenceSync(FenceSync&& another) noexcept;
+		FenceSync(const FenceSync&) = delete;
+
+		~FenceSync();
+
+		FenceSync& operator = (FenceSync&& another) noexcept;
+		FenceSync& operator = (const FenceSync&) = delete;
+
+
+		void reset();
+
+		bool valid() const;
+
+
+		GLsync id{null};
+	};
+
+
+	struct BufferRange
+	{
+		BufferRange() = default;
+
+		BufferRange(BufferRange&& another) noexcept;
+		BufferRange(const BufferRange&) = delete;
+
+		~BufferRange() = default;
+
+		BufferRange& operator = (BufferRange&& another) noexcept;
+		BufferRange& operator = (const BufferRange&) = delete;
+
+
+		void reset();
+
+		bool valid() const;
+
+
+		Id bufferId{null};
+
+		GLintptr offset{};
+		GLsizeiptr size{};
 	};
 
 	struct MapPointer
 	{
-		// TODO
+		MapPointer() = default;
+		
+		MapPointer(MapPointer&& another) noexcept;
+		MapPointer(const MapPointer&) = delete;
+
+		~MapPointer();
+
+		MapPointer& operator = (MapPointer&& another) noexcept;
+		MapPointer& operator = (const MapPointer&) = delete;
+
+
+		void reset();
+
+		bool valid() const;
+
+
+		Id bufferId{null};
+
+		GLintptr offset{};
+		GLsizeiptr size{};
+
+		void* ptr{nullptr};
 	};
 }
