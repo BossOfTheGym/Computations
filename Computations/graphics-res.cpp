@@ -240,7 +240,7 @@ namespace res
 
 
 	// FenceSync
-	FenceSync::FenceSync(FenceSync&& another) noexcept : id{std::exchange(another.id, null)}
+	FenceSync::FenceSync(FenceSync&& another) noexcept : id{std::exchange(another.id, nullptr)}
 	{}
 
 	FenceSync::~FenceSync()
@@ -257,24 +257,24 @@ namespace res
 
 		reset();
 
-		id = std::exchange(another.id, null);
+		id = std::exchange(another.id, nullptr);
 
 		return *this;
 	}
 
 	void FenceSync::reset()
 	{
-		if (id != null)
+		if (id != nullptr)
 		{
 			glDeleteSync(id);
 			
-			id = null;
+			id = nullptr;
 		}
 	}
 
 	bool FenceSync::valid() const
 	{
-		return id != null;
+		return id != nullptr;
 	}
 
 

@@ -15,6 +15,11 @@ namespace res
 
 			glGetIntegerv(GL_MIN_MAP_BUFFER_ALIGNMENT, &minMapBufferAlignment);
 
+			glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &maxUniformBufferBindings);
+			glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &uniformBufferOffsetAlignment);
+
+			glGetIntegerv(GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT, &shaderStorageBufferOffsetAlignment);
+
 			glGetIntegerv(GL_MAX_COMPUTE_SHARED_MEMORY_SIZE, &maxComputeShaderMemorySize);
 			glGetIntegerv(GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS, &maxComputeShaderWorkgroupInvocations);
 
@@ -53,6 +58,11 @@ namespace res
 			out << std::endl;
 			out << "min map buffer alignment: " << minMapBufferAlignment << std::endl;
 			out << std::endl;
+			out << "max uniform buffer bindings: " << maxUniformBufferBindings << std::endl;
+			out << "uniform buffer offsetAlignment: " << uniformBufferOffsetAlignment << std::endl;
+			out << std::endl;
+			out << "shader storage buffer offset alignment: " << shaderStorageBufferOffsetAlignment << std::endl;
+			out << std::endl;
 			out << "max compute shader memory size: " << maxComputeShaderMemorySize << std::endl;
 			out << "max compute shader workgroup invocations: " << maxComputeShaderWorkgroupInvocations << std::endl;
 			out << "max compute workgroup count x: " << maxComputeWorkgroupCount[0] << std::endl;
@@ -68,6 +78,11 @@ namespace res
 		GLint minorVersion{};
 
 		GLint minMapBufferAlignment{};
+
+		GLint maxUniformBufferBindings{};
+		GLint uniformBufferOffsetAlignment{};
+
+		GLint shaderStorageBufferOffsetAlignment{};
 
 		GLint maxComputeShaderMemorySize{};
 		GLint maxComputeShaderWorkgroupInvocations{};

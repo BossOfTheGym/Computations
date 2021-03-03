@@ -125,10 +125,10 @@ namespace res
 		Query(Query&& another) noexcept;
 		Query(const Query&) = delete;
 
+		~Query();
+
 		Query& operator = (Query&& another) noexcept;
 		Query& operator = (const Query&) = delete;
-
-		~Query();
 
 
 		void reset();
@@ -158,7 +158,7 @@ namespace res
 		bool valid() const;
 
 
-		GLsync id{null};
+		GLsync id{nullptr};
 	};
 
 
@@ -169,7 +169,7 @@ namespace res
 		BufferRange(BufferRange&& another) noexcept;
 		BufferRange(const BufferRange&) = delete;
 
-		~BufferRange() = default;
+		~BufferRange();
 
 		BufferRange& operator = (BufferRange&& another) noexcept;
 		BufferRange& operator = (const BufferRange&) = delete;
