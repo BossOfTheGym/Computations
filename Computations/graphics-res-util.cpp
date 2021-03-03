@@ -2,6 +2,21 @@
 
 #include <iostream>
 #include <fstream>
+#include <string>
+#include <map>
+
+namespace
+{
+	std::map<std::string, GLenum> EXT_TO_SHADER_TYPE = 
+	{
+		{".vert", GL_VERTEX_SHADER}, 
+		{".tesc", GL_TESS_CONTROL_SHADER},
+		{".tese", GL_TESS_EVALUATION_SHADER},
+		{".geom", GL_GEOMETRY_SHADER},
+		{".frag", GL_FRAGMENT_SHADER},
+		{".comp", GL_COMPUTE_SHADER}
+	};
+}
 
 namespace res
 {
@@ -9,7 +24,11 @@ namespace res
 	GLenum shader_type_from_extension(const fs::path& file)
 	{
 		auto ext = file.extension().string();
-		if (ext == ".vert")
+		if (auto it = EXT_TO_SHADER_TYPE.find(ext); it != EXT_TO_SHADER_TYPE.end())
+		{
+			return it->second;
+		}
+		/*if (ext == ".vert")
 		{
 			return GL_VERTEX_SHADER;	
 		}
@@ -32,7 +51,8 @@ namespace res
 		if (ext == ".comp")
 		{
 			return GL_COMPUTE_SHADER;
-		}
+		}*/
+
 		return -1;
 	}
 
@@ -300,5 +320,16 @@ namespace res
 		sync = create_fence_sync();
 
 		return sync.valid();
+	}
+
+
+	// buffer range
+	BufferRange create_buffer_range(const Buffer& buffer, GLintptr offset, GLsizei size)
+	{
+		BufferRange range{};
+		range.bufferId = buffer.id;
+		range.offset   = offset;
+		range.size     = size;
+		return range;
 	}
 }

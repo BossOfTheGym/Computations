@@ -100,4 +100,8 @@ namespace res
 	FenceSync create_fence_sync();
 
 	bool try_create_sync(FenceSync& sync);
+
+
+	// buffer range
+	BufferRange create_buffer_range(const Buffer& buffer, GLintptr offset, GLsizei size);
 }

@@ -4,6 +4,9 @@
 
 namespace res
 {
+	// TODO : refactor
+	// TODO : create CRTP template
+	// 
 	// all resources are just guards, their only purpose is to maintain scoped lifetime
 	// header "graphics-res-util.h" contains utility functions that create some resources
 
