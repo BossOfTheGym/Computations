@@ -110,92 +110,7 @@ namespace app
 			m_model = glm::scale(m_model, glm::vec3(glm::vec2(2.0f), 1.0f));
 			m_model = glm::translate(m_model, glm::vec3(-0.5f, -0.5f, 0.0));
 
-			res::Buffer uniformBuffer;
-			if (!try_create_storage_buffer(uniformBuffer, 4 * sizeof(glm::mat4), GL_DYNAMIC_STORAGE_BIT | GL_MAP_WRITE_BIT))
-			{
-				std::cerr << "Failed to create uniform buffer" << std::endl;
-			}
-			else
-			{
-				auto buffer = (glm::mat4*)glMapNamedBuffer(uniformBuffer.id, GL_WRITE_ONLY);
-				buffer[0] = m_proj * m_view * m_model;
-				buffer[1] = m_proj;
-				buffer[2] = m_view;
-				buffer[3] = m_model;
-				glUnmapNamedBuffer(uniformBuffer.id);
-			}
-
-			i32 patchVertices = 6 * (PATCH_X - 1) * (PATCH_Y - 1);
-			res::Buffer verticesBuffer;
-			res::Buffer indicesBuffer;
-			res::VertexArray patch;
-			{
-				f32 dx = 1.0 / (PATCH_X - 1);
-				f32 dy = 1.0 / (PATCH_Y - 1);
-
-				std::vector<glm::vec2> vertices(PATCH_X * PATCH_Y);
-
-				auto vptr = vertices.begin();
-				for (i32 j = 0; j < PATCH_Y; j++)
-				{
-					f32 y = j * dy;
-					for (i32 i = 0; i < PATCH_X; i++)
-					{
-						f32 x = i * dx;
-
-						*vptr++ = glm::vec2(x, y);
-					}
-				}
-
-				std::vector<u16> indices(6 * (PATCH_X - 1) * (PATCH_Y - 1));
-
-				auto iptr = indices.begin();
-				for (i32 j = 0; j < PATCH_Y - 1; j++)
-				{
-					for (i32 i = 0; i < PATCH_X - 1; i++)
-					{
-						*iptr++ = j * PATCH_X + i + PATCH_X + 1;
-						*iptr++ = j * PATCH_X + i + PATCH_X;
-						*iptr++ = j * PATCH_X + i;
-
-						*iptr++ = j * PATCH_X + i + PATCH_X + 1;
-						*iptr++ = j * PATCH_X + i;
-						*iptr++ = j * PATCH_X + i + 1;
-					}
-				}
-
-				bool anyFailed = false;
-				if (!try_create_storage_buffer(verticesBuffer, vertices.size() * sizeof(glm::vec2), 0, vertices.data()))
-				{
-					anyFailed = true;
-
-					std::cerr << "Failed to create vertices buffer for patch." << std::endl;
-				}
-				if (!try_create_storage_buffer(indicesBuffer, indices.size() * sizeof(i16), 0, indices.data()))
-				{
-					anyFailed = true;
-
-					std::cerr << "Failed to create indices buffer for patch." << std::endl;
-				}
-				if (!try_create_vertex_array(patch))
-				{
-					anyFailed = true;
-
-					std::cerr << "Failed to create patch vertex array." << std::endl;
-				}
-				if (!anyFailed)
-				{
-					glBindVertexArray(patch.id);
-
-					glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indicesBuffer.id);
-
-					glBindVertexBuffer(0, verticesBuffer.id, 0, sizeof(glm::vec2));
-					glEnableVertexAttribArray(0);
-					glVertexAttribFormat(0, 2, GL_FLOAT, GL_FALSE, 0);
-					glVertexAttribBinding(0, 0);
-				}
-			}
-
+			
 			// mainloop
 			entt::scoped_connection connection{m_mainWindow->keyPressSink().connect<&App::updateSystemsCallback>(this)};
 
@@ -461,6 +376,7 @@ namespace app
 			auto shaderName = shaderPathStr.substr(SHADER_FOLDER.size());
 
 			res::Shader shader{};
+
 			GLenum type = res::shader_type_from_extension(path);
 			if (type != -1 && try_create_shader_from_file(shader, type, path))
 			{
@@ -476,7 +392,7 @@ namespace app
 
 		void createProgram(const std::vector<const char*>& data)
 		{
-			std::vector<res::Shader*> requiredShaders;
+			// data : prog_name, (shader_i, ...)
 			if (data.empty())
 			{
 				std::cerr << "Invalid data found while attempting to create shader program." << std::endl;
@@ -486,6 +402,7 @@ namespace app
 
 			auto programName = data[0];
 
+			std::vector<res::Shader*> requiredShaders;
 			for (i32 i = 1; i < data.size(); i++)
 			{
 				if (auto it = m_shaders.find(data[i]); it != m_shaders.end())
@@ -496,7 +413,7 @@ namespace app
 				{
 					std::cerr << "Failed to find shader " << std::quoted(data[i]) << std::endl;
 
-					break;
+					return;
 				}
 			}
 
@@ -568,7 +485,7 @@ namespace app
 		}
 
 
-	public:
+	public: // NOTE : must be part of resource management module
 		res::Id getProgramId(const std::string& program)
 		{
 			if (auto it = m_shaderPrograms.find(program); it != m_shaderPrograms.end())
@@ -584,6 +501,7 @@ namespace app
 		entt::registry   m_registry;
 		entt::dispatcher m_dispatcher;
 
+		// NOTE : must be part of graphics system of some resource management module
 		// resources 
 		std::unordered_map<std::string, res::Shader>        m_shaders;
 		std::unordered_map<std::string, res::ShaderProgram> m_shaderPrograms;
@@ -593,8 +511,8 @@ namespace app
 		res::VertexArray m_array;
 
 		// CORE SYSTEMS
-		std::unique_ptr<res::GlStateInfo> m_glStateInfo;
 		std::unique_ptr<win::MainWindow> m_mainWindow;
+		std::unique_ptr<res::GlStateInfo> m_glStateInfo;
 
 		// SYSTEMS
 		dir2d::Function2D m_boundary;
