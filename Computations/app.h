@@ -13,6 +13,7 @@
 #include "main-window.h"
 #include "dirichlet-2d.h"
 #include "dirichlet_system.h"
+#include "plot_system.h"
 
 #include <entt/entity/storage.hpp>
 #include <entt/entity/entity.hpp>
@@ -90,32 +91,24 @@ namespace app
 	public:
 		void mainloop()
 		{
-			// *TEST*
-			{
-				auto& rb = m_dirichletSystem->get<dir2d::RedBlackMethod>();
-				auto& rbTiled = m_dirichletSystem->get<dir2d::RedBlackTiledMethod>();
-
-				auto domain = rb.createAlignedDomain(-1.0, +1.0, -1.0, +1.0, WX, WY);
-				auto data = rb.createAlignedData(domain, m_boundary, m_f);
-			
-				m_handles[1] = rb.createSmart(data, STEPS * ITERS);
-				m_handles[2] = rbTiled.createSmart(data, ITERS);
-			}
-
-			// *TEST*
+			// ***TEST***
 			m_proj  = glm::perspective(glm::radians(60.0f), static_cast<f32>(WIDTH / 2) / HEIGHT, 0.1f, 100.0f);
 			m_view  = glm::lookAt(glm::vec3(1.5f), glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
 			m_model = glm::mat4(1.0f);
 			m_model = glm::scale(m_model, glm::vec3(glm::vec2(2.0f), 1.0f));
 			m_model = glm::translate(m_model, glm::vec3(-0.5f, -0.5f, 0.0));
-
+			// ***END TEST***
 			
-			// mainloop
+			// ***TEST***
 			entt::scoped_connection connection{m_mainWindow->keyPressSink().connect<&App::updateSystemsCallback>(this)};
-
+			// ***END TEST***
+			
+			// ***TEST***
 			glEnable(GL_DEPTH_TEST);
+			// ***END TEST***
 
+			// mainloop
 			m_mainWindow->show();
 			while(!m_mainWindow->shouldClose())
 			{
@@ -133,22 +126,27 @@ namespace app
 
 				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-				// show program
+				// ***TEST***
+				// testing part of plot system
 				glUseProgram(m_shaderPrograms["plot"].id);
 
-				glBindBufferBase(GL_UNIFORM_BUFFER, 0, uniformBuffer.id);
+				m_plotSystem->setUniformData(m_proj, m_view, m_model, glm::vec3(0.0));
 
-				glBindVertexArray(patch.id);
+				auto bufferInfo = m_plotSystem->bufferInfo();
+				auto patchInfo = m_plotSystem->patchInfo();
 
-				// *TEST*
+				glBindBufferRange(GL_UNIFORM_BUFFER, 0, bufferInfo.id, bufferInfo.offset, bufferInfo.size);
+
+				glBindVertexArray(patchInfo.id);
+
 				glViewport(0, 0, WIDTH / 2, HEIGHT);
 				glBindTextureUnit(0, m_handles[1].textureId());
-				glDrawElements(GL_TRIANGLES, patchVertices, GL_UNSIGNED_SHORT, nullptr);
+				glDrawElements(GL_TRIANGLES, patchInfo.elements, GL_UNSIGNED_SHORT, (void*)patchInfo.elementsBufferOffset);
 
-				// *TEST*
 				glViewport(WIDTH / 2, 0, WIDTH / 2, HEIGHT);
 				glBindTextureUnit(0, m_handles[2].textureId());
-				glDrawElements(GL_TRIANGLES, patchVertices, GL_UNSIGNED_SHORT, nullptr);
+				glDrawElements(GL_TRIANGLES, patchInfo.elements, GL_UNSIGNED_SHORT, (void*)patchInfo.elementsBufferOffset);
+				// ***END TEST***
 
 				// swap
 				m_mainWindow->swapBuffers();
@@ -223,18 +221,6 @@ namespace app
 
 				return false;
 			}
-			
-			m_boundary = [] (f32 x, f32 y) -> f32
-			{
-				return std::exp(-x * x - y * y);
-			};
-
-			m_f = [] (f32 x, f32 y) -> f32
-			{
-				f32 xxpyy = x * x + y * y;
-
-				return 4.0 * (xxpyy - 1) * std::exp(-xxpyy);
-			};
 
 			m_initialized = true;
 
@@ -331,39 +317,11 @@ namespace app
 
 			std::cout << std::endl;
 
-			// test texture
-			std::cout << "*** TEXTURES ***" << std::endl;
-
-			if (!try_create_test_texture(m_texture, TEST_TEXTURE_WIDTH, TEST_TEXTURE_HEIGHT, TEST_TEXTURE_PERIOD))
-			{
-				std::cerr << "Failed to create test texture." << std::endl;
-
-				return false;
-			}
-			std::cout << "\"texture\" created." << std::endl;
-
-			std::cout << std::endl;
-
-			// vertex array
-			std::cout << "*** VERTEX ARRAYS ***" << std::endl;
-
-			if (!try_create_vertex_array(m_array))
-			{
-				std::cerr << "Failed to create vertex array." << std::endl;
-			}
-			std::cout << "\"array\" vertex array created." << std::endl;
-			
-			std::cout << std::endl;
-
 			return true;
 		}
 
 		void deinitGraphicalResources()
 		{
-			m_array.reset();
-
-			m_texture.reset();
-
 			m_shaders.clear();
 			m_shaderPrograms.clear();
 
@@ -471,11 +429,43 @@ namespace app
 				return false;
 			}
 
+			auto boundary = [] (f32 x, f32 y) -> f32
+			{
+				return std::exp(-x * x - y * y);
+			};
+
+			auto f = [] (f32 x, f32 y) -> f32
+			{
+				f32 xxpyy = x * x + y * y;
+
+				return 4.0 * (xxpyy - 1) * std::exp(-xxpyy);
+			};
+
+			auto& rb = m_dirichletSystem->get<dir2d::RedBlackMethod>();
+			auto& rbTiled = m_dirichletSystem->get<dir2d::RedBlackTiledMethod>();
+
+			auto domain = rb.createAlignedDomain(-1.0, +1.0, -1.0, +1.0, WX, WY);
+			auto data = rb.createAlignedData(domain, boundary, f);
+
+			m_handles[1] = rb.createSmart(data, STEPS * ITERS);
+			m_handles[2] = rbTiled.createSmart(data, ITERS);
+
+
+			m_plotSystem = std::make_unique<PlotSystem>(*this, PATCH_X, PATCH_Y, m_glStateInfo->uniformBufferOffsetAlignment);
+			if (m_plotSystem == nullptr)
+			{
+				std::cerr << "Failed to initialize plot system" << std::endl;
+
+				return false;
+			}
+
 			return true;
 		}
 
 		void deinitSystems()
 		{
+			m_plotSystem.reset();
+
 			for (auto& handle : m_handles)
 			{
 				handle.reset();
@@ -506,26 +496,21 @@ namespace app
 		std::unordered_map<std::string, res::Shader>        m_shaders;
 		std::unordered_map<std::string, res::ShaderProgram> m_shaderPrograms;
 
-		res::Texture m_texture;
-
-		res::VertexArray m_array;
-
 		// CORE SYSTEMS
 		std::unique_ptr<win::MainWindow> m_mainWindow;
 		std::unique_ptr<res::GlStateInfo> m_glStateInfo;
 
 		// SYSTEMS
-		dir2d::Function2D m_boundary;
-		dir2d::Function2D m_f;
-
 		std::unique_ptr<DirichletSystem> m_dirichletSystem;
+		std::unique_ptr<PlotSystem> m_plotSystem;
 
 		// state
-		dir2d::SmartHandle m_handles[3]{};
+		dir2d::SmartHandle m_handles[3]{}; // TODO : remove, it should be component in registry ot something else
 		
-		glm::mat4 m_proj;
-		glm::mat4 m_view;
-		glm::mat4 m_model;
+		glm::mat4 m_proj{1.0};
+		glm::mat4 m_view{1.0};
+		glm::mat4 m_model{1.0};
+		glm::vec3 m_eye{0.0};
 
 		bool m_paused{true};
 	};

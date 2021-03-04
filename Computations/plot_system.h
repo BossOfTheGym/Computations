@@ -20,7 +20,7 @@ namespace app
 {
 	class App;
 
-	// TODO : maybe must be part of graphics-res (part of buffer range)
+	// TODO : maybe must be part of graphics-res (part of buffer range). It resembles res::BufferRange much
 	struct Requirements
 	{
 		static Requirements aligned(GLintptr baseOffset, GLsizeiptr size, GLint alignment)
@@ -39,15 +39,15 @@ namespace app
 		}
 
 		GLintptr offset{};
-		GLsizei  size{};
+		GLsizeiptr  size{};
 	};
 
 
 	struct PatchInfo
 	{
-		res::Id arrayId{res::null};
-		i32 elementsBufferOffset{};
-		i32 elements{};
+		res::Id id{res::null};
+		GLintptr elementsBufferOffset{};
+		GLsizeiptr elements{};
 	};
 
 	// stores segmented quad, all it's vertices are from [0,1]x[0,1]
@@ -181,10 +181,10 @@ namespace app
 
 		void storeVertexData(const std::unique_ptr<Vertex[]>& vertices, const std::unique_ptr<Index[]>& indices)
 		{
-			auto bufferRangePtr = (char*)glMapNamedBufferRange(m_bufferRange.bufferId, m_bufferRange.offset, m_bufferRange.size, GL_WRITE_ONLY);
+			auto bufferRangePtr = (char*)glMapNamedBufferRange(m_bufferRange.bufferId, m_bufferRange.offset, m_bufferRange.size, GL_MAP_READ_BIT);
 			if (!bufferRangePtr)
 			{
-				std::cerr << "Failed to create mapping pointer to plot buffer" << std::endl;
+				std::cerr << "Failed to create mapping pointer to patch buffer" << std::endl;
 
 				assert(false);
 			}
@@ -231,7 +231,15 @@ namespace app
 		Requirements m_indicesReqs{};
 	};
 
-	// 
+	// TODO : resembles res::BufferRange(it is, in fact)
+	struct BufferInfo
+	{
+		res::Id id{res::null};
+		GLintptr offset{};
+		GLsizeiptr size{};
+	};
+
+	// writes data to uniform buffer
 	class PlotUniformBuffer
 	{
 	public:
@@ -277,7 +285,7 @@ namespace app
 		{
 			auto pvm = proj * view * model;
 
-			auto ptr = (char*)glMapNamedBufferRange(m_bufferRange.bufferId, m_bufferRange.offset, m_bufferRange.size, GL_WRITE_ONLY);
+			auto ptr = (char*)glMapNamedBufferRange(m_bufferRange.bufferId, m_bufferRange.offset, m_bufferRange.size, GL_MAP_READ_BIT);
 			if (!ptr)
 			{
 				std::cerr << "Failed to map plot buffer for writing uniform." << std::endl;
@@ -295,6 +303,13 @@ namespace app
 		}
 
 
+	public:
+		BufferInfo info() const
+		{
+			return {m_bufferRange.bufferId, m_bufferRange.offset, m_bufferRange.size};
+		}
+
+
 	private:
 		res::BufferRange m_bufferRange{};
 	};
@@ -307,7 +322,7 @@ namespace app
 		{
 			GLintptr baseOffset = 0;
 			auto uniformBufferReqs = PlotUniformBuffer::compute_uniform_buffer_requirements(baseOffset, uniformBufferAlignment);
-			auto patchReqs = Patch::compute_indices_requirements(uniformBufferReqs.last(), patchSizeX, patchSizeY);
+			auto patchReqs = Patch::compute_patch_requirements(uniformBufferReqs.last(), patchSizeX, patchSizeY);
 
 			if (!try_create_storage_buffer(m_buffer, patchReqs.last(), GL_MAP_READ_BIT))
 			{
@@ -323,7 +338,29 @@ namespace app
 	public:
 		void update()
 		{
-			// TODO
+			// NOTE: for this system will just store all necessary data(almost)
+			// for now I don't want to decouple fully plot rendering from app:
+			// 1. I should create plot_system.cpp
+			// 2. move implementation there
+			// 3. think of how I will handle rendering, how to provide information for rendering(height texture and domain)
+		}
+
+
+	public:
+		void setUniformData(const glm::mat4& proj, const glm::mat4& view, const glm::mat4& model, const glm::vec3& eye)
+		{
+			m_plotUniformBuffer.setUniformData(proj, view, model, eye);
+		}
+
+
+		PatchInfo patchInfo() const
+		{
+			return m_patch.info();
+		}
+
+		BufferInfo bufferInfo() const
+		{
+			return m_plotUniformBuffer.info();
 		}
 
 
@@ -332,10 +369,5 @@ namespace app
 
 		Patch             m_patch;
 		PlotUniformBuffer m_plotUniformBuffer;
-
-		glm::mat4 m_proj{};
-		glm::mat4 m_view{};
-		glm::mat4 m_model{};
-		glm::vec3 m_eye{};
 	};
 }
