@@ -299,8 +299,8 @@ namespace res
 		}
 
 		bufferId = std::exchange(another.bufferId, null);
-		offset = std::exchange(another.bufferId, 0);
-		size = std::exchange(another.bufferId, 0);
+		offset = std::exchange(another.offset, 0);
+		size = std::exchange(another.size, 0);
 
 		return *this;
 	}
