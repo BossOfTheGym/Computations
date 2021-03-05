@@ -245,7 +245,7 @@ namespace res
 
 	FenceSync::~FenceSync()
 	{
-		reset();
+		del();
 	}
 
 	FenceSync& FenceSync::operator = (FenceSync&& another) noexcept
@@ -255,14 +255,14 @@ namespace res
 			return *this;
 		}
 
-		reset();
+		del();
 
 		id = std::exchange(another.id, nullptr);
 
 		return *this;
 	}
 
-	void FenceSync::reset()
+	void FenceSync::del()
 	{
 		if (id != nullptr)
 		{

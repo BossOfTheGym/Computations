@@ -6,7 +6,8 @@ namespace res
 {
 	// TODO : refactor
 	// TODO : create CRTP template
-	// 
+	// TODO : BufferRAnge can be moved to graphics-res-util and used as util(no no-copy restrictiion)
+	
 	// all resources are just guards, their only purpose is to maintain scoped lifetime
 	// header "graphics-res-util.h" contains utility functions that create some resources
 
@@ -156,7 +157,7 @@ namespace res
 		FenceSync& operator = (const FenceSync&) = delete;
 
 
-		void reset();
+		void del();
 
 		bool valid() const;
 
