@@ -6,148 +6,10 @@
 #include <type_traits>
 #include <vector>
 
-// TODO : test iterator
-template<class Type>
-class Storage
+
+class SparseSet
 {
-	// static_assert(std::is_move_assignable_v<Type> 
-	// 	&& std::is_move_constructible_v<Type> 
-	// 	&& std::is_default_constructible_v<Type>
-	// 	, "Type doesn't satisfy requirements.");
-
-private:
-	// non-standart iterator
-	class Iterator
-	{
-		friend class Storage<Type>;
-
-		using Handles = std::vector<Handle>;
-		using Objects = std::vector<Type>;
-		using Index = i32;
-
-	private:
-		Iterator(const Handles& handles, Objects& objects, Index index) 
-			: m_handles{&handles}
-			, m_objects{objects}
-			, m_index{index}
-		{}
-
-	public:
-		Iterator() = default;
-
-	public:
-		auto operator -> ()
-		{
-			return std::tie((*m_handles)[m_index], (*m_objects)[m_index]);
-		}
-
-		auto operator * ()
-		{
-			return operator -> ();
-		}
-
-
-		Iterator& operator ++ ()
-		{
-			return ++m_index, *this;
-		}
-
-		Iterator operator ++ (int)
-		{
-			auto orig = *this;
-
-			return ++(*this), orig;
-		}
-
-		Iterator& operator -- ()
-		{
-			return --m_index, *this;
-		}
-
-		Iterator operator -- (int)
-		{
-			auto orig = *this;
-
-			return --(*this), orig;
-		}
-
-		Iterator& operator += (Index value)
-		{
-			m_index += value;
-			return *this;
-		}
-
-		Iterator operator + (Index value)
-		{
-			auto orig = *this;
-
-			return (orig += value);
-		}
-
-		Iterator& operator -= (Index value)
-		{
-			m_index -= value;
-			return *this;
-		}
-
-		Iterator operator - (Index value)
-		{
-			auto orig = *this;
-
-			return (orig -= value);
-		}
-
-		Index operator - (const Iterator& another)
-		{
-			return m_index - another.m_index;
-		}
-
-		auto operator [] (Index value)
-		{
-			Index i = m_index + value;
-
-			return std::tie((*m_handles)[i], (*m_objects)[i]);
-		}
-
-		bool operator == (const Iterator& another)
-		{
-			return m_index == another.m_index;
-		}
-
-		bool operator != (const Iterator& another)
-		{
-			return m_index != another.m_index;
-		}
-
-		bool operator < (const Iterator& another)
-		{
-			return m_index < another.m_index;
-		}
-
-		bool operator > (const Iterator& another)
-		{
-			return m_index > another.m_index;
-		}
-
-		bool operator <= (const Iterator& another)
-		{
-			return m_index <= another.m_index;
-		}
-
-		bool operator >= (const Iterator& another)
-		{
-			return m_index >= another.m_index;
-		}
-
-
-	private:
-		const Handles* m_handles{nullptr};
-		Objects* m_objects{nullptr};
-		i32 m_index{-1};
-	};
-
-
-private:
+protected:
 	void assure(Handle handle)
 	{
 		if (handle >= m_sparse.size())
@@ -161,10 +23,15 @@ private:
 		}
 	}
 
+
+protected:
+	Handle index(Handle handle) const
+	{
+		return m_sparse[handle];
+	}
+
 	void add(Handle handle)
 	{
-		assert(handle != null && !has(handle));
-
 		assure(handle);
 		if (m_sparse[handle] == null)
 		{
@@ -173,31 +40,76 @@ private:
 		}			
 	}
 
+	void remove(Handle handle)
+	{
+		m_packed[m_sparse[handle]] = m_packed.back();
+		m_sparse[m_packed.back()] = m_sparse[handle];
 
-public:
+		m_sparse[handle] = null;
+		m_packed.pop_back();
+	}
+
 	bool has(Handle handle) const
 	{
 		return handle < m_sparse.size() && m_sparse[handle] != null;
 	}
 
+
+public:
+	auto begin()
+	{
+		return m_packed.begin();
+	}
+
+	auto end()
+	{
+		return m_packed.end();
+	}
+
+	auto begin() const
+	{
+		return m_packed.begin();
+	}
+
+	auto end() const
+	{
+		return m_packed.end();
+	}
+
+	auto size() const
+	{
+		return m_packed.size();
+	}
+
+
+private:
+	std::vector<Handle> m_sparse;
+	std::vector<Handle> m_packed;
+};
+
+// TODO : iterator
+// TODO : type check
+template<class Type>
+class Storage : public SparseSet
+{
+public:
 	void remove(Handle handle)
 	{
 		assert(has(handle));
 
-		Handle index = m_sparse[handle];
+		Handle i = index(handle);
 
-		m_objects[index] = std::move(m_objects.back());
+		m_objects[i] = std::move(m_objects.back());
 		m_objects.pop_back();
 
-		m_packed[index] = m_packed.back();
-		m_sparse[m_packed.back()] = index;
-		m_sparse[handle] = null;
-		m_packed.pop_back();
+		SparseSet::remove(handle);
 	}
 
 	template<class ... Args>
 	void emplace(Handle handle, Args&& ... args)
 	{
+		assert(!has(handle));
+
 		add(handle);
 
 		if constexpr(std::is_aggregate_v<Type>)
@@ -214,14 +126,14 @@ public:
 	{
 		assert(has(handle));
 
-		return m_objects[m_sparse[handle]];
+		return m_objects[index(handle)];
 	}
 
 	const Type& get(Handle handle) const
 	{
 		assert(has(handle));
 
-		return m_objects[m_sparse[handle]];
+		return m_objects[index(handle)];
 	}
 
 	Type& operator [] (Handle handle)
@@ -235,47 +147,6 @@ public:
 	}
 
 
-	// TODO : iterator
-	auto begin()
-	{
-		return m_packed.begin();
-	}
-
-	auto begin() const
-	{
-		return m_packed.begin();
-	}
-
-	auto end()
-	{
-		return m_packed.end();
-	}
-
-	auto end() const
-	{
-		return m_packed.end();
-	}
-
-
-	i32 size() const
-	{
-		return m_packed.size();
-	}
-
-
-	Iterator pairsBegin()
-	{
-		return Iterator{m_packed, m_objects, 0};
-	}
-
-	Iterator pairsEnd()
-	{
-		return Iterator{m_packed, m_objects, typename Iterator::Index{m_packed.size()}};
-	}
-
 private:
-	std::vector<Handle> m_sparse;
-	std::vector<Handle> m_packed;
-
 	std::vector<Type> m_objects;
 };
