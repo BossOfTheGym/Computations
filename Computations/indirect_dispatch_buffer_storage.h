@@ -17,96 +17,136 @@ struct IndirectDispatchBuffer
 	u32 numWorkgroupsZ{};
 };
 
-// TODO : checks
-// TODO : wiki says that it's bad to access mapped pointer non-sequentially(like random access to array)
-// TODO : in will be probably used in along with Storage<>
-class IndirectDispatchBufferStorage : public HandlePool
+template<u32 CHUNK = 32>
+class FixedChunkSize : public SparseSet
 {
 public:
-	IndirectDispatchBufferStorage(u32 storageSize)
-	{
-		storageSize -= storageSize % sizeof(IndirectDispatchBuffer);
+	FixedChunkSize(res::Buffer& buffer, u32 bufferCapacity) 
+		: m_bufferPtr{&buffer}
+		, m_capacity{bufferCapacity}
+	{}
 
-		if (!try_create_storage_buffer(m_storage, storageSize, GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT))
+
+public:
+	// it is assumed that index is valid
+	void mark(Handle index)
+	{
+		add(index / CHUNK);
+	}
+
+	void flush()
+	{
+		for (auto chunkNum : *this)
 		{
-			// TODO : decide what to do? maybe i should just throw an exception...
-			//	... or just set state to invalid
+			auto index = chunkNum * CHUNK;
+
+			GLintptr offset = index * sizeof(IndirectDispatchBuffer);
+			GLsizei size = std::min<u32>(CHUNK, m_capacity - index) * sizeof(IndirectDispatchBuffer);
+
+			glFlushMappedNamedBufferRange(m_bufferPtr->id, offset, size);
+		}
+	}
+
+
+private:
+	res::Buffer* m_bufferPtr{nullptr};
+	u32 m_capacity{};
+};
+
+
+// used in DirichletSystem along with data storage
+// index comes from another storage
+template<class FlushPolicy = FixedChunkSize<>>
+class IndirectDispatchBufferStorage : protected FlushPolicy
+{
+public:
+	IndirectDispatchBufferStorage(u32 bufferCapacity) : FlushPolicy(m_storage, bufferCapacity), m_capacity(bufferCapacity)
+	{
+		auto storageFlags = GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT;
+		if (!try_create_storage_buffer(m_storage, bufferCapacity * sizeof(IndirectDispatchBuffer), storageFlags))
+		{
 			std::cerr << "Failed to create IndirectDispatchBufferStorage." << std::endl;
+
+			assert(false);
 		}
 
 		m_mappedBufferPtr = (IndirectDispatchBuffer*)glMapNamedBuffer(m_storage.id, GL_READ_WRITE);
 		if (m_mappedBufferPtr == nullptr)
 		{
-			// TODO : decide what to to, maybe an exception will help
 			std::cerr << "Failed to map storage." << std::endl;
+
+			assert(false);
 		}
 	}
 
 	IndirectDispatchBufferStorage(const IndirectDispatchBufferStorage&) = delete;
 
-	IndirectDispatchBufferStorage(IndirectDispatchBufferStorage&& storage) noexcept
-	{
-		*this = std::move(storage);
-	}
+	IndirectDispatchBufferStorage(IndirectDispatchBufferStorage&& another) noexcept
+		: m_storage{std::move(another.m_storage)}
+		, m_capacity{std::exchange(another.m_capacity, 0u)}
+		, m_mappedBufferPtr{std::exchange(another.m_mappedBufferPtr, nullptr)}
+	{}
 
 	~IndirectDispatchBufferStorage()
 	{
-		reset();
+		if (m_storage.valid() && m_mappedBufferPtr != nullptr)
+		{
+			glUnmapNamedBuffer(m_storage.id);
+
+			m_mappedBufferPtr = nullptr;
+
+			m_storage.reset();
+
+			m_capacity = 0u;
+		}
 	}
 
 	IndirectDispatchBufferStorage& operator = (const IndirectDispatchBufferStorage&) = delete;
 
-	IndirectDispatchBufferStorage& operator = (IndirectDispatchBufferStorage&& storage) noexcept
+	IndirectDispatchBufferStorage& operator = (IndirectDispatchBufferStorage&& another) noexcept
 	{
-		if (this == &storage)
+		if (this == &another)
 		{
 			return *this;
 		}
 
-		static_cast<HandlePool&>(*this) = std::move(storage);
-
-		m_storage = std::move(storage.m_storage);
-		m_mappedBufferPtr = std::exchange(storage.m_mappedBufferPtr, nullptr);
+		m_storage = std::move(another.m_storage);
+		m_capacity = std::exchange(another.m_capacity, 0u);
+		m_mappedBufferPtr = std::exchange(another.m_mappedBufferPtr, nullptr);
 
 		return *this;
 	}
 
 
 public:
-	bool storageValid() const
+	IndirectDispatchBuffer& operator [] (Handle index)
 	{
-		return m_storage.valid() && m_mappedBufferPtr != nullptr;
+		FlushPolicy::mark(index);
+
+		return m_mappedBufferPtr[index];
 	}
 
-	void reset()
+	const IndirectDispatchBuffer& operator [] (Handle index) const
 	{
-		if (storageValid())
-		{
-			glUnmapNamedBuffer(m_storage.id);
+		return m_mappedBufferPtr[index];
+	}
 
-			m_mappedBufferPtr = nullptr;
-		}
+	void flush()
+	{
+		FlushPolicy::flush();
 	}
 
 
 public:
-	IndirectDispatchBuffer& operator [] (Handle handle)
+	u32 capacity() const
 	{
-		assert(storageValid() && valid(handle));
-
-		return m_mappedBufferPtr[handle];
-	}
-
-	const IndirectDispatchBuffer& operator [] (Handle handle) const
-	{
-		assert(storageValid() && valid(handle));
-
-		return m_mappedBufferPtr[handle];
+		return m_capacity;
 	}
 
 
 private:
 	res::Buffer m_storage;
+	u32 m_capacity{};
 
 	IndirectDispatchBuffer* m_mappedBufferPtr{nullptr};
 };
