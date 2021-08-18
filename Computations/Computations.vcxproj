@@ -145,6 +145,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="app.cpp" />
     <ClCompile Include="glfw-cxx\sources\glfw3.cpp" />
     <ClCompile Include="glfw-cxx\sources\opengl-loader.cpp" />
     <ClCompile Include="graphics-res-util.cpp" />
@@ -166,17 +167,12 @@
     <ClInclude Include="graphics-res.h" />
     <ClInclude Include="handle-pool.h" />
     <ClInclude Include="handle.h" />
-    <ClInclude Include="indirect_dispatch_buffer_storage.h" />
     <ClInclude Include="main-window.h" />
-    <ClInclude Include="plot_system.h" />
     <ClInclude Include="storage.h" />
     <ClInclude Include="element_registry.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\jacoby.comp" />
-    <None Include="shaders\mirror_red_black.comp" />
-    <None Include="shaders\plot.frag" />
-    <None Include="shaders\plot.vert" />
     <None Include="shaders\quad.frag" />
     <None Include="shaders\quad.vert" />
     <None Include="shaders\red_black.comp" />

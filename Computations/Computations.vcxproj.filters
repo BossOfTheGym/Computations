@@ -60,6 +60,9 @@
     <ClCompile Include="graphics-res-util.cpp">
       <Filter>gl-cxx\sources</Filter>
     </ClCompile>
+    <ClCompile Include="app.cpp">
+      <Filter>main\sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="glfw-cxx\glfw3.h">
@@ -107,12 +110,6 @@
     <ClInclude Include="element_registry.h">
       <Filter>main\headers</Filter>
     </ClInclude>
-    <ClInclude Include="indirect_dispatch_buffer_storage.h">
-      <Filter>main\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="plot_system.h">
-      <Filter>main\headers</Filter>
-    </ClInclude>
     <ClInclude Include="gl-state-info.h">
       <Filter>gl-cxx\headers</Filter>
     </ClInclude>
@@ -130,9 +127,6 @@
     <None Include="shaders\jacoby.comp">
       <Filter>shaders</Filter>
     </None>
-    <None Include="shaders\mirror_red_black.comp">
-      <Filter>shaders</Filter>
-    </None>
     <None Include="shaders\red_black.comp">
       <Filter>shaders</Filter>
     </None>
@@ -140,12 +134,6 @@
       <Filter>shaders</Filter>
     </None>
     <None Include="shaders\red_black_tiled1.comp">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="shaders\plot.frag">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="shaders\plot.vert">
       <Filter>shaders</Filter>
     </None>
     <None Include="shaders\red_black_tiled2.comp">

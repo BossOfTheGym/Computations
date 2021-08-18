@@ -4,8 +4,8 @@
 
 #define TRUE_STEPS (2 * STEPS)
 
-#define WORKGROUP_X 8
-#define WORKGROUP_Y 8
+#define WORKGROUP_X 16
+#define WORKGROUP_Y 16
 #define WORKGROUP ivec2(WORKGROUP_X, WORKGROUP_Y)
 
 #define TRUE_WORKGROUP_X (2 * WORKGROUP_X)
@@ -74,6 +74,7 @@ int getCurrStep()
 }
 
 // some invocation parameters
+// TODO : greaterThan()
 bool inRegion(ivec2 coords, ivec2 start, ivec2 end)
 {
 	return start.x <= coords.x && coords.x < end.x 
@@ -85,12 +86,14 @@ bool inBounds(ivec2 global, ivec2 size)
 	return inRegion(global, ivec2(0), size);
 }
 
+// TODO : greaterThan()
 bool onBoundary(ivec2 global, ivec2 size)
 {
 	return global.x == 0 || global.x == size.x - 1 
 		|| global.y == 0 || global.y == size.y - 1;
 }
 
+// TODO : greaterThan()
 void getOrient(ivec2 local, int steps, out bool lt, out bool rb)
 {
 	steps *= 2;

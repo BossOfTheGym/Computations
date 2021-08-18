@@ -3,14 +3,11 @@
 int main()
 {
 	std::unique_ptr<app::App> app(new app::App());
-	if (app->init())
-	{
+	if (app->init()) {
 		app->mainloop();
 	}
-	else
-	{
+	else {
 		std::cerr << "Failed to initialize application" << std::endl;
-
 		return 1;
 	}
 
