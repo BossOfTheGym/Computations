@@ -389,13 +389,6 @@ namespace dir2d
 		template<class ... Args>
 		Handle create(const DataAabb2D& data, Args&& ... args)
 		{
-			/*
-			if (!DataAabb2D::domain_aligned(data, m_workgroupSizeX, m_workgroupSizeY))
-			{
-				return null;
-			}
-			*/
-
 			auto handle = acquire();
 
 			m_dataStorage.emplace(handle, data, std::forward<Args>(args)...);
