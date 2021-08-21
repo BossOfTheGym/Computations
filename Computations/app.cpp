@@ -1,13 +1,21 @@
 #include "app.h"
 
+#include <exception>
 
 namespace app
 {
+	App::App() 
+	{
+		initWindow();
+		initGraphicalResources();
+		initSystems();
+	}
+
 	App::~App()
 	{
-		if (m_initialized) {
-			deinit();
-		}
+		deinitSystems();
+		deinitGraphicalResources();
+		deinitWindow();
 	}
 
 	void App::mainloop()
@@ -78,54 +86,10 @@ namespace app
 	}
 
 
-	bool App::init()
-	{
-		if (m_initialized) {
-			std::cout << "[WARNING] App already initialized." << std::endl;
-			return true;
-		}
-
-		if (!initWindow()) {
-			std::cerr << "Failed to initialize window." << std::endl;
-			return false;
-		}
-
-		if (!initGraphicalResources()) {
-			std::cerr << "Failed to initialize graphical resources." << std::endl;
-			return false;
-		}
-
-		if (!initSystems()) {
-			std::cerr << "Failed to initialize systems." << std::endl;
-			return false;
-		}
-
-		m_initialized = true;
-
-		return true;
-	}
-
-	void App::deinit()
-	{
-		if (!m_initialized) {
-			std::cerr << "Warning! Attempt to deinitialize uninitiaized app." << std::endl;
-
-			return;
-		}
-
-		deinitSystems();
-		deinitGraphicalResources();
-		deinitWindow();
-
-		m_initialized = false;
-	}
-
-	bool App::initWindow()
+	void App::initWindow()
 	{
 		if (!glfw::initialize()) {
-			std::cerr << "Failed to initialize library." << std::endl;
-
-			return false;
+			throw std::runtime_error("Failed to initialize library.");
 		}
 
 		glfw::CreationInfo info;
@@ -138,22 +102,12 @@ namespace app
 		info.intHints.push_back({glfw::Hint::DoubleBuffer, (int)glfw::Value::True});
 
 		m_mainWindow = std::make_unique<win::MainWindow>(info);
-		if (m_mainWindow == nullptr || !m_mainWindow->valid()) {
-			std::cerr << "Failed to create window" << std::endl;
-
-			return false;
+		if (!m_mainWindow || !m_mainWindow->valid()) {
+			throw std::runtime_error("Failed to create window");
 		}
-		return true;
 	}
 
-	void App::deinitWindow()
-	{
-		m_mainWindow.reset();
-
-		glfw::terminate();
-	}
-
-	bool App::initGraphicalResources()
+	void App::initGraphicalResources()
 	{
 		m_mainWindow->makeContextCurrent();
 
@@ -188,19 +142,71 @@ namespace app
 
 		// dummy array
 		if (!res::try_create_vertex_array(m_dummy)) {
-			std::cerr << "Failed to create dummy array." << std::endl;
-			return false;
+			throw std::runtime_error("Failed to create dummy array.");
 		}
 
 		// test texture
 		if (!res::try_create_test_texture(m_testTex, TEST_TEXTURE_WIDTH, TEST_TEXTURE_HEIGHT, TEST_TEXTURE_PERIOD)) {
-			std::cerr << "Failed to create test texture." << std::endl;
-			return false;
+			throw std::runtime_error("Failed to create test texture.");
+		}
+	}
+
+	void App::initSystems()
+	{
+		m_dirichletSystem = std::make_unique<DirichletSystem>(*this);
+		if (!m_dirichletSystem) {
+			throw std::runtime_error("Failed to initialize dirichlet system.");
 		}
 
-		std::cout << std::endl;
+		m_dirichletSystem->add<dir2d::JacobyMethod>(*this, 16, 16, "jacoby");
+		if (!m_dirichletSystem->has<dir2d::JacobyMethod>() || !m_dirichletSystem->get<dir2d::JacobyMethod>().programValid()) {
+			throw std::runtime_error("Failed to initialize jacoby system");
+		}
 
-		return true;
+		m_dirichletSystem->add<dir2d::RedBlackMethod>(*this, WORK_X, WORK_Y, "red_black");
+		if (!m_dirichletSystem->has<dir2d::RedBlackMethod>() || !m_dirichletSystem->get<dir2d::RedBlackMethod>().programValid()) {
+			throw std::runtime_error("Failed to initialize red-black system");
+		}
+
+		m_dirichletSystem->add<dir2d::RedBlackTiledMethod>(*this, WORK_X, WORK_Y, "red_black_tiled1");
+		if (!m_dirichletSystem->has<dir2d::RedBlackTiledMethod>() || !m_dirichletSystem->get<dir2d::RedBlackTiledMethod>().programValid()) {
+			throw std::runtime_error("Failed to initialize red-black tiled system");
+		}
+
+		auto boundary = [] (f32 x, f32 y) -> f32
+		{
+			return std::exp(-x * x - y * y);
+		};
+
+		auto f = [] (f32 x, f32 y) -> f32
+		{
+			f32 xxpyy = x * x + y * y;
+
+			return 4.0 * (xxpyy - 1) * std::exp(-xxpyy);
+		};
+
+		// TEST
+		{
+			auto& sys = m_dirichletSystem->get<dir2d::RedBlackMethod>();
+			auto domain = sys.createDomain(-1.0, +1.0, -1.0, +1.0, WX, WY);
+			auto data = sys.createData(domain, boundary, f);
+			m_handles[1] = sys.createSmart(data, STEPS * ITERS);
+		}
+		// TEST
+		{
+			auto& sys = m_dirichletSystem->get<dir2d::RedBlackTiledMethod>();
+			auto domain = sys.createDomain(-1.0, +1.0, -1.0, +1.0, WX, WY);
+			auto data = sys.createData(domain, boundary, f);
+			m_handles[2] = sys.createSmart(data, ITERS);
+		}
+	}
+
+
+	void App::deinitWindow()
+	{
+		m_mainWindow.reset();
+
+		glfw::terminate();
 	}
 
 	void App::deinitGraphicalResources()
@@ -210,6 +216,15 @@ namespace app
 
 		m_glStateInfo.reset();
 	}
+
+	void App::deinitSystems()
+	{		
+		for (auto& handle : m_handles) {
+			handle.reset();
+		}
+		m_dirichletSystem.reset();
+	}
+	
 
 	void App::loadShader(const fs::path& path)
 	{
@@ -267,69 +282,6 @@ namespace app
 		}
 	}
 
-	bool App::initSystems()
-	{
-		m_dirichletSystem = std::make_unique<DirichletSystem>(*this);
-		if (m_dirichletSystem == nullptr) {
-			std::cerr << "Failed to initialize dirichlet system." << std::endl;
-			return false;
-		}
-
-		m_dirichletSystem->add<dir2d::JacobyMethod>(*this, 16, 16, "jacoby");
-		if (!m_dirichletSystem->has<dir2d::JacobyMethod>() || !m_dirichletSystem->get<dir2d::JacobyMethod>().programValid()) {
-			std::cerr << "Failed to initialize jacoby system" << std::endl;
-			return false;
-		}
-
-		m_dirichletSystem->add<dir2d::RedBlackMethod>(*this, WORK_X, WORK_Y, "red_black");
-		if (!m_dirichletSystem->has<dir2d::RedBlackMethod>() || !m_dirichletSystem->get<dir2d::RedBlackMethod>().programValid()) {
-			std::cerr << "Failed to initialize red-black system" << std::endl;
-			return false;
-		}
-
-		m_dirichletSystem->add<dir2d::RedBlackTiledMethod>(*this, WORK_X, WORK_Y, "red_black_tiled1");
-		if (!m_dirichletSystem->has<dir2d::RedBlackTiledMethod>() || !m_dirichletSystem->get<dir2d::RedBlackTiledMethod>().programValid()) {
-			std::cerr << "Failed to initialize red-black tiled system" << std::endl;
-			return false;
-		}
-
-		auto boundary = [] (f32 x, f32 y) -> f32
-		{
-			return std::exp(-x * x - y * y);
-		};
-
-		auto f = [] (f32 x, f32 y) -> f32
-		{
-			f32 xxpyy = x * x + y * y;
-
-			return 4.0 * (xxpyy - 1) * std::exp(-xxpyy);
-		};
-
-		{
-			auto& sys = m_dirichletSystem->get<dir2d::RedBlackMethod>();
-			auto domain = sys.createDomain(-1.0, +1.0, -1.0, +1.0, WX, WY);
-			auto data = sys.createData(domain, boundary, f);
-			m_handles[1] = sys.createSmart(data, STEPS * ITERS);
-		}
-
-		{
-			auto& sys = m_dirichletSystem->get<dir2d::RedBlackTiledMethod>();
-			auto domain = sys.createDomain(-1.0, +1.0, -1.0, +1.0, WX, WY);
-			auto data = sys.createData(domain, boundary, f);
-			m_handles[2] = sys.createSmart(data, ITERS);
-		}
-
-		return true;
-	}
-
-	void App::deinitSystems()
-	{		
-		for (auto& handle : m_handles) {
-			handle.reset();
-		}
-		m_dirichletSystem.reset();
-	}
-	
 	res::Id App::getProgramId(const std::string& program)
 	{
 		if (auto it = m_shaderPrograms.find(program); it != m_shaderPrograms.end()) {

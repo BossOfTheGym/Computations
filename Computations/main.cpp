@@ -1,14 +1,20 @@
 #include "app.h"
+#include <exception>
 
 int main()
 {
-	std::unique_ptr<app::App> app(new app::App());
-	if (app->init()) {
+	std::unique_ptr<app::App> app;
+	
+	try {
+		app = std::make_unique<app::App>();
 		app->mainloop();
 	}
-	else {
-		std::cerr << "Failed to initialize application" << std::endl;
-		return 1;
+	catch (std::runtime_error e) {
+		std::cerr << "Runtime error : " << e.what() << std::endl;
+	}
+	catch (...) {
+		std::cerr << "Unexpected error." << std::endl;
+		std::terminate();
 	}
 
 	return 0;

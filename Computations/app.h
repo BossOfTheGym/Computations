@@ -40,7 +40,7 @@ namespace app
 	class App
 	{
 	public:
-		static constexpr int HEIGHT = 720;
+		static constexpr int HEIGHT = 800;
 		static constexpr int WIDTH = 2 * HEIGHT;
 
 		static constexpr i32 TEST_TEXTURE_WIDTH  = 128;
@@ -50,10 +50,10 @@ namespace app
 		static constexpr i32 WORK_X = 16;
 		static constexpr i32 WORK_Y = 16;
 		
-		static constexpr i32 WX = 63;
-		static constexpr i32 WY = 63;
+		static constexpr i32 WX = 2047;
+		static constexpr i32 WY = 2047;
 		static constexpr i32 STEPS = 2 * 2;
-		static constexpr i32 ITERS = 100;
+		static constexpr i32 ITERS = 1;
 
 
 		static inline std::string NAME = "computations";
@@ -61,7 +61,7 @@ namespace app
 		static inline std::string SHADER_FOLDER = "shaders/";
 
 	public:
-		App() = default;
+		App();
 
 		App(const App&) = delete;
 		App(App&&) = delete;
@@ -71,7 +71,6 @@ namespace app
 
 		~App();
 
-
 	public:
 		void mainloop();
 
@@ -80,35 +79,24 @@ namespace app
 
 		void updateSystems();
 
-
-	public:
-		bool init();
-
-		void deinit();
-
 	private:
-		bool initWindow();
+		void initWindow();
+		void initGraphicalResources();
+		void initSystems();
 
 		void deinitWindow();
-
-		bool initGraphicalResources();
-
 		void deinitGraphicalResources();
+		void deinitSystems();
 
+	private:
 		void loadShader(const fs::path& path);
 
 		void createProgram(const std::vector<const char*>& data);
 
-		bool initSystems();
-		void deinitSystems();
-
-
-	public: // NOTE : must be part of resource management module
+	public: 
 		res::Id getProgramId(const std::string& program);
 
 	private:
-		bool m_initialized{false};
-
 		entt::registry   m_registry;
 		entt::dispatcher m_dispatcher;
 
