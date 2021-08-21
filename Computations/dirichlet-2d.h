@@ -50,7 +50,7 @@ namespace dir2d
 
 		static DomainAabb2D create_domain(f32 x0, f32 x1, f32 y0, f32 y1, i32 xSplit, i32 ySplit)
 		{
-			return DomainAabb2D{x0, x1, y1, y0, (x1 - x0) / xSplit, (y1 - y0) / ySplit, xSplit, ySplit};
+			return DomainAabb2D{x0, x1, y0, y1, (x1 - x0) / xSplit, (y1 - y0) / ySplit, xSplit, ySplit};
 		}
 
 		static DomainAabb2D create_aligned_domain(f32 x0, f32 x1, f32 y0, f32 y1, i32 xSplit, i32 ySplit, i32 xAlign, i32 yAlign)
@@ -313,12 +313,17 @@ namespace dir2d
 
 
 	public: // domain & data
+		DomainAabb2D createDomain(f32 x0, f32 x1, f32 y0, f32 y1, i32 xSplit, i32 ySplit)
+		{
+			return DomainAabb2D::create_domain(x0, x1, y0, y1, xSplit, ySplit);
+		}
+
 		DomainAabb2D createAlignedDomain(f32 x0, f32 x1, f32 y0, f32 y1, i32 xSplit, i32 ySplit)
 		{
 			return DomainAabb2D::create_aligned_domain(x0, x1, y0, y1, xSplit, ySplit, m_workgroupSizeX, m_workgroupSizeY);
 		}
-		
-		DataAabb2D createAlignedData(const DomainAabb2D& domain, const Function2D& boundary, const Function2D& f)
+
+		DataAabb2D createData(const DomainAabb2D& domain, const Function2D& boundary, const Function2D& f)
 		{
 			return DataAabb2D::create_data(domain, boundary, f);
 		}
@@ -384,10 +389,12 @@ namespace dir2d
 		template<class ... Args>
 		Handle create(const DataAabb2D& data, Args&& ... args)
 		{
+			/*
 			if (!DataAabb2D::domain_aligned(data, m_workgroupSizeX, m_workgroupSizeY))
 			{
 				return null;
 			}
+			*/
 
 			auto handle = acquire();
 
@@ -778,8 +785,12 @@ namespace dir2d
 				glUniform1f(m_uniforms.hx, data.hx);
 				glUniform1f(m_uniforms.hy, data.hy);
 
+				/*
 				u32 numWorkgroupsX = (data.xSplit + 1) / m_workgroupSizeX;
 				u32 numWorkgroupsY = (data.ySplit + 1) / m_workgroupSizeY;
+				*/
+				u32 numWorkgroupsX = data.xSplit / m_workgroupSizeX + 1;
+				u32 numWorkgroupsY = data.ySplit / m_workgroupSizeY + 1;
 				for (i32 i = 0; i < data.itersPerUpdate; i++)
 				{
 					glUniform1i(m_uniforms.curr, 0);
