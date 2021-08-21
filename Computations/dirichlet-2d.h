@@ -671,15 +671,17 @@ namespace dir2d
 				glUniform1f(m_uniforms.hx, data.hx);
 				glUniform1f(m_uniforms.hy, data.hy);
 
-				u32 numWorkgroupsX = (data.xSplit + 1) / m_workgroupSizeX;
-				u32 numWorkgroupsY = (data.ySplit + 1) / m_workgroupSizeY;
+				u32 numWorkgroupsX = data.xSplit / m_workgroupSizeX + 1;
+				u32 numWorkgroupsY = data.ySplit / m_workgroupSizeY + 1;
 				for (i32 i = 0; i < data.itersPerUpdate; i++)
 				{
 					glUniform1i(m_uniforms.rb, 0);
 					glDispatchCompute(numWorkgroupsX, numWorkgroupsY, 1);
+					glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
 
 					glUniform1i(m_uniforms.rb, 1);
 					glDispatchCompute(numWorkgroupsX, numWorkgroupsY, 1);
+					glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
 				}
 			}
 
@@ -785,21 +787,17 @@ namespace dir2d
 				glUniform1f(m_uniforms.hx, data.hx);
 				glUniform1f(m_uniforms.hy, data.hy);
 
-				/*
-				u32 numWorkgroupsX = (data.xSplit + 1) / m_workgroupSizeX;
-				u32 numWorkgroupsY = (data.ySplit + 1) / m_workgroupSizeY;
-				*/
 				u32 numWorkgroupsX = data.xSplit / m_workgroupSizeX + 1;
 				u32 numWorkgroupsY = data.ySplit / m_workgroupSizeY + 1;
 				for (i32 i = 0; i < data.itersPerUpdate; i++)
 				{
 					glUniform1i(m_uniforms.curr, 0);
-
 					glDispatchCompute(numWorkgroupsX, numWorkgroupsY, 1);
+					glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
 
 					glUniform1i(m_uniforms.curr, 1);
-
 					glDispatchCompute(numWorkgroupsX, numWorkgroupsY, 1);
+					glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
 				}
 			}
 

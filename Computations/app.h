@@ -32,7 +32,7 @@ namespace app
 {
 	// TODO : split this shit up
 	// TODO : small tiling
-	// TODO : app class that accepets options as parameters
+	// TODO : app class that accepts options as parameters
 
 	namespace fs = std::filesystem;
 
@@ -47,13 +47,13 @@ namespace app
 		static constexpr i32 TEST_TEXTURE_HEIGHT = 128;
 		static constexpr i32 TEST_TEXTURE_PERIOD = 16;
 
-		static constexpr i32 WORK_X = 32;
-		static constexpr i32 WORK_Y = 32;
+		static constexpr i32 WORK_X = 16;
+		static constexpr i32 WORK_Y = 16;
 		
-		static constexpr i32 WX = 2047;
-		static constexpr i32 WY = 2047;
-		static constexpr i32 STEPS = 4;
-		static constexpr i32 ITERS = 250;
+		static constexpr i32 WX = 63;
+		static constexpr i32 WY = 63;
+		static constexpr i32 STEPS = 2 * 2;
+		static constexpr i32 ITERS = 100;
 
 
 		static inline std::string NAME = "computations";

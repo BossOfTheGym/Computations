@@ -179,7 +179,7 @@ namespace app
 			{"red_black", "red_black.comp"},
 			{"red_black_tiled0", "red_black_tiled0.comp"},
 			{"red_black_tiled1", "red_black_tiled1.comp"},
-			{"red_black_tiled2", "red_black_tiled2.comp"}
+			{"red_black_small_tile"}, {"red_black_small_tile.comp"}
 		};
 
 		for (auto& data : programData) {
@@ -192,7 +192,7 @@ namespace app
 			return false;
 		}
 
-		// test textute
+		// test texture
 		if (!res::try_create_test_texture(m_testTex, TEST_TEXTURE_WIDTH, TEST_TEXTURE_HEIGHT, TEST_TEXTURE_PERIOD)) {
 			std::cerr << "Failed to create test texture." << std::endl;
 			return false;
@@ -305,14 +305,19 @@ namespace app
 			return 4.0 * (xxpyy - 1) * std::exp(-xxpyy);
 		};
 
-		auto& rb      = m_dirichletSystem->get<dir2d::RedBlackMethod>();
-		auto& rbTiled = m_dirichletSystem->get<dir2d::RedBlackTiledMethod>();
+		{
+			auto& sys = m_dirichletSystem->get<dir2d::RedBlackMethod>();
+			auto domain = sys.createDomain(-1.0, +1.0, -1.0, +1.0, WX, WY);
+			auto data = sys.createData(domain, boundary, f);
+			m_handles[1] = sys.createSmart(data, STEPS * ITERS);
+		}
 
-		auto domain = rb.createAlignedDomain(-1.0, +1.0, -1.0, +1.0, WX, WY);
-		auto data = rb.createAlignedData(domain, boundary, f);
-
-		m_handles[1] = rb.createSmart(data, STEPS * ITERS);
-		m_handles[2] = rbTiled.createSmart(data, ITERS);
+		{
+			auto& sys = m_dirichletSystem->get<dir2d::RedBlackTiledMethod>();
+			auto domain = sys.createDomain(-1.0, +1.0, -1.0, +1.0, WX, WY);
+			auto data = sys.createData(domain, boundary, f);
+			m_handles[2] = sys.createSmart(data, ITERS);
+		}
 
 		return true;
 	}

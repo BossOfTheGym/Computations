@@ -4,8 +4,8 @@
 
 #define TRUE_STEPS (2 * STEPS)
 
-#define WORKGROUP_X 16
-#define WORKGROUP_Y 16
+#define WORKGROUP_X 8
+#define WORKGROUP_Y 8
 #define WORKGROUP ivec2(WORKGROUP_X, WORKGROUP_Y)
 
 #define TRUE_WORKGROUP_X (2 * WORKGROUP_X)
@@ -100,7 +100,6 @@ float update(float u00, float um10, float u10, float u0m1, float u01, float f00)
 	return (1.0 - w) * u00 + w * u;
 }
 
-
 void main()
 {
 	// some invocation's parameters
@@ -109,21 +108,19 @@ void main()
 
 	ivec2 size = imageSize(solution[curr]);
 
-	bool globalInBounds = inBounds(global, size);
+	bool u00Updateable = inBounds(global              , size) && !onBoundary(global              , size);
+	bool u10Updateable = inBounds(global + ivec2(1, 0), size) && !onBoundary(global + ivec2(1, 0), size);
+	bool u01Updateable = inBounds(global + ivec2(0, 1), size) && !onBoundary(global + ivec2(0, 1), size);
+	bool u11Updateable = inBounds(global + ivec2(1, 1), size) && !onBoundary(global + ivec2(1, 1), size);
 
-	bool u00NotOnBound = !onBoundary(global + ivec2(0, 0), size);
-	bool u10NotOnBound = !onBoundary(global + ivec2(1, 0), size);
-	bool u01NotOnBound = !onBoundary(global + ivec2(0, 1), size);
-	bool u11NotOnBound = !onBoundary(global + ivec2(1, 1), size);
-
-	int steps = (globalInBounds ? getCurrStep() : -1);
+	int steps = (inBounds(global, size) ? getCurrStep() : -1);
 
 	// cache data
 	float f01, f11;
 	float f00, f10;
 
 	// loads either value or zero if out of bounds
-	f00 = imageLoad(f, global + ivec2(0, 0)).x; 
+	f00 = imageLoad(f, global              ).x; 
 	f10 = imageLoad(f, global + ivec2(1, 0)).x;
 	f01 = imageLoad(f, global + ivec2(0, 1)).x;
 	f11 = imageLoad(f, global + ivec2(1, 1)).x;
@@ -132,14 +129,13 @@ void main()
 	float u00, u10;
 
 	// loads either value or zero if out of bounds
-	u00 = imageLoad(solution[curr], global + ivec2(0, 0)).x;
+	u00 = imageLoad(solution[curr], global              ).x;
 	u10 = imageLoad(solution[curr], global + ivec2(1, 0)).x;
 	u01 = imageLoad(solution[curr], global + ivec2(0, 1)).x;
 	u11 = imageLoad(solution[curr], global + ivec2(1, 1)).x;
 
-	if (steps >= 0)
-	{
-		cacheStoreValue(local + ivec2(0, 0), u00);
+	if (steps >= 0) {
+		cacheStoreValue(local              , u00);
 		cacheStoreValue(local + ivec2(1, 0), u10);
 		cacheStoreValue(local + ivec2(0, 1), u01);
 		cacheStoreValue(local + ivec2(1, 1), u11);
@@ -148,8 +144,7 @@ void main()
 	memoryBarrierShared();
 	
 	// computations	
-	for (int i = 1; i <= STEPS; i++, steps--)
-	{	
+	for (int i = 1; i <= STEPS; i++, steps--) {	
 		// black update
 		float u20  = cacheLoadValue(local + ivec2(2,  0)); // right
 		float u1m1 = cacheLoadValue(local + ivec2(1, -1)); // bottom
@@ -157,25 +152,21 @@ void main()
 		float u02  = cacheLoadValue(local + ivec2( 0, 2)); // top
 		float um11 = cacheLoadValue(local + ivec2(-1, 1)); // left
 
-		if (steps >= 0)
-		{
+		if (steps >= 0) {
 			float u10_new = update(u10, u00, u20, u1m1, u11, f10);
-			if (u10NotOnBound)
-			{
+			if (u10Updateable) {
 				u10 = u10_new;
 			}
 			cacheStoreValue(local + ivec2(1, 0), u10);
 
 			float u01_new = update(u01, um11, u11, u00, u02, f01);
-			if (u01NotOnBound)
-			{
+			if (u01Updateable) {
 				u01 = u01_new;
 			}
 			cacheStoreValue(local + ivec2(0, 1), u01);
 		}
 		barrier();
 		memoryBarrierShared();
-
 
 		// red update
 		float u0m1 = cacheLoadValue(local + ivec2( 0, -1)); // bottom
@@ -184,18 +175,15 @@ void main()
 		float u12 = cacheLoadValue(local + ivec2(1, 2)); // top
 		float u21 = cacheLoadValue(local + ivec2(2, 1)); // right
 
-		if (steps > 0)
-		{
+		if (steps > 0)	{
 			float u00_new = update(u00, um10, u10, u0m1, u01, f00);
-			if (u00NotOnBound)
-			{
+			if (u00Updateable) {
 				u00 = u00_new;
 			}
 			cacheStoreValue(local + ivec2(0, 0), u00);
 
 			float u11_new = update(u11, u01, u21, u10, u12, f11);
-			if (u11NotOnBound)
-			{
+			if (u11Updateable) {
 				u11 = u11_new;
 			}
 			cacheStoreValue(local + ivec2(1, 1), u11);
@@ -204,8 +192,7 @@ void main()
 		memoryBarrierShared();
 	}
 	
-	if (steps >= 0)
-	{
+	if (steps >= 0) {
 		imageStore(solution[curr ^ 1], global              , vec4(cacheLoadValue(local              )));
 		imageStore(solution[curr ^ 1], global + ivec2(1, 0), vec4(cacheLoadValue(local + ivec2(1, 0))));
 		imageStore(solution[curr ^ 1], global + ivec2(0, 1), vec4(cacheLoadValue(local + ivec2(0, 1))));
