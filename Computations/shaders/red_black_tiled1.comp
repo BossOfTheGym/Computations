@@ -74,11 +74,9 @@ int getCurrStep()
 }
 
 // some invocation parameters
-// TODO : greaterThan()
 bool inRegion(ivec2 coords, ivec2 start, ivec2 end)
 {
-	return start.x <= coords.x && coords.x < end.x 
-		&& start.y <= coords.y && coords.y < end.y;
+	return all(lessThanEqual(start, coords)) && all(lessThan(coords, end));
 }
 
 bool inBounds(ivec2 global, ivec2 size)
@@ -86,25 +84,9 @@ bool inBounds(ivec2 global, ivec2 size)
 	return inRegion(global, ivec2(0), size);
 }
 
-// TODO : greaterThan()
 bool onBoundary(ivec2 global, ivec2 size)
 {
-	return global.x == 0 || global.x == size.x - 1 
-		|| global.y == 0 || global.y == size.y - 1;
-}
-
-// TODO : greaterThan()
-void getOrient(ivec2 local, int steps, out bool lt, out bool rb)
-{
-	steps *= 2;
-
-	int x0 = steps;
-	int x1 = TRUE_WORKGROUP_X_OVERLAP - 2 - steps;
-	int y0 = steps;
-	int y1 = TRUE_WORKGROUP_Y_OVERLAP - 2 - steps;
-
-	rb = (y0 < local.y && local.y < y1 && local.x == x1) || (x0 < local.x && local.x < x1 && local.y == y0);
-	lt = (y0 < local.y && local.y < y1 && local.x == x0) || (x0 < local.x && local.x < x1 && local.y == y1);
+	return any(equal(global, ivec2(0))) || any(equal(global, size - 1)); 
 }
 
 // red-black step
@@ -136,13 +118,11 @@ void main()
 
 	int steps = (globalInBounds ? getCurrStep() : -1);
 
-	bool lt, rb;
-	getOrient(local, steps, lt, rb);
-
 	// cache data
 	float f01, f11;
 	float f00, f10;
 
+	// loads either value or zero if out of bounds
 	f00 = imageLoad(f, global + ivec2(0, 0)).x; 
 	f10 = imageLoad(f, global + ivec2(1, 0)).x;
 	f01 = imageLoad(f, global + ivec2(0, 1)).x;
@@ -151,6 +131,7 @@ void main()
 	float u01, u11;
 	float u00, u10;
 
+	// loads either value or zero if out of bounds
 	u00 = imageLoad(solution[curr], global + ivec2(0, 0)).x;
 	u10 = imageLoad(solution[curr], global + ivec2(1, 0)).x;
 	u01 = imageLoad(solution[curr], global + ivec2(0, 1)).x;

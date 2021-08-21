@@ -136,7 +136,7 @@
     <None Include="shaders\red_black_tiled1.comp">
       <Filter>shaders</Filter>
     </None>
-    <None Include="shaders\red_black_tiled2.comp">
+    <None Include="shaders\red_black_small_tile.comp">
       <Filter>shaders</Filter>
     </None>
   </ItemGroup>
