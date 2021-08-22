@@ -1,10 +1,11 @@
 #pragma once
 #pragma once
 
-#include <cassert>
 #include <cmath>
 #include <memory>
+#include <cassert>
 #include <algorithm>
+#include <exception>
 
 #include "core.h"
 #include "handle.h"
@@ -40,8 +41,7 @@ namespace dir2d
 
 		static i32 align_split(i32 split, i32 alignment)
 		{
-			if (!split_aligned(split, alignment))
-			{
+			if (!split_aligned(split, alignment)) {
 				split = (split + 1) - (split + 1) % alignment + alignment - 1;
 			}
 
@@ -91,27 +91,23 @@ namespace dir2d
 			data.solution.reset(new f32[(data.xSplit + 1) * (data.ySplit + 1)]);
 
 			auto ptr = data.solution.get();
-			for (i32 j = 0; j <= data.xSplit; j++)
-			{
+			for (i32 j = 0; j <= data.xSplit; j++) {
 				f32 x = data.x0 + j * data.hx;
 
 				*ptr++ = boundary(x, data.y0);				
 			}
-			for (i32 i = 1; i < data.ySplit; i++)
-			{
+			for (i32 i = 1; i < data.ySplit; i++) {
 				f32 y = data.y0 + i * data.hy;
 
 				*ptr++ = boundary(data.x0, y);
-				for (i32 j = 1; j < data.xSplit; j++)
-				{
+				for (i32 j = 1; j < data.xSplit; j++) {
 					f32 x = data.x0 + j * data.hx;
 
 					*ptr++ = 0.0;
 				}
 				*ptr++ = boundary(data.x1, y);
 			}
-			for (i32 j = 0; j <= data.xSplit; j++)
-			{
+			for (i32 j = 0; j <= data.xSplit; j++) {
 				f32 x = data.x0 + j * data.hx;
 
 				*ptr++ = boundary(x, data.y1);
@@ -123,8 +119,7 @@ namespace dir2d
 			data.f.reset(new f32[(data.xSplit + 1) * (data.ySplit + 1)]);
 
 			auto ptr = data.f.get();
-			for (i32 j = 0; j <= data.xSplit; j++)
-			{
+			for (i32 j = 0; j <= data.xSplit; j++) {
 				*ptr++ = 0.0f;
 			}
 			for (i32 i = 1; i < data.ySplit; i++)
@@ -132,16 +127,14 @@ namespace dir2d
 				f32 y = data.y0 + i * data.hy;
 
 				*ptr++ = 0.0f;
-				for (i32 j = 1; j < data.xSplit; j++)
-				{
+				for (i32 j = 1; j < data.xSplit; j++) {
 					f32 x = data.x0 + j * data.hx;
 
 					*ptr++ = f(x, y);
 				}
 				*ptr++ = 0.0;
 			}
-			for (i32 j = 0; j <= data.xSplit; j++)
-			{
+			for (i32 j = 0; j <= data.xSplit; j++) {
 				*ptr++ = 0.0f;
 			}
 		}
@@ -167,7 +160,6 @@ namespace dir2d
 	// its lifetime should not exceed the lifetime of the system it belongs
 	class SmartHandle
 	{
-	private:
 		using DestroyFunc = void (*)(void*, Handle);
 		using ObtainFunc = res::Id (*)(void*, Handle);
 
@@ -196,8 +188,7 @@ namespace dir2d
 
 		SmartHandle& operator = (SmartHandle&& another) noexcept
 		{
-			if (this == &another)
-			{
+			if (this == &another) {
 				return *this;
 			}
 
@@ -220,8 +211,7 @@ namespace dir2d
 	public:
 		void reset()
 		{
-			if (!empty())
-			{
+			if (!empty()) {
 				m_destroyFunc(m_instance, m_handle);
 
 				m_handle = null;
@@ -273,7 +263,6 @@ namespace dir2d
 	template<class MethodTraits>
 	class BasicMethod : public app::System, protected HandlePool
 	{
-	private:
 		using Data     = typename MethodTraits::Data;
 		using Uniforms = typename MethodTraits::Uniforms;
 
@@ -289,7 +278,7 @@ namespace dir2d
 
 
 	public:
-		BasicMethod(app::App& app, i32 workgroupSizeX, i32 workgroupSizeY, const std::string& program) 
+		BasicMethod(app::App& app, u32 workgroupSizeX, u32 workgroupSizeY, const std::string& program) 
 			: app::System(app)
 			, m_workgroupSizeX{workgroupSizeX}
 			, m_workgroupSizeY{workgroupSizeY}
@@ -301,14 +290,14 @@ namespace dir2d
 
 
 	public: // workgroups
-		void workgroupX(i32 size)
+		u32 workgroupX() const
 		{
-			m_workgroupSizeX = size;
+			return m_workgroupSizeX;
 		}
 
-		void workgroupY(i32 size)
+		u32 workgroupY() const
 		{
-			m_workgroupSizeY = size;
+			return m_workgroupSizeY;
 		}
 
 
@@ -339,8 +328,7 @@ namespace dir2d
 
 		void updateUniforms()
 		{
-			if (auto id = getShaderProgramId(); id != res::null)
-			{
+			if (auto id = getShaderProgramId(); id != res::null) {
 				m_uniforms.getLocations(id);
 			}
 		}
@@ -374,9 +362,11 @@ namespace dir2d
 
 			glBeginQuery(GL_TIME_ELAPSED, m_timeQuery.id);
 
-			m_elapsedMean = (m_elapsedMean * m_measurements + m_elapsed) / static_cast<f64>(m_measurements + 1);
-
-			++m_measurements;
+			if (!m_skipOnce) {
+				m_elapsedMean = (m_elapsedMean * m_measurements + m_elapsed) / static_cast<f64>(m_measurements + 1);
+				++m_measurements;
+			}
+			m_skipOnce = false;
 		}
 
 		void endTimeQuery()
@@ -427,13 +417,14 @@ namespace dir2d
 
 
 	protected:
-		i32 m_workgroupSizeX{};
-		i32 m_workgroupSizeY{};
+		u32 m_workgroupSizeX{};
+		u32 m_workgroupSizeY{};
 
 		res::Query m_timeQuery;
 		GLuint64   m_elapsed{};
 		GLuint64   m_measurements{};
 		f64        m_elapsedMean{};
+		bool       m_skipOnce{true};
 
 		std::string m_program;
 		Uniforms    m_uniforms;
@@ -504,15 +495,14 @@ namespace dir2d
 	// jacoby method impl
 	class JacobyMethod : public BasicMethod<JacobyTraits>
 	{
-	private:
 		using UnderlyingType = BasicMethod<JacobyTraits>;
 
-		static constexpr const i32 IMG0 = 0;
-		static constexpr const i32 IMG1 = 1;
-		static constexpr const i32 IMGF = 2;
+		static constexpr const u32 IMG0 = 0;
+		static constexpr const u32 IMG1 = 1;
+		static constexpr const u32 IMGF = 2;
 
 	public:
-		JacobyMethod(app::App& app, i32 workgroupSizeX, i32 workgroupSizeY, const std::string& program) 
+		JacobyMethod(app::App& app, u32 workgroupSizeX, u32 workgroupSizeY, const std::string& program) 
 			: UnderlyingType(app, workgroupSizeX, workgroupSizeY, program)
 		{}
 
@@ -534,8 +524,8 @@ namespace dir2d
 				glUniform1f(m_uniforms.hx, data.hx);
 				glUniform1f(m_uniforms.hy, data.hy);
 
-				u32 numWorkgroupsX = (data.xSplit + 1) / m_workgroupSizeX;
-				u32 numWorkgroupsY = (data.ySplit + 1) / m_workgroupSizeY;
+				u32 numWorkgroupsX = data.xSplit / workgroupX() + 1;
+				u32 numWorkgroupsY = data.ySplit / workgroupY() + 1;
 				for (i32 i = 0; i < data.itersPerUpdate; i++)
 				{
 					glUniform1i(m_uniforms.curr, 0);
@@ -635,14 +625,13 @@ namespace dir2d
 	// red-black method impl
 	class RedBlackMethod : public BasicMethod<RedBlackTraits>
 	{
-	public:
-		static constexpr const i32 IMG = 0;
-		static constexpr const i32 IMGF = 1;
+		static constexpr const u32 IMG = 0;
+		static constexpr const u32 IMGF = 1;
 
 		using UnderlyingType = BasicMethod<RedBlackTraits>;	
 
 	public:
-		RedBlackMethod(app::App& app, i32 workgroupSizeX, i32 workgroupSizeY, const std::string& program) 
+		RedBlackMethod(app::App& app, u32 workgroupSizeX, u32 workgroupSizeY, const std::string& program) 
 			: UnderlyingType(app, workgroupSizeX, workgroupSizeY, program)
 		{}
 
@@ -664,8 +653,8 @@ namespace dir2d
 				glUniform1f(m_uniforms.hx, data.hx);
 				glUniform1f(m_uniforms.hy, data.hy);
 
-				u32 numWorkgroupsX = data.xSplit / m_workgroupSizeX + 1;
-				u32 numWorkgroupsY = data.ySplit / m_workgroupSizeY + 1;
+				u32 numWorkgroupsX = data.xSplit / workgroupX() + 1;
+				u32 numWorkgroupsY = data.ySplit / workgroupY() + 1;
 				for (i32 i = 0; i < data.itersPerUpdate; i++)
 				{
 					glUniform1i(m_uniforms.rb, 0);
@@ -749,15 +738,14 @@ namespace dir2d
 
 	class RedBlackTiledMethod : public BasicMethod<RedBlackTiledTraits>
 	{
-	private:
 		using UnderlyingType = BasicMethod<RedBlackTiledTraits>;
 
-		static constexpr const i32 IMG0 = 0;
-		static constexpr const i32 IMG1 = 1;
-		static constexpr const i32 IMGF = 2;
+		static constexpr const u32 IMG0 = 0;
+		static constexpr const u32 IMG1 = 1;
+		static constexpr const u32 IMGF = 2;
 
 	public:
-		RedBlackTiledMethod(app::App& app, i32 workgroupSizeX, i32 workgroupSizeY, const std::string& program) 
+		RedBlackTiledMethod(app::App& app, u32 workgroupSizeX, u32 workgroupSizeY, const std::string& program) 
 			: UnderlyingType(app, workgroupSizeX, workgroupSizeY, program)
 		{}
 
@@ -780,8 +768,8 @@ namespace dir2d
 				glUniform1f(m_uniforms.hx, data.hx);
 				glUniform1f(m_uniforms.hy, data.hy);
 
-				u32 numWorkgroupsX = data.xSplit / m_workgroupSizeX + 1;
-				u32 numWorkgroupsY = data.ySplit / m_workgroupSizeY + 1;
+				u32 numWorkgroupsX = data.xSplit / workgroupX() + 1;
+				u32 numWorkgroupsY = data.ySplit / workgroupY() + 1;
 				for (i32 i = 0; i < data.itersPerUpdate; i++)
 				{
 					glUniform1i(m_uniforms.curr, 0);
@@ -792,6 +780,82 @@ namespace dir2d
 					glDispatchCompute(numWorkgroupsX, numWorkgroupsY, 1);
 					glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
 				}
+			}
+
+			endTimeQuery();
+		}
+	};
+
+
+	// traits for small tile (smt) family
+	struct RebBlackSmtTraits : protected RedBlackTiledTraits
+	{
+		using Base = RedBlackTiledTraits;
+
+		using Data = RedBlackTiledTraits::Data;
+		
+		struct Uniforms : Base::Uniforms
+		{
+			void getLocations(res::Id redBlackProgram)
+			{
+				Base::Uniforms::getLocations(redBlackProgram);
+				numWorkgroupsX = glGetUniformLocation(redBlackProgram, "numWorkgroupsX");
+				numWorkgroupsY = glGetUniformLocation(redBlackProgram, "numWorkgroupsY");
+			}
+
+			bool valid() const
+			{
+				return Base::Uniforms::valid() && numWorkgroupsX != -1 && numWorkgroupsY != -1;	
+			}
+
+			GLint numWorkgroupsX{-1};
+			GLint numWorkgroupsY{-1};
+		};
+	};
+
+	class RedBlackSmtMethod : public BasicMethod<RebBlackSmtTraits>
+	{
+		using UnderlyingType = BasicMethod<RebBlackSmtTraits>;
+
+		static constexpr const u32 IMG0 = 0;
+		static constexpr const u32 IMG1 = 1;
+		static constexpr const u32 IMGF = 2;
+		static constexpr const u32 MASKBUFFER = 0;
+
+		static constexpr const u32 GENERAL_CASE   = 0;
+		static constexpr const u32 LR_UP_CASE     = 1;
+		static constexpr const u32 LR_DOWN_CASE   = 2;
+		static constexpr const u32 UD_LEFT_CASE   = 3;
+		static constexpr const u32 UD_RIGHT_CASE  = 4;
+		static constexpr const u32 CASES = 5;
+
+	public:
+		RedBlackSmtMethod(app::App& app, u32 workgroupSizeX, u32 workgroupSizeY, const std::string& program)
+			: UnderlyingType(app, workgroupSizeX, workgroupSizeY, program)
+		{}
+
+	public:
+		void update()
+		{
+			glUseProgram(getShaderProgramId());
+
+			startTimeQuery();
+
+			for (auto& handle : m_dataStorage) {
+				auto& data = get(handle);
+
+				glBindImageTexture(IMG0, data.iteration[0].id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
+				glBindImageTexture(IMG1, data.iteration[1].id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
+				glBindImageTexture(IMGF, data.f.id, 0, GL_FALSE, 0, GL_READ_ONLY, GL_R32F);
+
+				glUniform1f(m_uniforms.w, data.w);
+				glUniform1f(m_uniforms.hx, data.hx);
+				glUniform1f(m_uniforms.hy, data.hy);
+
+				u32 numWorkgroupsX = data.xSplit / workgroupX() + 1;
+				u32 numWorkgroupsY = data.ySplit / workgroupY() + 1;
+				
+				// TODO
 			}
 
 			endTimeQuery();
