@@ -40,27 +40,6 @@ namespace app
 	class App
 	{
 	public:
-		static constexpr int HEIGHT = 800;
-		static constexpr int WIDTH = 2 * HEIGHT;
-
-		static constexpr i32 TEST_TEXTURE_WIDTH  = 128;
-		static constexpr i32 TEST_TEXTURE_HEIGHT = 128;
-		static constexpr i32 TEST_TEXTURE_PERIOD = 16;
-
-		static constexpr i32 WORK_X = 16;
-		static constexpr i32 WORK_Y = 16;
-		
-		static constexpr i32 WX = 2047;
-		static constexpr i32 WY = 2047;
-		static constexpr i32 STEPS = 2 * 2;
-		static constexpr i32 ITERS = 1;
-
-
-		static inline std::string NAME = "computations";
-
-		static inline std::string SHADER_FOLDER = "shaders/";
-
-	public:
 		App();
 
 		App(const App&) = delete;

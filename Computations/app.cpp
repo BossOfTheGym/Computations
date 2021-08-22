@@ -4,6 +4,25 @@
 
 namespace app
 {
+	constexpr int HEIGHT = 800;
+	constexpr int WIDTH = 2 * HEIGHT;
+
+	constexpr i32 TEST_TEXTURE_WIDTH  = 128;
+	constexpr i32 TEST_TEXTURE_HEIGHT = 128;
+	constexpr i32 TEST_TEXTURE_PERIOD = 16;
+
+	constexpr i32 WORK_X = 16;
+	constexpr i32 WORK_Y = 16;
+
+	constexpr i32 WX = 2047;
+	constexpr i32 WY = 2047;
+	constexpr i32 STEPS = 2 * 2;
+	constexpr i32 ITERS = 1;
+
+	inline std::string NAME = "computations";
+	inline std::string SHADER_FOLDER = "shaders/";
+
+
 	App::App() 
 	{
 		initWindow();
@@ -133,7 +152,6 @@ namespace app
 			{"red_black", "red_black.comp"},
 			{"red_black_tiled0", "red_black_tiled0.comp"},
 			{"red_black_tiled1", "red_black_tiled1.comp"},
-			{"red_black_small_tile"}, {"red_black_small_tile.comp"}
 		};
 
 		for (auto& data : programData) {
