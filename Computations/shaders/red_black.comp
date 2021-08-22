@@ -17,8 +17,6 @@ layout(binding = 1, r32f) uniform readonly image2D f;
 
 uniform int rb;
 uniform float w;
-uniform float x0;
-uniform float y0;
 uniform float hx;
 uniform float hy;
 
@@ -27,7 +25,7 @@ shared float cache[CACHE_SIZE];
 
 int cacheFlatIndex(ivec2 indices)
 {
-	return indices[0] * CACHE_Y + indices[1] + (CACHE_Y + 1);
+	return indices.x * CACHE_Y + indices.y + (CACHE_Y + 1);
 }
 
 float cacheLoadValue(ivec2 indices)
@@ -59,22 +57,22 @@ bool inInnerDomainY(ivec2 global, ivec2 size)
 
 bool onUpperBoundaryX(ivec2 coord, ivec2 size)
 {
-	return coord[0] == size[0] - 1;
+	return coord.x == size.x - 1;
 }
 
 bool onLowerBoundaryX(ivec2 coord, ivec2 size)
 {
-	return coord[0] == 0;
+	return coord.x == 0;
 }
 
 bool onUpperBoundaryY(ivec2 coord, ivec2 size)
 {
-	return coord[1] == size[1] - 1;
+	return coord.y == size.y - 1;
 }
 
 bool onLowerBoundaryY(ivec2 coord, ivec2 size)
 {
-	return coord[1] == 0;
+	return coord.y == 0;
 }
 
 float update(float u00, float um10, float u10, float u0m1, float u01, float f00)
