@@ -60,16 +60,16 @@ void getGlobalLocalInvocationID(out ivec2 global, out ivec2 local)
 	ivec2 work = ivec2(gl_WorkGroupID.xy);
 
 	local = 2 * ivec2(gl_LocalInvocationID.xy);
-	global = local - ivec2(TRUE_STEPS) + work * TRUE_WORKGROUP;
+	global = local - TRUE_STEPS + work * TRUE_WORKGROUP;
 }
 
+// step function
 int getCurrStep()
 {
 	int dx1 = int(gl_LocalInvocationID.x);
 	int dy1 = int(gl_LocalInvocationID.y);
 	int dx2 = (WORKGROUP_X_OVERLAP - 1) - dx1;
 	int dy2 = (WORKGROUP_Y_OVERLAP - 1) - dy1;
-
 	return min(min(dx1, dy1), min(dx2, dy2));
 }
 
@@ -193,6 +193,7 @@ void main()
 	}
 	
 	if (steps >= 0) {
+		// out of bound writes are ignored
 		imageStore(solution[curr ^ 1], global              , vec4(cacheLoadValue(local              )));
 		imageStore(solution[curr ^ 1], global + ivec2(1, 0), vec4(cacheLoadValue(local + ivec2(1, 0))));
 		imageStore(solution[curr ^ 1], global + ivec2(0, 1), vec4(cacheLoadValue(local + ivec2(0, 1))));
