@@ -114,6 +114,7 @@ void main()
 			cacheStoreValue(local + ivec2(-1, 0), imageLoad(solution, global + ivec2(-1, 0)).x);
 		}
 	}
+
 	barrier();
 	memoryBarrierShared();
 
@@ -123,7 +124,8 @@ void main()
 	float u0m1 = cacheLoadValue(local + ivec2(0, -1));
 	float u01  = cacheLoadValue(local + ivec2(0, +1));
 
+	u00 = update(u00, um10, u10, u0m1, u01, f00);
 	if ((global.x + global.y & 0x1) != rb && innerX && innerY) {
-		imageStore(solution, global, vec4(update(u00, um10, u10, u0m1, u01, f00)));
+		imageStore(solution, global, vec4(u00));
 	}
 }
