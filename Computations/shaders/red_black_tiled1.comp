@@ -108,10 +108,10 @@ void main()
 
 	ivec2 size = imageSize(solution[curr]);
 
-	bool u00Updateable = inBounds(global              , size) && !onBoundary(global              , size);
-	bool u10Updateable = inBounds(global + ivec2(1, 0), size) && !onBoundary(global + ivec2(1, 0), size);
-	bool u01Updateable = inBounds(global + ivec2(0, 1), size) && !onBoundary(global + ivec2(0, 1), size);
-	bool u11Updateable = inBounds(global + ivec2(1, 1), size) && !onBoundary(global + ivec2(1, 1), size);
+	float u00Updateable = float(inBounds(global              , size) && !onBoundary(global              , size));
+	float u10Updateable = float(inBounds(global + ivec2(1, 0), size) && !onBoundary(global + ivec2(1, 0), size));
+	float u01Updateable = float(inBounds(global + ivec2(0, 1), size) && !onBoundary(global + ivec2(0, 1), size));
+	float u11Updateable = float(inBounds(global + ivec2(1, 1), size) && !onBoundary(global + ivec2(1, 1), size));
 
 	int steps = (inBounds(global, size) ? getCurrStep() : -1);
 
@@ -119,7 +119,7 @@ void main()
 	float f01, f11;
 	float f00, f10;
 
-	// loads either value or zero if out of bounds
+	// loads either value or zero if out of bounds (check optimized out)
 	f00 = imageLoad(f, global              ).x; 
 	f10 = imageLoad(f, global + ivec2(1, 0)).x;
 	f01 = imageLoad(f, global + ivec2(0, 1)).x;
@@ -129,7 +129,7 @@ void main()
 	float u01, u11;
 	float u00, u10;
 
-	// loads either value or zero if out of bounds
+	// loads either value or zero if out of bounds (check optimized out)
 	u00 = imageLoad(solution[curr], global              ).x;
 	u10 = imageLoad(solution[curr], global + ivec2(1, 0)).x;
 	u01 = imageLoad(solution[curr], global + ivec2(0, 1)).x;
@@ -153,19 +153,16 @@ void main()
 		float u02  = cacheLoadValue(local + ivec2( 0, 2)); // top
 		float um11 = cacheLoadValue(local + ivec2(-1, 1)); // left
 
-		if (steps >= 0) {
-			float u10_new = update(u10, u00, u20, u1m1, u11, f10);
-			if (u10Updateable) {
-				u10 = u10_new;
-			}
-			cacheStoreValue(local + ivec2(1, 0), u10);
+		float u10_new = update(u10, u00, u20, u1m1, u11, f10);
+		float u01_new = update(u01, um11, u11, u00, u02, f01);
 
-			float u01_new = update(u01, um11, u11, u00, u02, f01);
-			if (u01Updateable) {
-				u01 = u01_new;
-			}
+		u10 = u10 + (u10_new - u10) * u10Updateable;
+		u01 = u01 + (u01_new - u01) * u01Updateable;
+		if (steps >= 0) {
+			cacheStoreValue(local + ivec2(1, 0), u10);
 			cacheStoreValue(local + ivec2(0, 1), u01);
 		}
+
 		barrier();
 		memoryBarrierShared();
 
@@ -176,19 +173,16 @@ void main()
 		float u12 = cacheLoadValue(local + ivec2(1, 2)); // top
 		float u21 = cacheLoadValue(local + ivec2(2, 1)); // right
 
-		if (steps > 0)	{
-			float u00_new = update(u00, um10, u10, u0m1, u01, f00);
-			if (u00Updateable) {
-				u00 = u00_new;
-			}
-			cacheStoreValue(local + ivec2(0, 0), u00);
+		float u00_new = update(u00, um10, u10, u0m1, u01, f00);
+		float u11_new = update(u11, u01, u21, u10, u12, f11);
 
-			float u11_new = update(u11, u01, u21, u10, u12, f11);
-			if (u11Updateable) {
-				u11 = u11_new;
-			}
+		u00 = u00 + (u00_new - u00) * u00Updateable;
+		u11 = u11 + (u11_new - u11) * u11Updateable;
+		if (steps > 0)	{
+			cacheStoreValue(local + ivec2(0, 0), u00);
 			cacheStoreValue(local + ivec2(1, 1), u11);
 		}
+
 		barrier();
 		memoryBarrierShared();
 	}
