@@ -140,7 +140,7 @@ void main()
 	cacheStoreValue(local + ivec2(1, 0), u10);
 	cacheStoreValue(local + ivec2(0, 1), u01);
 	cacheStoreValue(local + ivec2(1, 1), u11);
-	
+
 	barrier();
 	memoryBarrierShared();
 	
@@ -187,11 +187,10 @@ void main()
 		memoryBarrierShared();
 	}
 	
-	if (steps >= 0) {
-		// out of bound writes are ignored
-		imageStore(solution[curr ^ 1], global              , vec4(cacheLoadValue(local              )));
-		imageStore(solution[curr ^ 1], global + ivec2(1, 0), vec4(cacheLoadValue(local + ivec2(1, 0))));
-		imageStore(solution[curr ^ 1], global + ivec2(0, 1), vec4(cacheLoadValue(local + ivec2(0, 1))));
-		imageStore(solution[curr ^ 1], global + ivec2(1, 1), vec4(cacheLoadValue(local + ivec2(1, 1))));
+	if (steps >= 0) { // out of bound writes are ignored, u[01][01] are already updated
+		imageStore(solution[curr ^ 1], global              , vec4(u00));
+		imageStore(solution[curr ^ 1], global + ivec2(1, 0), vec4(u10));
+		imageStore(solution[curr ^ 1], global + ivec2(0, 1), vec4(u01));
+		imageStore(solution[curr ^ 1], global + ivec2(1, 1), vec4(u11));
 	}
 }
