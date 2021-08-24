@@ -125,6 +125,7 @@ void main()
 	f01 = imageLoad(f, global + ivec2(0, 1)).x;
 	f11 = imageLoad(f, global + ivec2(1, 1)).x;
 
+	// solution data
 	float u01, u11;
 	float u00, u10;
 
@@ -134,12 +135,12 @@ void main()
 	u01 = imageLoad(solution[curr], global + ivec2(0, 1)).x;
 	u11 = imageLoad(solution[curr], global + ivec2(1, 1)).x;
 
-	if (steps >= 0) {
-		cacheStoreValue(local              , u00);
-		cacheStoreValue(local + ivec2(1, 0), u10);
-		cacheStoreValue(local + ivec2(0, 1), u01);
-		cacheStoreValue(local + ivec2(1, 1), u11);
-	}
+	// cache store
+	cacheStoreValue(local              , u00);
+	cacheStoreValue(local + ivec2(1, 0), u10);
+	cacheStoreValue(local + ivec2(0, 1), u01);
+	cacheStoreValue(local + ivec2(1, 1), u11);
+	
 	barrier();
 	memoryBarrierShared();
 	
