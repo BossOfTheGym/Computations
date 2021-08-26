@@ -23,7 +23,9 @@ namespace dir2d
 	// TODO : template to check if Uniform type satisfies required conditions
 	// TODO : template to check if Data type satisfies required condition
 	// TODO : smart handle must return data bundle: domain info and texture id
-
+	// TODO : refactor : shader program should not be part of method
+	// TODO : refactor : decouple time measurement class
+	 
 	// Data accosiated with a given problem
 	// div(grad(u)) = f
 	// u(boundary) = g
@@ -817,17 +819,10 @@ namespace dir2d
 	{
 		using UnderlyingType = BasicMethod<RebBlackSmtTraits>;
 
-		static constexpr const u32 IMG0 = 0;
-		static constexpr const u32 IMG1 = 1;
-		static constexpr const u32 IMGF = 2;
-		static constexpr const u32 MASKBUFFER = 0;
-
-		static constexpr const u32 GENERAL_CASE   = 0;
-		static constexpr const u32 LR_UP_CASE     = 1;
-		static constexpr const u32 LR_DOWN_CASE   = 2;
-		static constexpr const u32 UD_LEFT_CASE   = 3;
-		static constexpr const u32 UD_RIGHT_CASE  = 4;
-		static constexpr const u32 CASES = 5;
+		static constexpr const u32 IMG0 = 0; // solution[0]
+		static constexpr const u32 IMG1 = 1; // solution[1]
+		static constexpr const u32 IMGF = 2; // f
+		static constexpr const u32 IMGI = 3; // intermediate
 
 	public:
 		RedBlackSmtMethod(app::App& app, u32 workgroupSizeX, u32 workgroupSizeY, const std::string& program)
@@ -856,6 +851,7 @@ namespace dir2d
 				u32 numWorkgroupsY = data.ySplit / workgroupY() + 1;
 				
 				// TODO
+				// TODO : barriers : txture & buffer
 			}
 
 			endTimeQuery();

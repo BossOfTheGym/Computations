@@ -63,14 +63,17 @@ void getGlobalLocalInvocationID(out ivec2 global, out ivec2 local)
 	global = local - TRUE_STEPS + work * TRUE_WORKGROUP;
 }
 
-// step function
+// step function, in fact return signed distance to the frame defined by start coord and end coord
+int stepFunction(ivec2 coord, ivec2 start, ivec2 end)
+{
+	ivec2 dc1 = coord - start;
+	ivec2 dc2 = end - coord;
+	return min(min(dc1.x, dc1.y), min(dc2.x, dc2.y));
+}
+
 int getCurrStep()
 {
-	int dx1 = int(gl_LocalInvocationID.x);
-	int dy1 = int(gl_LocalInvocationID.y);
-	int dx2 = (WORKGROUP_X_OVERLAP - 1) - dx1;
-	int dy2 = (WORKGROUP_Y_OVERLAP - 1) - dy1;
-	return min(min(dx1, dy1), min(dx2, dy2));
+	return stepFunction(ivec2(gl_LocalInvocationID.xy), ivec2(0), WORKGROUP_OVERLAP - 1);
 }
 
 // some invocation parameters
