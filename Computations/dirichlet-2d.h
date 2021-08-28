@@ -22,10 +22,13 @@ namespace dir2d
 	// TODO : attach WORKGROUP consts to shaders
 	// TODO : template to check if Uniform type satisfies required conditions
 	// TODO : template to check if Data type satisfies required condition
+	// 
 	// TODO : smart handle must return data bundle: domain info and texture id
+	// 
 	// TODO : refactor : shader program should not be part of method
 	// TODO : refactor : decouple time measurement class
-	 
+	// TODO : refactor split this shit up
+	// 
 	// Data accosiated with a given problem
 	// div(grad(u)) = f
 	// u(boundary) = g
