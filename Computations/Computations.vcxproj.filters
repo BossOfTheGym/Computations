@@ -139,5 +139,11 @@
     <None Include="shaders\red_black_small_tile.comp">
       <Filter>shaders</Filter>
     </None>
+    <None Include="shaders\red_black_smtm_st0.comp">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\red_black_smtm_st1.comp">
+      <Filter>shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
