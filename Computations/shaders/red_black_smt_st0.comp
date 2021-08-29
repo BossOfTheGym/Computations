@@ -71,13 +71,13 @@ void cacheStoreValue(ivec2 indices, float value)
 #define CORNERS_SIZE (CORNER_CELLS * CORNERS)
 // buffer containing right, top, left and bottom values on the last iteration
 // size = numWorkgroupsX * numWorkgroupsY * CORNERS_SIZE
-layout(binding = 0, std430) uniform buffer Corners
+layout(binding = 0, std430) buffer Corners
 {
 	float corners[];
 };
 
 // returns flat index of corners[work.x][work.y][corner][0]
-void cornersFlatIndex(ivec2 work, int corner)
+int cornersFlatIndex(ivec2 work, int corner)
 {
 	return ((work.x * numWorkgroupsY + work.y) * CORNERS + corner) * CORNER_CELLS;
 }
@@ -110,10 +110,10 @@ int whatCorner()
 {
 	ivec2 index = ivec2(gl_LocalInvocationID.xy);
 	int corner = -1;
-	corner = all(equals(index, ivec2(STEPS + WORKGROUP_X, STEPS - 1))) ? RIGHT : corner;
-	corner = all(equals(index, ivec2(STEPS + WORKGROUP_X - 1, STEPS + WORKGROUP_Y))) ? TOP : corner;;
-	corner = all(equals(index, ivec2(STEPS - 1, STEPS + WORKGROUP_Y - 1))) ? LEFT : corner;
-	corner = all(equals(index, ivec2(STEPS, STEPS - 1))) ? BOTTOM : corner;
+	corner = all(equal(index, ivec2(STEPS + WORKGROUP_X, STEPS))) ? RIGHT : corner;
+	corner = all(equal(index, ivec2(STEPS + WORKGROUP_X - 1, STEPS + WORKGROUP_Y))) ? TOP : corner;
+	corner = all(equal(index, ivec2(STEPS - 1, STEPS + WORKGROUP_Y - 1))) ? LEFT : corner;
+	corner = all(equal(index, ivec2(STEPS, STEPS - 1))) ? BOTTOM : corner;
 	return corner;
 }
 
@@ -134,6 +134,7 @@ void getGlobalLocalInvocationID(in ivec2 work, out ivec2 global, out ivec2 local
 }
 
 // step function, in fact return signed distance to the frame defined by start coord and end coord
+// distance measured from inside
 int stepFunction(ivec2 coord, ivec2 start, ivec2 end)
 {
 	ivec2 dc1 = coord - start;

@@ -69,16 +69,18 @@ void cacheStoreValue(ivec2 indices, float value)
 #define CORNERS 4
 #define CORNERS_SIZE (CORNER_CELLS * CORNERS)
 // buffer containing right, top, left and bottom values on the last iteration
-// size = numWorkgroupsX * numWorkgroupsY * CORNERS_SIZE
-layout(binding = 0, std430) uniform buffer Corners
+// size = (numWorkgroupsX + 2) * (numWorkgroupsY + 2) * CORNERS_SIZE
+// padded to avoid out-of-bound access
+layout(binding = 0, std430) buffer Corners
 {
 	float corners[];
 };
 
 // returns flat index of corners[work.x][work.y][corner][0]
-void cornersFlatIndex(ivec2 work, int corner)
+int cornersFlatIndex(ivec2 work, int corner)
 {
-	return ((work.x * numWorkgroupsY + work.y) * CORNERS + corner) * CORNER_CELLS;
+	work += 1; // padding
+	return ((work.x * (numWorkgroupsY + 2) + work.y) * CORNERS + corner) * CORNER_CELLS;
 }
 
 void loadCorners(
@@ -105,16 +107,19 @@ void storeCorners(
 	corners[i + 3] = c11;
 }
 
-int whatCorner()
+// returns ivec3(corner, workDeltaX, workDeltaY)
+ivec3 whatCorner()
 {
 	ivec2 index = ivec2(gl_LocalInvocationID.xy);
-	int corner = -1;
-	corner = all(equals(index, ivec2(STEPS + WORKGROUP_X, STEPS - 1))) ? RIGHT : corner;
-	corner = all(equals(index, ivec2(STEPS + WORKGROUP_X - 1, STEPS + WORKGROUP_Y))) ? TOP : corner;;
-	corner = all(equals(index, ivec2(STEPS - 1, STEPS + WORKGROUP_Y - 1))) ? LEFT : corner;
-	corner = all(equals(index, ivec2(STEPS, STEPS - 1))) ? BOTTOM : corner;
-	return corner;
+	ivec3 data = ivec3(-1);
+	data = all(equal(index, ivec2(WORKGROUP_X, 0))) ? ivec3(BOTTOM, 1, 0) : data;
+	data = all(equal(index, ivec2(WORKGROUP_X, WORKGROUP_Y))) ? ivec3(RIGHT, 0, 1) : data;
+	data = all(equal(index, ivec2(0, WORKGROUP_Y))) ? ivec3(TOP, -1, 0) : data;
+	data = all(equal(index, ivec2(0, 0))) ? ivec3(LEFT, 0, -1) : data;
+	return data;
 }
+
+
 
 // recalculate workgroup id (checkerboard pattern)
 void getWorkgroupID(out ivec2 work)
@@ -132,6 +137,7 @@ void getGlobalLocalInvocationID(in ivec2 work, out ivec2 global, out ivec2 local
 }
 
 // step function, in fact return signed distance to the frame defined by start coord and end coord
+// distance measured from inside
 int stepFunction(ivec2 coord, ivec2 start, ivec2 end)
 {
 	ivec2 dc1 = coord - start;
@@ -144,18 +150,20 @@ int getCurrStep(ivec2 work)
 	ivec2 local = ivec2(gl_LocalInvocationID.xy);
 	ivec2 r0 = ivec2(STEPS) - 1;
 	ivec2 r1 = WORKGROUP - STEPS + 1;
-	if (work.x == numWorkgroupX - 1) {
-
+	if (work.x == numWorkgroupsX - 1) {
+		r1.x = WORKGROUP_X;
 	}
 	if (work.x == 0) {
-
+		r0.x = 0;
 	}
-	if (work.y == numWorkgroupY - 1) {
-
+	if (work.y == numWorkgroupsY - 1) {
+		r1.y = WORKGROUP_Y;
 	}
 	if (work.y == 0) {
-
+		r0.y = 0;
 	}
+	r0 += 1;
+	r1 += 1;
 	return stepFunction(local, r0, r1);
 }
 
@@ -186,7 +194,6 @@ float update(float u00, float um10, float u10, float u0m1, float u01, float f00)
 	return (1.0 - w) * u00 + w * u;
 }
 
-// TODO : modify
 void main()
 {
 	// some invocation's parameters
@@ -201,10 +208,8 @@ void main()
 	float u01Updateable = float(inBounds(global + ivec2(0, 1), size) && !onBoundary(global + ivec2(0, 1), size));
 	float u11Updateable = float(inBounds(global + ivec2(1, 1), size) && !onBoundary(global + ivec2(1, 1), size));
 
-	bool onFlowerLeavePred = onFlowerLeave(work);
-	bool onFlowerPred = inMainRegion() || onFlowerLeavePred;
-
-	int steps = (inBounds(global, size) ? getCurrStep() : -1);
+	int steps = (inBounds(global, size) ? getCurrStep(work) : -STEPS - 1);
+	ivec3 corner = whatCorner();
 
 	// cache data
 	float f01, f11;
@@ -216,14 +221,16 @@ void main()
 	f01 = imageLoad(f, global + ivec2(0, 1)).x;
 	f11 = imageLoad(f, global + ivec2(1, 1)).x;
 
-	float u01, u11;
-	float u00, u10;
+	float u01 = 0, u11 = 0;
+	float u00 = 0, u10 = 0;
 
 	// loads either value or zero if out of bounds
-	u00 = imageLoad(solution[curr], global              ).x;
-	u10 = imageLoad(solution[curr], global + ivec2(1, 0)).x;
-	u01 = imageLoad(solution[curr], global + ivec2(0, 1)).x;
-	u11 = imageLoad(solution[curr], global + ivec2(1, 1)).x;
+	if (steps >= 0) {
+		u00 = imageLoad(solution[curr], global              ).x;
+		u10 = imageLoad(solution[curr], global + ivec2(1, 0)).x;
+		u01 = imageLoad(solution[curr], global + ivec2(0, 1)).x;
+		u11 = imageLoad(solution[curr], global + ivec2(1, 1)).x;
+	}
 
 	// cache store
 	cacheStoreValue(local              , u00);
@@ -235,12 +242,27 @@ void main()
 	memoryBarrierShared();
 	
 	// computations	
-	for (int i = 1; i <= STEPS; i++, steps--) {
+	for (int i = 1; i <= STEPS; i++, steps++) {
 		// load intermediate values
-		// TODO : load
+		if (steps == -1) {
+			u00 = imageLoad(intermediate, global              ).x;
+			u10 = imageLoad(intermediate, global + ivec2(1, 0)).x;
+			u01 = imageLoad(intermediate, global + ivec2(0, 1)).x;
+			u11 = imageLoad(intermediate, global + ivec2(1, 1)).x;
+		}
 
 		// load corners if last iteration
-		// TODO : 
+		if (i == STEPS && corner.x != -1) {
+			loadCorners(work + corner.yz, corner.x, u00, u10, u01, u11);
+		}
+
+		cacheStoreValue(local              , u00);
+		cacheStoreValue(local + ivec2(1, 0), u10);
+		cacheStoreValue(local + ivec2(0, 1), u01);
+		cacheStoreValue(local + ivec2(1, 1), u11);
+
+		barrier();
+		memoryBarrierShared();
 
 		// black update
 		float u20  = cacheLoadValue(local + ivec2(2,  0)); // right
@@ -254,7 +276,7 @@ void main()
 
 		u10 = u10 + (u10_new - u10) * u10Updateable;
 		u01 = u01 + (u01_new - u01) * u01Updateable;
-		if (steps >= 0) {
+		if (steps >= -1) {
 			cacheStoreValue(local + ivec2(1, 0), u10);
 			cacheStoreValue(local + ivec2(0, 1), u01);
 		}
@@ -274,17 +296,30 @@ void main()
 
 		u00 = u00 + (u00_new - u00) * u00Updateable;
 		u11 = u11 + (u11_new - u11) * u11Updateable;
-		if (steps > 0)	{
+		if (steps > -1)	{
 			cacheStoreValue(local + ivec2(0, 0), u00);
 			cacheStoreValue(local + ivec2(1, 1), u11);
 		}
+
+		// load next iter
+		if (i != STEPS && steps == -1) {
+			u00 = imageLoad(solution[curr ^ 1], global              ).x;
+			u10 = imageLoad(solution[curr ^ 1], global + ivec2(1, 0)).x;
+			u01 = imageLoad(solution[curr ^ 1], global + ivec2(0, 1)).x;
+			u11 = imageLoad(solution[curr ^ 1], global + ivec2(1, 1)).x;
+		}
+
+		cacheStoreValue(local              , u00);
+		cacheStoreValue(local + ivec2(1, 0), u10);
+		cacheStoreValue(local + ivec2(0, 1), u01);
+		cacheStoreValue(local + ivec2(1, 1), u11);
 
 		barrier();
 		memoryBarrierShared();
 	}
 	
-	// predicate describes whole domain
-	if (steps >= 0 || onFlowerLeavePred) { // out of bound writes are ignored, u[01][01] are already updated
+	// store updated value
+	if (steps > 0) { // out of bound writes are ignored, u[01][01] are already updated
 		imageStore(solution[curr ^ 1], global              , vec4(u00));
 		imageStore(solution[curr ^ 1], global + ivec2(1, 0), vec4(u10));
 		imageStore(solution[curr ^ 1], global + ivec2(0, 1), vec4(u01));
