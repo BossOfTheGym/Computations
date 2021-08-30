@@ -11,7 +11,6 @@
 #include "graphics-res.h"
 #include "graphics-res-util.h"
 #include "main-window.h"
-#include "dirichlet-2d.h"
 #include "dirichlet_system.h"
 
 #include <entt/entity/storage.hpp>

@@ -40,6 +40,12 @@
     <Filter Include="storage">
       <UniqueIdentifier>{101b48eb-7081-46fb-9f36-a08316e39ee4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="dirichlet\headers">
+      <UniqueIdentifier>{0c82ba62-ccae-4775-8ad8-c315a11bf38a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dirichlet\sources">
+      <UniqueIdentifier>{912721c4-2b3b-4773-8b51-eea76ce3ebdb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glfw-cxx\sources\glfw3.cpp">
@@ -63,6 +69,24 @@
     <ClCompile Include="app.cpp">
       <Filter>main\sources</Filter>
     </ClCompile>
+    <ClCompile Include="dirichlet\jacoby.cpp">
+      <Filter>dirichlet\sources</Filter>
+    </ClCompile>
+    <ClCompile Include="dirichlet\red_black.cpp">
+      <Filter>dirichlet\sources</Filter>
+    </ClCompile>
+    <ClCompile Include="dirichlet\red_black_smt.cpp">
+      <Filter>dirichlet\sources</Filter>
+    </ClCompile>
+    <ClCompile Include="dirichlet\red_black_smtm.cpp">
+      <Filter>dirichlet\sources</Filter>
+    </ClCompile>
+    <ClCompile Include="dirichlet\red_black_tiled.cpp">
+      <Filter>dirichlet\sources</Filter>
+    </ClCompile>
+    <ClCompile Include="dirichlet\time_query.cpp">
+      <Filter>dirichlet\sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="glfw-cxx\glfw3.h">
@@ -79,9 +103,6 @@
     </ClInclude>
     <ClInclude Include="graphics-res-util.h">
       <Filter>gl-cxx\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="dirichlet-2d.h">
-      <Filter>dirichlet</Filter>
     </ClInclude>
     <ClInclude Include="handle.h">
       <Filter>handle</Filter>
@@ -113,6 +134,27 @@
     <ClInclude Include="gl-state-info.h">
       <Filter>gl-cxx\headers</Filter>
     </ClInclude>
+    <ClInclude Include="dirichlet\dirichlet-2d.h">
+      <Filter>dirichlet\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="dirichlet\jacoby.h">
+      <Filter>dirichlet\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="dirichlet\red_black.h">
+      <Filter>dirichlet\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="dirichlet\red_black_smt.h">
+      <Filter>dirichlet\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="dirichlet\red_black_smtm.h">
+      <Filter>dirichlet\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="dirichlet\red_black_tiled.h">
+      <Filter>dirichlet\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="dirichlet\time_query.h">
+      <Filter>dirichlet\headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\quad.frag">
@@ -140,6 +182,12 @@
       <Filter>shaders</Filter>
     </None>
     <None Include="shaders\red_black_smtm_st1.comp">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\red_black_smt_st0.comp">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\red_black_smt_st1.comp">
       <Filter>shaders</Filter>
     </None>
   </ItemGroup>

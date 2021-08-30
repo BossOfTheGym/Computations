@@ -1,5 +1,4 @@
 #pragma once
-#pragma once
 
 #include <cmath>
 #include <memory>
@@ -7,12 +6,12 @@
 #include <algorithm>
 #include <exception>
 
-#include "core.h"
-#include "handle.h"
-#include "handle-pool.h"
-#include "storage.h"
-#include "graphics-res-util.h"
-#include "app-system.h"
+#include <core.h>
+#include <handle.h>
+#include <handle-pool.h>
+#include <storage.h>
+#include <graphics-res-util.h>
+#include <app-system.h>
 
 
 namespace dir2d

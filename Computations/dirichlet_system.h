@@ -2,6 +2,7 @@
 
 #include "app-system.h"
 #include "element_registry.h"
+#include <dirichlet/dirichlet-2d.h>
 
 namespace app
 {
