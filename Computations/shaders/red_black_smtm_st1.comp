@@ -147,7 +147,6 @@ void main()
 	float u11Updateable = float(inBounds(global + ivec2(1, 1), size) && !onBoundary(global + ivec2(1, 1), size));
 
 	int steps = (inBounds(global, size) ? getCurrStep(work) : -STEPS - 1);
-	ivec3 corner = whatCorner();
 
 	// cache data
 	float f01, f11;
