@@ -60,12 +60,6 @@
     <ClCompile Include="main-window.cpp">
       <Filter>main\sources</Filter>
     </ClCompile>
-    <ClCompile Include="graphics-res.cpp">
-      <Filter>gl-cxx\sources</Filter>
-    </ClCompile>
-    <ClCompile Include="graphics-res-util.cpp">
-      <Filter>gl-cxx\sources</Filter>
-    </ClCompile>
     <ClCompile Include="app.cpp">
       <Filter>main\sources</Filter>
     </ClCompile>
@@ -87,6 +81,30 @@
     <ClCompile Include="dirichlet\time_query.cpp">
       <Filter>dirichlet\sources</Filter>
     </ClCompile>
+    <ClCompile Include="gl-cxx\gl-res.cpp">
+      <Filter>gl-cxx\sources</Filter>
+    </ClCompile>
+    <ClCompile Include="gl-cxx\gl-res-util.cpp">
+      <Filter>gl-cxx\sources</Filter>
+    </ClCompile>
+    <ClCompile Include="gl-cxx\gl-state-info.cpp">
+      <Filter>gl-cxx\sources</Filter>
+    </ClCompile>
+    <ClCompile Include="dirichlet\dirichlet_dataaabb2d.cpp">
+      <Filter>dirichlet\sources</Filter>
+    </ClCompile>
+    <ClCompile Include="dirichlet\dirichlet_domainaabb2d.cpp">
+      <Filter>dirichlet\sources</Filter>
+    </ClCompile>
+    <ClCompile Include="dirichlet\dirichlet_handle.cpp">
+      <Filter>dirichlet\sources</Filter>
+    </ClCompile>
+    <ClCompile Include="dirichlet\dirichlet_util.cpp">
+      <Filter>dirichlet\sources</Filter>
+    </ClCompile>
+    <ClCompile Include="GlslPreprocessor.cpp">
+      <Filter>main\sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="glfw-cxx\glfw3.h">
@@ -94,15 +112,6 @@
     </ClInclude>
     <ClInclude Include="glfw-cxx\opengl-loader.h">
       <Filter>glfw-cxx\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="gl-header.h">
-      <Filter>gl-cxx\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="graphics-res.h">
-      <Filter>gl-cxx\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="graphics-res-util.h">
-      <Filter>gl-cxx\headers</Filter>
     </ClInclude>
     <ClInclude Include="handle.h">
       <Filter>handle</Filter>
@@ -131,9 +140,6 @@
     <ClInclude Include="element_registry.h">
       <Filter>main\headers</Filter>
     </ClInclude>
-    <ClInclude Include="gl-state-info.h">
-      <Filter>gl-cxx\headers</Filter>
-    </ClInclude>
     <ClInclude Include="dirichlet\dirichlet-2d.h">
       <Filter>dirichlet\headers</Filter>
     </ClInclude>
@@ -155,6 +161,48 @@
     <ClInclude Include="dirichlet\time_query.h">
       <Filter>dirichlet\headers</Filter>
     </ClInclude>
+    <ClInclude Include="gl-cxx\gl-header.h">
+      <Filter>gl-cxx\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="gl-cxx\gl-res.h">
+      <Filter>gl-cxx\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="gl-cxx\gl-res-util.h">
+      <Filter>gl-cxx\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="gl-cxx\gl-state-info.h">
+      <Filter>gl-cxx\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="gl-cxx\gl-types.h">
+      <Filter>gl-cxx\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="gl-cxx\gl-fwd.h">
+      <Filter>gl-cxx\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="dirichlet\dirichlet_dataaabb2d.h">
+      <Filter>dirichlet\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="dirichlet\dirichlet_domainaabb2d.h">
+      <Filter>dirichlet\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="dirichlet\dirichlet_fwd.h">
+      <Filter>dirichlet\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="dirichlet\dirichlet_function.h">
+      <Filter>dirichlet\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="dirichlet\dirichlet_handle.h">
+      <Filter>dirichlet\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="dirichlet\dirichlet_util.h">
+      <Filter>dirichlet\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="dirichlet\resource_provider.h">
+      <Filter>dirichlet\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="GlslPreprocessor.h">
+      <Filter>main\headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\quad.frag">
@@ -172,12 +220,6 @@
     <None Include="shaders\red_black.comp">
       <Filter>shaders</Filter>
     </None>
-    <None Include="shaders\red_black_tiled0.comp">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="shaders\red_black_tiled1.comp">
-      <Filter>shaders</Filter>
-    </None>
     <None Include="shaders\red_black_smtm_st0.comp">
       <Filter>shaders</Filter>
     </None>
@@ -188,6 +230,15 @@
       <Filter>shaders</Filter>
     </None>
     <None Include="shaders\red_black_smt_st1.comp">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\red_black_smt_s.comp">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\red_black_smtm_s.comp">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\red_black_tiled.comp">
       <Filter>shaders</Filter>
     </None>
   </ItemGroup>

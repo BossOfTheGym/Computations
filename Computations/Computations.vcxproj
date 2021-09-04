@@ -146,16 +146,22 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="app.cpp" />
+    <ClCompile Include="dirichlet\dirichlet_dataaabb2d.cpp" />
+    <ClCompile Include="dirichlet\dirichlet_domainaabb2d.cpp" />
+    <ClCompile Include="dirichlet\dirichlet_handle.cpp" />
+    <ClCompile Include="dirichlet\dirichlet_util.cpp" />
     <ClCompile Include="dirichlet\jacoby.cpp" />
     <ClCompile Include="dirichlet\red_black.cpp" />
     <ClCompile Include="dirichlet\red_black_smt.cpp" />
     <ClCompile Include="dirichlet\red_black_smtm.cpp" />
     <ClCompile Include="dirichlet\red_black_tiled.cpp" />
     <ClCompile Include="dirichlet\time_query.cpp" />
+    <ClCompile Include="gl-cxx\gl-res-util.cpp" />
+    <ClCompile Include="gl-cxx\gl-res.cpp" />
+    <ClCompile Include="gl-cxx\gl-state-info.cpp" />
     <ClCompile Include="glfw-cxx\sources\glfw3.cpp" />
     <ClCompile Include="glfw-cxx\sources\opengl-loader.cpp" />
-    <ClCompile Include="graphics-res-util.cpp" />
-    <ClCompile Include="graphics-res.cpp" />
+    <ClCompile Include="GlslPreprocessor.cpp" />
     <ClCompile Include="main-window.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
@@ -164,19 +170,29 @@
     <ClInclude Include="app.h" />
     <ClInclude Include="core.h" />
     <ClInclude Include="dirichlet\dirichlet-2d.h" />
+    <ClInclude Include="dirichlet\dirichlet_dataaabb2d.h" />
+    <ClInclude Include="dirichlet\dirichlet_domainaabb2d.h" />
+    <ClInclude Include="dirichlet\dirichlet_function.h" />
+    <ClInclude Include="dirichlet\dirichlet_fwd.h" />
+    <ClInclude Include="dirichlet\dirichlet_handle.h" />
+    <ClInclude Include="dirichlet\dirichlet_util.h" />
     <ClInclude Include="dirichlet\jacoby.h" />
     <ClInclude Include="dirichlet\red_black.h" />
     <ClInclude Include="dirichlet\red_black_smt.h" />
     <ClInclude Include="dirichlet\red_black_smtm.h" />
     <ClInclude Include="dirichlet\red_black_tiled.h" />
+    <ClInclude Include="dirichlet\resource_provider.h" />
     <ClInclude Include="dirichlet\time_query.h" />
     <ClInclude Include="dirichlet_system.h" />
-    <ClInclude Include="gl-header.h" />
-    <ClInclude Include="gl-state-info.h" />
+    <ClInclude Include="gl-cxx\gl-fwd.h" />
+    <ClInclude Include="gl-cxx\gl-header.h" />
+    <ClInclude Include="gl-cxx\gl-res-util.h" />
+    <ClInclude Include="gl-cxx\gl-res.h" />
+    <ClInclude Include="gl-cxx\gl-state-info.h" />
+    <ClInclude Include="gl-cxx\gl-types.h" />
     <ClInclude Include="glfw-cxx\glfw3.h" />
     <ClInclude Include="glfw-cxx\opengl-loader.h" />
-    <ClInclude Include="graphics-res-util.h" />
-    <ClInclude Include="graphics-res.h" />
+    <ClInclude Include="GlslPreprocessor.h" />
     <ClInclude Include="handle-pool.h" />
     <ClInclude Include="handle.h" />
     <ClInclude Include="main-window.h" />
@@ -188,12 +204,13 @@
     <None Include="shaders\quad.frag" />
     <None Include="shaders\quad.vert" />
     <None Include="shaders\red_black.comp" />
+    <None Include="shaders\red_black_smtm_s.comp" />
     <None Include="shaders\red_black_smtm_st0.comp" />
     <None Include="shaders\red_black_smtm_st1.comp" />
+    <None Include="shaders\red_black_smt_s.comp" />
     <None Include="shaders\red_black_smt_st0.comp" />
     <None Include="shaders\red_black_smt_st1.comp" />
-    <None Include="shaders\red_black_tiled0.comp" />
-    <None Include="shaders\red_black_tiled1.comp" />
+    <None Include="shaders\red_black_tiled.comp" />
     <None Include="shaders\test_compute.comp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
