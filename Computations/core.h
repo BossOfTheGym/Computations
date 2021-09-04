@@ -1,7 +1,10 @@
 #pragma once
 
-#include <cstdint>
 #include <cmath>
+#include <limits>
+#include <cstdint>
+
+using uint = unsigned int;
 
 using i16 = std::int16_t;
 using u16 = std::uint16_t;

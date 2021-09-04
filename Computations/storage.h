@@ -2,9 +2,10 @@
 
 #include "handle.h"
 
-#include <utility>
-#include <type_traits>
 #include <vector>
+#include <utility>
+#include <cassert>
+#include <type_traits>
 
 
 class SparseSet
@@ -18,13 +19,11 @@ protected:
 			m_sparse.resize(handle + 1);
 			for (; size < m_sparse.size(); size++)
 			{
-				m_sparse[size] = null;
+				m_sparse[size] = null_handle;
 			}
 		}
 	}
 
-
-protected:
 	Handle index(Handle handle) const
 	{
 		return m_sparse[handle];
@@ -33,7 +32,7 @@ protected:
 	void add(Handle handle)
 	{
 		assure(handle);
-		if (m_sparse[handle] == null)
+		if (m_sparse[handle] == null_handle)
 		{
 			m_sparse[handle] = m_packed.size();
 			m_packed.push_back(handle);
@@ -45,13 +44,13 @@ protected:
 		m_packed[m_sparse[handle]] = m_packed.back();
 		m_sparse[m_packed.back()] = m_sparse[handle];
 
-		m_sparse[handle] = null;
+		m_sparse[handle] = null_handle;
 		m_packed.pop_back();
 	}
 
 	bool has(Handle handle) const
 	{
-		return handle < m_sparse.size() && m_sparse[handle] != null;
+		return handle < m_sparse.size() && m_sparse[handle] != null_handle;
 	}
 
 
@@ -134,6 +133,11 @@ public:
 		assert(has(handle));
 
 		return m_objects[index(handle)];
+	}
+
+	bool has(Handle handle) const
+	{
+		return SparseSet::has(handle);
 	}
 
 	Type& operator [] (Handle handle)
