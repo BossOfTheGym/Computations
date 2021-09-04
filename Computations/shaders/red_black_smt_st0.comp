@@ -22,6 +22,14 @@
 #define TRUE_WORKGROUP_Y_OVERLAP (2 * WORKGROUP_Y_OVERLAP)
 #define TRUE_WORKGROUP_OVERLAP ivec2(TRUE_WORKGROUP_X_OVERLAP, TRUE_WORKGROUP_Y_OVERLAP)
 
+#ifndef FAST_UPDATE
+	#define pred_t bool
+	#define UPDATE_VALUE(u, u_new, pred) ((pred) ? (u_new) : (u))
+#else
+	#define pred_t float
+	#define UPDATE_VALUE(u, u_new, pred) ((u) + ((u_new) - (u)) * (pred))
+#endif
+
 // work should be dispatched flattened and equal to (WX * WY) / 2 (+- 1 if odd) like this (total_workgroups, 1, 1)
 layout(local_size_x = WORKGROUP_X + STEPS * 2, local_size_y = WORKGROUP_Y + STEPS * 2) in;
 
@@ -32,8 +40,8 @@ layout(local_size_x = WORKGROUP_X + STEPS * 2, local_size_y = WORKGROUP_Y + STEP
 // picture is stored in a row-major manner
 // used both for read and write, boundary is not calculated
 layout(binding = 0, r32f) uniform image2D solution[2];
-layout(binding = 2, r32f) uniform readonly image2D f;
-layout(binding = 3, r32f) uniform image2D intermediate;
+layout(binding = 2, r32f) uniform image2D intermediate;
+layout(binding = 3, r32f) uniform readonly image2D f;
 
 uniform int curr; // 0 or 1
 uniform float w;
@@ -262,10 +270,10 @@ void main()
 
 	ivec2 size = imageSize(solution[curr]);
 
-	float u00Updateable = float(inBounds(global              , size) && !onBoundary(global              , size));
-	float u10Updateable = float(inBounds(global + ivec2(1, 0), size) && !onBoundary(global + ivec2(1, 0), size));
-	float u01Updateable = float(inBounds(global + ivec2(0, 1), size) && !onBoundary(global + ivec2(0, 1), size));
-	float u11Updateable = float(inBounds(global + ivec2(1, 1), size) && !onBoundary(global + ivec2(1, 1), size));
+	pred_t u00Updateable = pred_t(inBounds(global              , size) && !onBoundary(global              , size));
+	pred_t u10Updateable = pred_t(inBounds(global + ivec2(1, 0), size) && !onBoundary(global + ivec2(1, 0), size));
+	pred_t u01Updateable = pred_t(inBounds(global + ivec2(0, 1), size) && !onBoundary(global + ivec2(0, 1), size));
+	pred_t u11Updateable = pred_t(inBounds(global + ivec2(1, 1), size) && !onBoundary(global + ivec2(1, 1), size));
 
 	bool onFlowerLeavePred = onFlowerLeave(work);
 	bool onFlowerPred = onMainBorder() || onFlowerLeavePred;
@@ -320,8 +328,10 @@ void main()
 		float u10_new = update(u10, u00, u20, u1m1, u11, f10);
 		float u01_new = update(u01, um11, u11, u00, u02, f01);
 
-		u10 = u10 + (u10_new - u10) * u10Updateable;
-		u01 = u01 + (u01_new - u01) * u01Updateable;
+		//u10 = u10 + (u10_new - u10) * u10Updateable;
+		u10 = UPDATE_VALUE(u10, u10_new, u10Updateable);
+		//u01 = u01 + (u01_new - u01) * u01Updateable;
+		u01 = UPDATE_VALUE(u01, u01_new, u01Updateable);
 		if (steps >= 0) {
 			cacheStoreValue(local + ivec2(1, 0), u10);
 			cacheStoreValue(local + ivec2(0, 1), u01);
@@ -340,8 +350,10 @@ void main()
 		float u00_new = update(u00, um10, u10, u0m1, u01, f00);
 		float u11_new = update(u11, u01, u21, u10, u12, f11);
 
-		u00 = u00 + (u00_new - u00) * u00Updateable;
-		u11 = u11 + (u11_new - u11) * u11Updateable;
+		//u00 = u00 + (u00_new - u00) * u00Updateable;
+		u00 = UPDATE_VALUE(u00, u00_new, u00Updateable);
+		//u11 = u11 + (u11_new - u11) * u11Updateable;
+		u11 = UPDATE_VALUE(u11, u11_new, u11Updateable);
 		if (steps > 0)	{
 			cacheStoreValue(local + ivec2(0, 0), u00);
 			cacheStoreValue(local + ivec2(1, 1), u11);

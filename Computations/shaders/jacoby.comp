@@ -97,25 +97,19 @@ void main()
 	ivec2 size = imageSize(solution[0]);
 
 	cacheStoreValue(local, imageLoad(solution[curr], global).x);
-	if (inInnerDomainY(global, size))
-	{
-		if (onUpperBoundaryY(local, WORKGROUP))
-		{
+	if (inInnerDomainY(global, size)) {
+		if (onUpperBoundaryY(local, WORKGROUP)) {
 			cacheStoreValue(local + ivec2(0, 1), imageLoad(solution[curr], global + ivec2(0, 1)).x);
 		}
-		if (onLowerBoundaryY(local, WORKGROUP))
-		{
+		if (onLowerBoundaryY(local, WORKGROUP)) {
 			cacheStoreValue(local + ivec2(0, -1), imageLoad(solution[curr], global + ivec2(0, -1)).x);
 		}
 	}
-	if (inInnerDomainX(global, size))
-	{
-		if (onUpperBoundaryX(local, WORKGROUP))
-		{
+	if (inInnerDomainX(global, size)) {
+		if (onUpperBoundaryX(local, WORKGROUP)) {
 			cacheStoreValue(local + ivec2(1, 0), imageLoad(solution[curr], global + ivec2(1, 0)).x);
 		}
-		if (onLowerBoundaryX(local, WORKGROUP))
-		{
+		if (onLowerBoundaryX(local, WORKGROUP)) {
 			cacheStoreValue(local + ivec2(-1, 0), imageLoad(solution[curr], global + ivec2(-1, 0)).x);
 		}
 	}
@@ -123,15 +117,14 @@ void main()
 	barrier();
 
 	
-	if (inInnerDomain(global, size))
-	{
-		float f00 = imageLoad(f, global).x;
+	float f00 = imageLoad(f, global).x;
 		
-		float um10 = cacheLoadValue(local + ivec2(-1, 0));
-		float u10  = cacheLoadValue(local + ivec2(+1, 0));
-		float u0m1 = cacheLoadValue(local + ivec2(0, -1));
-		float u01  = cacheLoadValue(local + ivec2(0, +1));
-
-		imageStore(solution[curr ^ 1], global, vec4(update(um10, u10, u0m1, u01, f00)));
+	float um10 = cacheLoadValue(local + ivec2(-1, 0));
+	float u10  = cacheLoadValue(local + ivec2(+1, 0));
+	float u0m1 = cacheLoadValue(local + ivec2(0, -1));
+	float u01  = cacheLoadValue(local + ivec2(0, +1));
+	float u00 = update(um10, u10, u0m1, u01, f00);
+	if (inInnerDomain(global, size)) {
+		imageStore(solution[curr ^ 1], global, vec4(u00));
 	}
 }
