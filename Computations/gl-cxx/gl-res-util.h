@@ -1,14 +1,17 @@
 #pragma once
 
-#include "core.h"
-#include "graphics-res.h"
+#include <core.h>
 
-#include <iostream>
-#include <filesystem>
+#include "gl-res.h"
+
 #include <string>
 #include <vector>
+#include <iostream>
+#include <filesystem>
+#include <type_traits>
 
-namespace res
+
+namespace gl
 {
 	// TODO : remove error output from functions/ It must be queried separately
 	// TODO : return error status
@@ -30,21 +33,30 @@ namespace res
 
 
 	// shader program
+	namespace detail
+	{
+		// proxy functions to evade inclusion if heavy header required by templates
+		GLuint glCreateProgram_proxy();
+		void glAttachShader_proxy(GLuint program, GLuint shader);
+		void glLinkProgram_proxy(GLuint program);
+		void glDetachShader_proxy(GLuint program, GLuint shader);
+	}
+
 	std::string get_shader_program_info_log(const ShaderProgram& program);
 
-	template<class ... ShaderT>
-	ShaderProgram create_shader_program_var(ShaderT&& ... shader)
+	bool check_program_link_status(const ShaderProgram& program);
+
+	template<class ... shader_t, std::enable_if_t<(std::is_same_v<std::remove_reference_t<std::remove_cv_t<shader_t>>, Shader> && ...), int> = 0>
+	ShaderProgram create_shader_program(shader_t&& ... shader)
 	{
 		ShaderProgram shaderProgram{};
 
-		shaderProgram.id = glCreateProgram();
-		(glAttachShader(shaderProgram.id, shader.id), ...);
-		glLinkProgram(shaderProgram.id);
-		(glDetachShader(shaderProgram.id, shader.id), ...);
+		shaderProgram.id = detail::glCreateProgram_proxy();
+		(detail::glAttachShader_proxy(shaderProgram.id, shader.id), ...);
+		detail::glLinkProgram_proxy(shaderProgram.id);
+		(detail::glDetachShader_proxy(shaderProgram.id, shader.id), ...);
 
-		GLint linkStatus{};
-		glGetProgramiv(shaderProgram.id, GL_LINK_STATUS, &linkStatus);
-		if (linkStatus != GL_TRUE)
+		if (!check_program_link_status(shaderProgram))
 		{
 			std::cerr << "Failed to link shader program. Error log: " << std::endl;
 			std::cerr << get_shader_program_info_log(shaderProgram) << std::endl;
@@ -55,23 +67,32 @@ namespace res
 		return shaderProgram;
 	}
 
-	ShaderProgram create_shader_program(Shader** shaders, i32 count);
+	ShaderProgram create_shader_program(Shader** shaders, u32 count);
 
-	template<class ... Shader>
-	bool try_create_shader_program_var(ShaderProgram& program, Shader&& ... shader)
+	template<class ... shader_t>
+	auto try_create_shader_program(ShaderProgram& program, shader_t&& ... shader) 
+		-> std::enable_if_t<(std::is_same_v<std::remove_reference_t<std::remove_cv_t<shader_t>>, Shader> && ...), bool>
+		// disambiguation with the function going after
 	{
 		program = create_shader_program(std::forward<Shader>(shader)...);
 
 		return program.valid();
 	}
 
-	bool try_create_shader_program(ShaderProgram& program, Shader** shaders, i32 count);
+	bool try_create_shader_program(ShaderProgram& program, Shader** shaders, u32 count);
 
 
 	// textures
+	Texture create_texture();
+
 	Texture create_texture(i32 width, i32 height, GLenum format);
 
 	Texture create_test_texture(i32 width, i32 height, i32 period);
+
+	Texture create_stencil_texture(i32 width, i32 height);
+
+
+	bool try_create_texture(Texture& texture);
 
 	bool try_create_texture(Texture& texture, i32 width, i32 height, GLenum format);
 
@@ -94,6 +115,12 @@ namespace res
 	Query create_query();
 
 	bool try_create_query(Query& query);
+
+
+	// framebuffer
+	Framebuffer create_framebuffer();
+
+	bool try_create_framebuffer(Framebuffer& framebuffer);
 
 
 	// fence

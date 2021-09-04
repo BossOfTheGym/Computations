@@ -1,9 +1,12 @@
-#include "graphics-res-util.h"
+#include "gl-res-util.h"
+#include "gl-header.h"
 
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <map>
+
+// TODO : define DEBUG_GFX_RES
 
 namespace
 {
@@ -18,41 +21,15 @@ namespace
 	};
 }
 
-namespace res
+namespace gl
 {
 	// shaders
 	GLenum shader_type_from_extension(const fs::path& file)
 	{
 		auto ext = file.extension().string();
-		if (auto it = EXT_TO_SHADER_TYPE.find(ext); it != EXT_TO_SHADER_TYPE.end())
-		{
+		if (auto it = EXT_TO_SHADER_TYPE.find(ext); it != EXT_TO_SHADER_TYPE.end()) {
 			return it->second;
 		}
-		/*if (ext == ".vert")
-		{
-			return GL_VERTEX_SHADER;	
-		}
-		if (ext == ".tesc")
-		{
-			return GL_TESS_CONTROL_SHADER;
-		}
-		if (ext == ".tese")
-		{
-			return GL_TESS_EVALUATION_SHADER;
-		}
-		if (ext == ".geom")
-		{
-			return GL_GEOMETRY_SHADER;
-		}
-		if (ext == ".frag")
-		{
-			return GL_FRAGMENT_SHADER;
-		}
-		if (ext == ".comp")
-		{
-			return GL_COMPUTE_SHADER;
-		}*/
-
 		return -1;
 	}
 
@@ -82,8 +59,7 @@ namespace res
 
 		GLint compileStatus{};
 		glGetShaderiv(shader.id, GL_COMPILE_STATUS, &compileStatus);
-		if (compileStatus != GL_TRUE)
-		{
+		if (compileStatus != GL_TRUE) {
 			std::cerr << "Failed to compile shader. Error log: " << std::endl;
 			std::cerr << get_shader_info_log(shader) << std::endl;
 
@@ -97,8 +73,7 @@ namespace res
 		auto filePath = path.string();
 
 		std::ifstream input(filePath);
-		if (!input.is_open())
-		{
+		if (!input.is_open()) {
 			std::cerr << "Failed to open file " << std::quoted(filePath) << std::endl;
 
 			return Shader{};
@@ -127,6 +102,30 @@ namespace res
 
 
 	// shader program
+	namespace detail
+	{
+		// proxy functions to evade inclusion if heavy header required by templates
+		GLuint glCreateProgram_proxy()
+		{
+			return glCreateProgram();
+		}
+
+		void glAttachShader_proxy(GLuint program, GLuint shader)
+		{
+			glAttachShader(program, shader);
+		}
+
+		void glLinkProgram_proxy(GLuint program)
+		{
+			glLinkProgram(program);
+		}
+
+		void glDetachShader_proxy(GLuint program, GLuint shader)
+		{
+			glDetachShader(program, shader);
+		}
+	}
+
 	std::string get_shader_program_info_log(const ShaderProgram& program)
 	{
 		GLint length{};
@@ -139,26 +138,30 @@ namespace res
 		return infoLog;
 	}
 
-	ShaderProgram create_shader_program(Shader** shaders, i32 count)
+	bool check_program_link_status(const ShaderProgram& prog)
+	{
+		GLint linkStatus{};
+		glGetProgramiv(prog.id, GL_LINK_STATUS, &linkStatus);
+		return linkStatus == GL_TRUE;
+	}
+
+	ShaderProgram create_shader_program(Shader** shaders, u32 count)
 	{
 		ShaderProgram shaderProgram{};
 
 		shaderProgram.id = glCreateProgram();
-		for (i32 i = 0; i < count; i++)
-		{
+		for (i32 i = 0; i < count; i++) {
 			glAttachShader(shaderProgram.id, shaders[i]->id);
 		}
 
 		glLinkProgram(shaderProgram.id);
-		for (i32 i = 0; i < count; i++)
-		{
+		for (i32 i = 0; i < count; i++) {
 			glDetachShader(shaderProgram.id, shaders[i]->id);
 		}
 
 		GLint linkStatus{};
 		glGetProgramiv(shaderProgram.id, GL_LINK_STATUS, &linkStatus);
-		if (linkStatus != GL_TRUE)
-		{
+		if (linkStatus != GL_TRUE) {
 			std::cerr << "Failed to link shader program. Error log: " << std::endl;
 			std::cerr << get_shader_program_info_log(shaderProgram) << std::endl;
 
@@ -168,7 +171,7 @@ namespace res
 		return shaderProgram;
 	}
 
-	bool try_create_shader_program(ShaderProgram& program, Shader** shaders, i32 count)
+	bool try_create_shader_program(ShaderProgram& program, Shader** shaders, u32 count)
 	{
 		program = create_shader_program(shaders, count);
 
@@ -177,13 +180,24 @@ namespace res
 
 
 	// textures
+	Texture create_texture()
+	{
+		Texture texture{};
+
+		glCreateTextures(GL_TEXTURE_2D, 1, &texture.id);
+		if (!texture.valid()) {
+			return Texture{};
+		}
+
+		return texture;
+	}
+
 	Texture create_texture(i32 width, i32 height, GLenum format)
 	{
 		Texture texture{};
 
 		glCreateTextures(GL_TEXTURE_2D, 1, &texture.id);
-		if (!texture.valid())
-		{
+		if (!texture.valid()) {
 			return Texture{};
 		}
 
@@ -199,8 +213,7 @@ namespace res
 	Texture create_test_texture(i32 width, i32 height, i32 period)
 	{
 		Texture texture = create_texture(width, height, GL_RGBA32F);
-		if (!texture.valid())
-		{
+		if (!texture.valid()) {
 			return Texture{};
 		}
 
@@ -210,10 +223,8 @@ namespace res
 		const f32 K = 2 * PI / period;
 
 		auto ptr = data.begin();
-		for (i32 i = 0; i < height; i++)
-		{
-			for (i32 j = 0; j < width; j++)
-			{
+		for (i32 i = 0; i < height; i++) {
+			for (i32 j = 0; j < width; j++) {
 				f32 c = std::abs(std::sin(K * j) + std::sin(K * i));
 
 				*ptr++ = c;
@@ -226,6 +237,32 @@ namespace res
 		glTextureSubImage2D(texture.id, 0, 0, 0, width, height, GL_RGBA, GL_FLOAT, data.data());
 
 		return texture;
+	}
+
+	Texture create_stencil_texture(i32 width, i32 height)
+	{
+		Texture texture;
+
+		glCreateTextures(GL_TEXTURE_2D, 1, &texture.id);
+		if (!texture.valid()) {
+			return Texture{};
+		}
+
+		glTextureStorage2D(texture.id, 1, GL_STENCIL_INDEX8, width, height);
+		glTextureParameteri(texture.id, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTextureParameteri(texture.id, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTextureParameteri(texture.id, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTextureParameteri(texture.id, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+		return texture;
+	}
+
+
+	bool try_create_texture(Texture& texture)
+	{
+		texture = create_texture();
+
+		return texture.valid();
 	}
 
 	bool try_create_texture(Texture& texture, i32 width, i32 height, GLenum format)
@@ -267,8 +304,7 @@ namespace res
 		Buffer buffer{};
 
 		glCreateBuffers(1, &buffer.id);
-		if (!buffer.valid())
-		{
+		if (!buffer.valid()) {
 			return Buffer{};
 		}
 
@@ -289,9 +325,7 @@ namespace res
 	Query create_query()
 	{
 		Query query{};
-
 		glGenQueries(1, &query.id);
-
 		return query;
 	}
 
@@ -300,6 +334,22 @@ namespace res
 		query = create_query();
 
 		return query.valid();
+	}
+
+
+	// framebuffer
+	Framebuffer create_framebuffer()
+	{
+		Framebuffer result;
+		glCreateFramebuffers(1, &result.id);
+		return result;
+	}
+
+	bool try_create_framebuffer(Framebuffer& framebuffer)
+	{
+		framebuffer = create_framebuffer();
+
+		return framebuffer.valid();
 	}
 
 

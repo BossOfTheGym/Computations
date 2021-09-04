@@ -1,17 +1,15 @@
 #pragma once
 
-#include "gl-header.h"
+#include "gl-fwd.h"
 
-namespace res
+namespace gl
 {
 	// TODO : refactor
 	// TODO : create CRTP template
 	// TODO : BufferRAnge can be moved to graphics-res-util and used as util(no no-copy restrictiion)
 	
 	// all resources are just guards, their only purpose is to maintain scoped lifetime
-	// header "graphics-res-util.h" contains utility functions that create some resources
-
-	using Id = GLuint;
+	// header "gl-res-util.h" contains utility functions that create some resources
 
 	constexpr const Id null = 0u; 
 	constexpr const Id default_framebuffer = null;
@@ -133,6 +131,27 @@ namespace res
 
 		Query& operator = (Query&& another) noexcept;
 		Query& operator = (const Query&) = delete;
+
+
+		void reset();
+
+		bool valid() const;
+
+
+		Id id{null};
+	};
+
+	struct Framebuffer
+	{
+		Framebuffer() = default;
+
+		Framebuffer(Framebuffer&& another) noexcept;
+		Framebuffer(const Framebuffer&) = delete;
+
+		~Framebuffer();
+
+		Framebuffer& operator = (Framebuffer&& another) noexcept;
+		Framebuffer& operator = (const Framebuffer&) = delete;
 
 
 		void reset();
