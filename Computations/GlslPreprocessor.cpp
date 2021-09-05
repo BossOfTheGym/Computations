@@ -9,9 +9,9 @@ namespace fs = std::filesystem;
 
 namespace
 {
-	const char* INCLUDE_PATTERN = "^[\\\\w]*#include \"(.)+\"[\\\\w]*$";
-	const char* VERSION_STRING_PATTERN = "^[\\\\w]*#version ([\\\\d]{3}) (core|compatability|es)?[\\\\w]*$";
-	const char* WHITESPACE_OR_EMPTY_PATTERN = "[\\\\w]*";
+	const char* INCLUDE_PATTERN = R"reg(^\s*#include\s"(.+)"\s*$)reg";
+	const char* VERSION_STRING_PATTERN = R"reg(^\s*#version\s+(\d{3})\s+(core|compatability|es)?\s*$)reg";
+	const char* WHITESPACE_OR_EMPTY_PATTERN = R"reg(\s*)reg";
 
 	bool read_whole_file(const std::string& path, std::string& result)
 	{
@@ -29,9 +29,9 @@ namespace
 }
 
 GlslPreprocessor::GlslPreprocessor()
-	: m_includePattern(INCLUDE_PATTERN, std::regex_constants::ECMAScript)
-	, m_versionStringPattern(VERSION_STRING_PATTERN, std::regex_constants::ECMAScript)
-	, m_whitespaceOrEmptyPattern(WHITESPACE_OR_EMPTY_PATTERN, std::regex_constants::ECMAScript)
+	: m_includePattern(INCLUDE_PATTERN)
+	, m_versionStringPattern(VERSION_STRING_PATTERN)
+	, m_whitespaceOrEmptyPattern(WHITESPACE_OR_EMPTY_PATTERN)
 {}
 
 bool GlslPreprocessor::addShaderSource(const std::string& shaderPath)
@@ -82,9 +82,11 @@ void GlslPreprocessor::reset()
 bool GlslPreprocessor::process(std::string& result)
 {
 	m_toProcess = std::istringstream(m_source);
-	return processVersionString() 
-		&& processMacros()
-		&& processRest();
+	if (processVersionString() && processMacros() && processRest()) {
+		result = m_processed.str();
+		return true;
+	}
+	return false;
 }
 
 bool GlslPreprocessor::processVersionString()
@@ -105,44 +107,49 @@ bool GlslPreprocessor::processVersionString()
 			break;
 		}
 	}
-	return (bool)m_toProcess && (bool)m_processed;
+	return true;
+	//return !!m_toProcess && !!m_processed;
 }
 
 bool GlslPreprocessor::processMacros()
 {
+	if (!m_macros.empty()) {
+		m_processed << '\n';
+	}
 	for (auto& [macro, value] : m_macros) {
 		m_processed << "#define " << macro << " " << value << '\n';
 	}
-	return (bool)m_toProcess && (bool)m_processed;
+	return true;
+	//return !!m_toProcess && !!m_processed;
 }
 
 bool GlslPreprocessor::processRest()
 {
+	include(m_shaderPath);
+
 	std::string line;
 	while (std::getline(m_toProcess, line)) {
 		std::smatch match;
 		if (std::regex_match(line, match, m_includePattern)) {
-			std::string includePathStr = match[1].str();
-			if (!wasIncluded(includePathStr)) {
-				processInclude(m_shaderPath, includePathStr);
+			std::string includePathStr = relate(m_shaderPath, match[1].str());
+			if (!include(includePathStr)) {
+				if (!processInclude(includePathStr)) {
+					return false;
+				}
 			}
 		}
 		else {
 			m_processed << line << '\n';
 		}
 	}
-	return (bool)m_toProcess && (bool)m_processed;
+	return true;
+	//return !!m_toProcess && !!m_processed;
 }
 
-bool GlslPreprocessor::processInclude(const std::string& includingFile, const std::string& includePath)
+bool GlslPreprocessor::processInclude(const std::string& includePath)
 {
-	fs::path path = includePath;
-	if (!path.is_absolute()) {
-		path = fs::path(includingFile).parent_path() / includePath;
-	}
-
 	std::string contents;
-	if (!read_whole_file(path.string(), contents)) {
+	if (!read_whole_file(includePath, contents)) {
 		return false;
 	}
 
@@ -152,21 +159,34 @@ bool GlslPreprocessor::processInclude(const std::string& includingFile, const st
 	while (std::getline(input, line)) {
 		std::smatch match;
 		if (std::regex_match(line, match, m_includePattern)) {
-			std::string includePathStr = match[1].str();
-			if (!wasIncluded(includePathStr)) {
-				processInclude(path.string(), includePathStr);
+			std::string includePathStr = relate(includePath, match[1].str());
+			if (!include(includePathStr)) {
+				if (!processInclude(includePathStr)) {
+					return false;
+				}
 			}
 		}
 		else {
 			m_processed << line << '\n';
 		}
 	}
-	return (bool)input && (bool)m_processed;
+	return true;
+	//return !!input && !!m_processed;
 }
 
-bool GlslPreprocessor::wasIncluded(const std::string& includePath)
+bool GlslPreprocessor::include(const std::string& includePath)
 {
 	auto absolute = fs::absolute(includePath).string();
 	auto [_, wasInserted] = m_included.insert(absolute);
-	return wasInserted;
+	return !wasInserted;
+}
+
+std::string GlslPreprocessor::relate(const std::string& basePath, const std::string& relative)
+{
+	fs::path path = relative;
+	if (!path.is_absolute()) {
+		fs::path base = basePath;
+		path = base.parent_path() / path;
+	}
+	return path.string();
 }

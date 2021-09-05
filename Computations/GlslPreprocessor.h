@@ -29,9 +29,10 @@ private:
 	bool processMacros();
 	bool processRest();
 
-	bool processInclude(const std::string& includingFile, const std::string& includePath);
+	bool processInclude(const std::string& includePath);
 
-	bool wasIncluded(const std::string& includePath);
+	bool include(const std::string& includePath);
+	std::string relate(const std::string& basePath, const std::string& relative);
 
 private:
 	std::regex m_includePattern;
