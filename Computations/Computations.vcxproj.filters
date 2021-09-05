@@ -105,6 +105,12 @@
     <ClCompile Include="glsl-preproc.cpp">
       <Filter>main\sources</Filter>
     </ClCompile>
+    <ClCompile Include="dirichlet\red_black_smt_s.cpp">
+      <Filter>dirichlet\sources</Filter>
+    </ClCompile>
+    <ClCompile Include="dirichlet\red_black_smtm_s.cpp">
+      <Filter>dirichlet\sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="glfw-cxx\glfw3.h">
@@ -202,6 +208,12 @@
     </ClInclude>
     <ClInclude Include="glsl-preproc.h">
       <Filter>main\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="dirichlet\red_black_smt_s.h">
+      <Filter>dirichlet\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="dirichlet\red_black_smtm_s.h">
+      <Filter>dirichlet\headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

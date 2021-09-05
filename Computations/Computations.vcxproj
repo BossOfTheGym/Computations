@@ -154,6 +154,8 @@
     <ClCompile Include="dirichlet\red_black.cpp" />
     <ClCompile Include="dirichlet\red_black_smt.cpp" />
     <ClCompile Include="dirichlet\red_black_smtm.cpp" />
+    <ClCompile Include="dirichlet\red_black_smtm_s.cpp" />
+    <ClCompile Include="dirichlet\red_black_smt_s.cpp" />
     <ClCompile Include="dirichlet\red_black_tiled.cpp" />
     <ClCompile Include="dirichlet\time_query.cpp" />
     <ClCompile Include="gl-cxx\gl-res-util.cpp" />
@@ -180,6 +182,8 @@
     <ClInclude Include="dirichlet\red_black.h" />
     <ClInclude Include="dirichlet\red_black_smt.h" />
     <ClInclude Include="dirichlet\red_black_smtm.h" />
+    <ClInclude Include="dirichlet\red_black_smtm_s.h" />
+    <ClInclude Include="dirichlet\red_black_smt_s.h" />
     <ClInclude Include="dirichlet\red_black_tiled.h" />
     <ClInclude Include="dirichlet\resource_provider.h" />
     <ClInclude Include="dirichlet\time_query.h" />
