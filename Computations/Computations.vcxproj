@@ -161,7 +161,7 @@
     <ClCompile Include="gl-cxx\gl-state-info.cpp" />
     <ClCompile Include="glfw-cxx\sources\glfw3.cpp" />
     <ClCompile Include="glfw-cxx\sources\opengl-loader.cpp" />
-    <ClCompile Include="GlslPreprocessor.cpp" />
+    <ClCompile Include="glsl-preproc.cpp" />
     <ClCompile Include="main-window.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
@@ -192,7 +192,7 @@
     <ClInclude Include="gl-cxx\gl-types.h" />
     <ClInclude Include="glfw-cxx\glfw3.h" />
     <ClInclude Include="glfw-cxx\opengl-loader.h" />
-    <ClInclude Include="GlslPreprocessor.h" />
+    <ClInclude Include="glsl-preproc.h" />
     <ClInclude Include="handle-pool.h" />
     <ClInclude Include="handle.h" />
     <ClInclude Include="main-window.h" />

@@ -1,4 +1,4 @@
-#include "GlslPreprocessor.h"
+#include "glsl-preproc.h"
 
 #include <string>
 #include <fstream>

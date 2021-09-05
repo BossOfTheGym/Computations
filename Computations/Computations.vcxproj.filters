@@ -102,7 +102,7 @@
     <ClCompile Include="dirichlet\dirichlet_util.cpp">
       <Filter>dirichlet\sources</Filter>
     </ClCompile>
-    <ClCompile Include="GlslPreprocessor.cpp">
+    <ClCompile Include="glsl-preproc.cpp">
       <Filter>main\sources</Filter>
     </ClCompile>
   </ItemGroup>
@@ -200,7 +200,7 @@
     <ClInclude Include="dirichlet\resource_provider.h">
       <Filter>dirichlet\headers</Filter>
     </ClInclude>
-    <ClInclude Include="GlslPreprocessor.h">
+    <ClInclude Include="glsl-preproc.h">
       <Filter>main\headers</Filter>
     </ClInclude>
   </ItemGroup>
