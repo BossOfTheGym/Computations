@@ -56,11 +56,11 @@ namespace dir2d
 
 
 	// red-black method
-	RedBlack::RedBlack(uint workgroupSizeX, uint workgroupSizeY, gl::ShaderProgram&& program)
+	RedBlack::RedBlack(uint workgroupSizeX, uint workgroupSizeY, gl::Id program)
 		: m_workgroupSizeX{workgroupSizeX}
 		, m_workgroupSizeY{workgroupSizeY}
-		, m_program{std::move(program)}
-		, m_uniforms(m_program.id)
+		, m_program{program}
+		, m_uniforms(m_program)
 	{}
 
 	Handle RedBlack::create(const DomainAabb2D& domain, const DataAabb2D& data, const UpdateParams& config)
@@ -117,7 +117,7 @@ namespace dir2d
 
 		m_query.start();
 
-		glUseProgram(m_program.id);
+		glUseProgram(m_program);
 
 		for (auto& handle : m_domainStorage) {
 			auto& domain   = m_domainStorage.get(handle);

@@ -82,14 +82,14 @@ namespace dir2d
 
 
 	// method
-	RedBlackTiledSmt::RedBlackTiledSmt(uint workgroupSizeX, uint workgroupSizeY, gl::ShaderProgram&& programSt0, gl::ShaderProgram&& programSt1)
+	RedBlackTiledSmt::RedBlackTiledSmt(uint workgroupSizeX, uint workgroupSizeY, gl::Id programSt0, gl::Id programSt1)
 		: m_workgroupSizeX{workgroupSizeX}
 		, m_workgroupSizeY{workgroupSizeY}
-		, m_programSt0{std::move(programSt0)}
-		, m_programSt1{std::move(programSt1)}
-		, m_uniforms(m_programSt0.id)
+		, m_programSt0{programSt0}
+		, m_programSt1{programSt1}
+		, m_uniforms(m_programSt0)
 	{
-		Uniforms dummy(m_programSt1.id); // dummys check, no need for second uniforms struct 'cause uniform set is the same in both stages
+		Uniforms dummy(m_programSt1); // dummys check, no need for second uniforms struct 'cause uniform set is the same in both stages
 	}
 
 	Handle RedBlackTiledSmt::create(const DomainAabb2D& domain, const DataAabb2D& data, const UpdateParams& config)
@@ -147,10 +147,12 @@ namespace dir2d
 		constexpr int IMGF = 3;
 		constexpr int CORNERS = 0;
 
+		// TODO : count workgroups
+
 		// stage 0
 		m_querySt0.start();
 
-		glUseProgram(m_programSt0.id);
+		glUseProgram(m_programSt0);
 		for (auto& handle : m_domainStorage) {
 			auto& domain   = m_domainStorage.get(handle);
 			auto& solution = m_solutionStorage.get(handle);
@@ -184,7 +186,7 @@ namespace dir2d
 		// stage1 
 		m_querySt1.start();
 
-		glUseProgram(m_programSt1.id);
+		glUseProgram(m_programSt1);
 		for (auto& handle : m_domainStorage) {
 			auto& domain   = m_domainStorage.get(handle);
 			auto& solution = m_solutionStorage.get(handle);

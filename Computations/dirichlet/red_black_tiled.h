@@ -43,7 +43,7 @@ namespace dir2d
 		};
 
 	public:
-		RedBlackTiled(uint workgroupSizeX, uint workgroupSizeY, gl::ShaderProgram&& program);
+		RedBlackTiled(uint workgroupSizeX, uint workgroupSizeY, gl::Id program);
 
 		~RedBlackTiled() = default;
 
@@ -74,7 +74,7 @@ namespace dir2d
 		uint m_workgroupSizeX{};
 		uint m_workgroupSizeY{};
 
-		gl::ShaderProgram m_program;
+		gl::Id m_program;
 		Uniforms m_uniforms;
 		TimeQuery m_query;
 

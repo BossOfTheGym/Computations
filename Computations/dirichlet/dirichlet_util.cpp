@@ -10,10 +10,10 @@ namespace dir2d
 		return {splitX / workgroupSizeX + 1, splitY / workgroupSizeY + 1};
 	}
 
-	f32 compute_optimal_w(f32 hx, f32 hy, i32 xSplit, i32 ySplit)
+	f32 compute_optimal_w(f32 hx, f32 hy, int xSplit, int ySplit)
 	{
-		i32 sx = xSplit;
-		i32 sy = ySplit;
+		int sx = xSplit;
+		int sy = ySplit;
 
 		f32 hxhx = hx * hx;
 		f32 hyhy = hy * hy;
@@ -36,5 +36,11 @@ namespace dir2d
 		uint storageSize = workgroupsX * workgroupsY * size;
 
 		return gl::create_storage_buffer(storageSize, 0, nullptr);
+	}
+
+	uint count_stage_workgroups(uint workgroupsX, uint workgroupsY, Stage stage)
+	{
+		// TODO : check stage, check if it corresponds to the following stage in shader
+		return (workgroupsY / 2) * workgroupsX + (workgroupsY % 2) * (workgroupsX + (uint)stage) / 2;
 	}
 }

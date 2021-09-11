@@ -53,7 +53,7 @@ namespace dir2d
 		};
 
 	public:
-		RedBlackTiledSmtS(uint workgroupSizeX, uint workgroupSizeY, gl::ShaderProgram&& program);
+		RedBlackTiledSmtS(uint workgroupSizeX, uint workgroupSizeY, gl::Id program);
 
 		~RedBlackTiledSmtS() = default;
 
@@ -84,7 +84,7 @@ namespace dir2d
 		uint m_workgroupSizeX{};
 		uint m_workgroupSizeY{};
 
-		gl::ShaderProgram m_program;
+		gl::Id m_program;
 		Uniforms m_uniforms;
 		TimeQuery m_query;
 

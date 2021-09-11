@@ -54,7 +54,7 @@ namespace dir2d
 		};
 
 	public:
-		RedBlack(uint workgroupSizeX, uint workgroupSizeY, gl::ShaderProgram&& program);
+		RedBlack(uint workgroupSizeX, uint workgroupSizeY, gl::Id program);
 
 		~RedBlack() = default;
 
@@ -85,7 +85,7 @@ namespace dir2d
 		uint m_workgroupSizeX{};
 		uint m_workgroupSizeY{};
 
-		gl::ShaderProgram m_program;
+		gl::Id m_program;
 		Uniforms m_uniforms;
 		TimeQuery m_query;
 

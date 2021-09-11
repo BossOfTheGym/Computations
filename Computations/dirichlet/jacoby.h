@@ -52,7 +52,7 @@ namespace dir2d
 		};
 
 	public:
-		Jacoby(uint workgroupSizeX, uint workgroupSizeY, gl::ShaderProgram&& program);
+		Jacoby(uint workgroupSizeX, uint workgroupSizeY, gl::Id program);
 
 		~Jacoby() = default;
 
@@ -83,7 +83,7 @@ namespace dir2d
 		uint m_workgroupSizeX{};
 		uint m_workgroupSizeY{};
 
-		gl::ShaderProgram m_program;
+		gl::Id m_program;
 		Uniforms m_uniforms;
 		TimeQuery m_query;
 

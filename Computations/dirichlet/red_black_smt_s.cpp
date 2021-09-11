@@ -146,6 +146,8 @@ namespace dir2d
 		constexpr int IMGF = 3;
 		constexpr int CORNERS = 0;
 
+		// TODO : count workgroups
+
 		m_query.start();
 
 		glUseProgram(m_program.id);
