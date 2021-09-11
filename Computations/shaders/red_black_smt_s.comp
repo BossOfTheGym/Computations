@@ -137,11 +137,23 @@ ivec3 whatCornerSt1()
 
 
 // recalculate workgroup id (checkerboard pattern)
+// example grig 5x5:
+// 0 1 | 0 1 | 0  - last row, index calculated differently
+// -------------
+// 1 0 | 1 0 | 1
+// 0 1 | 0 1 | 0
+// -------------
+// 1 0 | 1 0 | 1
+// 0 1 | 0 1 | 0
 void getWorkgroupID(out ivec2 work)
 {
-	work.y = 2 * (int(gl_WorkGroupID.x) / numWorkgroupsX);
-	work.x = int(gl_WorkGroupID.x) % numWorkgroupsX;
-	work.y += (work.x + stage) % 2;
+	int workFlat = int(gl_WorkGroupID.x);
+	work.x = workFlat % numWorkgroupsX;     // base case
+	work.y = workFlat / numWorkgroupsX * 2; // base case
+	if (work.y == numWorkgroupsY - 1) { // triggered only if numWorkgroupsY is uneven and work.y is last row
+		work.x = 2 * work.x + stage ^ 1; // last row index (stage inverted)
+	}
+	work.y += (work.x + stage ^ 1) % 2; // if last row then turns into work.y += 0
 }
 
 // returns local index(zero-based), global(can be out of bounds)
