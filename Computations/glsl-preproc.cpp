@@ -5,27 +5,14 @@
 #include <sstream>
 #include <filesystem>
 
-namespace fs = std::filesystem;
+#include <fs.h>
+#include <file-util.h>
 
 namespace
 {
 	const char* INCLUDE_PATTERN = R"reg(^\s*#include\s"(.+)"\s*$)reg";
 	const char* VERSION_STRING_PATTERN = R"reg(^\s*#version\s+(\d{3})\s+(core|compatability|es)?\s*$)reg";
 	const char* WHITESPACE_OR_EMPTY_PATTERN = R"reg(\s*)reg";
-
-	bool read_whole_file(const std::string& path, std::string& result)
-	{
-		std::ifstream stream(path);
-		if (!stream) {
-			return false;
-		}
-
-		auto start  = std::istreambuf_iterator<char>(stream);
-		auto finish = std::istreambuf_iterator<char>();
-		result = std::string(start, finish);
-
-		return true;
-	}
 }
 
 GlslPreprocessor::GlslPreprocessor()

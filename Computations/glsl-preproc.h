@@ -13,7 +13,6 @@ public:
 
 public:
 	bool addShaderSource(const std::string& shaderPath);
-
 	bool specifyVersionString(const std::string& versionString);
 
 	void addMacro(const std::string& macro, const std::string& value);
