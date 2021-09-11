@@ -4,7 +4,7 @@
 
 namespace app
 {
-	constexpr int HEIGHT = 800;
+	/*constexpr int HEIGHT = 800;
 	constexpr int WIDTH = 2 * HEIGHT;
 
 	constexpr i32 TEST_TEXTURE_WIDTH  = 128;
@@ -17,41 +17,41 @@ namespace app
 	constexpr i32 WX = 2047;
 	constexpr i32 WY = 2047;
 	constexpr i32 STEPS = 2 * 2;
-	constexpr i32 ITERS = 1;
+	constexpr i32 ITERS = 1;*/
 
 	inline std::string NAME = "computations";
 	inline std::string SHADER_FOLDER = "shaders/";
 
-	App::App() 
+	App::App(const cfg::json& config)
 	{
-		initWindow();
+		//initWindow();
 	}
 
 	App::~App()
 	{
-		deinitWindow();
+		//deinitWindow();
 	}
 
 	void App::mainloop()
 	{
 		// mainloop
-		m_mainWindow->show();
-		while (!m_mainWindow->shouldClose()) {
-			glfw::poll_events();
+		//m_mainWindow->show();
+		//while (!m_mainWindow->shouldClose()) {
+		//	glfw::poll_events();
 
-			// rendering
-			glClearColor(1.0, 0.1, 0.1, 1.0);
-			glClearDepth(1.0);
-			glClearStencil(0);
+		//	// rendering
+		//	glClearColor(1.0, 0.1, 0.1, 1.0);
+		//	glClearDepth(1.0);
+		//	glClearStencil(0);
 
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+		//	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-			// swap
-			m_mainWindow->swapBuffers();
-		}
+		//	// swap
+		//	m_mainWindow->swapBuffers();
+		//}
 	}
 
-	void App::initWindow()
+	/*void App::initWindow()
 	{
 		if (!glfw::initialize()) {
 			throw std::runtime_error("Failed to initialize library.");
@@ -77,5 +77,5 @@ namespace app
 		m_mainWindow.reset();
 
 		glfw::terminate();
-	}
+	}*/
 }
