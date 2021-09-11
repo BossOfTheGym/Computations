@@ -1,12 +1,11 @@
 #include "gl-res-util.h"
+
 #include "gl-header.h"
 
-#include <iostream>
-#include <fstream>
-#include <string>
 #include <map>
-
-// TODO : define DEBUG_GFX_RES
+#include <string>
+#include <fstream>
+#include <cstdarg>
 
 namespace
 {
@@ -50,6 +49,9 @@ namespace gl
 		Shader shader{};
 
 		shader.id = glCreateShader(shaderType);
+		if (!shader.valid()) {
+			return Shader{};
+		}
 
 		const char* src = source.c_str();
 		GLsizei size = source.size();
@@ -60,11 +62,9 @@ namespace gl
 		GLint compileStatus{};
 		glGetShaderiv(shader.id, GL_COMPILE_STATUS, &compileStatus);
 		if (compileStatus != GL_TRUE) {
-			std::cerr << "Failed to compile shader. Error log: " << std::endl;
-			std::cerr << get_shader_info_log(shader) << std::endl;
-
 			shader.reset();
 		}
+
 		return shader;
 	}
 
@@ -74,8 +74,6 @@ namespace gl
 
 		std::ifstream input(filePath);
 		if (!input.is_open()) {
-			std::cerr << "Failed to open file " << std::quoted(filePath) << std::endl;
-
 			return Shader{};
 		}
 
@@ -86,46 +84,8 @@ namespace gl
 		return create_shader_from_source(shaderType, contents);
 	}
 
-	bool try_create_shader_from_source(Shader& shader, GLenum shaderType, const std::string& source)
-	{
-		shader = create_shader_from_source(shaderType, source);
-
-		return shader.valid();
-	}
-
-	bool try_create_shader_from_file(Shader& shader, GLenum shaderType, const fs::path& file)
-	{
-		shader = create_shader_from_file(shaderType, file);
-
-		return shader.valid();
-	}
-
 
 	// shader program
-	namespace detail
-	{
-		// proxy functions to evade inclusion if heavy header required by templates
-		GLuint glCreateProgram_proxy()
-		{
-			return glCreateProgram();
-		}
-
-		void glAttachShader_proxy(GLuint program, GLuint shader)
-		{
-			glAttachShader(program, shader);
-		}
-
-		void glLinkProgram_proxy(GLuint program)
-		{
-			glLinkProgram(program);
-		}
-
-		void glDetachShader_proxy(GLuint program, GLuint shader)
-		{
-			glDetachShader(program, shader);
-		}
-	}
-
 	std::string get_shader_program_info_log(const ShaderProgram& program)
 	{
 		GLint length{};
@@ -145,37 +105,68 @@ namespace gl
 		return linkStatus == GL_TRUE;
 	}
 
-	ShaderProgram create_shader_program(Shader** shaders, u32 count)
+	ShaderProgram create_shader_program(uint count, ...)
 	{
 		ShaderProgram shaderProgram{};
 
 		shaderProgram.id = glCreateProgram();
-		for (i32 i = 0; i < count; i++) {
-			glAttachShader(shaderProgram.id, shaders[i]->id);
+		if (!shaderProgram.valid()) {
+			return ShaderProgram{};
 		}
 
-		glLinkProgram(shaderProgram.id);
-		for (i32 i = 0; i < count; i++) {
-			glDetachShader(shaderProgram.id, shaders[i]->id);
+		va_list shaderIds;
+
+		va_start(shaderIds, count);
+		for (uint i = 0; i < count; i++) {
+			Id shaderId = va_arg(shaderIds, Id);
+			glAttachShader(shaderProgram.id, shaderId);
 		}
+		va_end(shaderIds);
+
+		glLinkProgram(shaderProgram.id);
+
+		va_start(shaderIds, count);
+		for (uint i = 0; i < count; i++) {
+			Id shaderId = va_arg(shaderIds, Id);
+			glDetachShader(shaderProgram.id, shaderId);
+		}
+		va_end(shaderIds);
 
 		GLint linkStatus{};
 		glGetProgramiv(shaderProgram.id, GL_LINK_STATUS, &linkStatus);
 		if (linkStatus != GL_TRUE) {
-			std::cerr << "Failed to link shader program. Error log: " << std::endl;
-			std::cerr << get_shader_program_info_log(shaderProgram) << std::endl;
-
 			shaderProgram.reset();
 		}
 
 		return shaderProgram;
 	}
 
-	bool try_create_shader_program(ShaderProgram& program, Shader** shaders, u32 count)
+	ShaderProgram create_shader_program(uint count, Id* shaderIds)
 	{
-		program = create_shader_program(shaders, count);
+		ShaderProgram shaderProgram{};
 
-		return program.valid();
+		shaderProgram.id = glCreateProgram();
+		if (!shaderProgram.valid()) {
+			return ShaderProgram{};
+		}
+
+		for (i32 i = 0; i < count; i++) {
+			glAttachShader(shaderProgram.id, shaderIds[i]);
+		}
+
+		glLinkProgram(shaderProgram.id);
+
+		for (i32 i = 0; i < count; i++) {
+			glDetachShader(shaderProgram.id, shaderIds[i]);
+		}
+
+		GLint linkStatus{};
+		glGetProgramiv(shaderProgram.id, GL_LINK_STATUS, &linkStatus);
+		if (linkStatus != GL_TRUE) {
+			shaderProgram.reset();
+		}
+
+		return shaderProgram;
 	}
 
 
@@ -210,7 +201,7 @@ namespace gl
 		return texture;
 	}
 
-	Texture create_test_texture(i32 width, i32 height, i32 period)
+	Texture create_test_texture(uint width, uint height, uint period)
 	{
 		Texture texture = create_texture(width, height, GL_RGBA32F);
 		if (!texture.valid()) {
@@ -223,8 +214,8 @@ namespace gl
 		const f32 K = 2 * PI / period;
 
 		auto ptr = data.begin();
-		for (i32 i = 0; i < height; i++) {
-			for (i32 j = 0; j < width; j++) {
+		for (uint i = 0; i < height; i++) {
+			for (uint j = 0; j < width; j++) {
 				f32 c = std::abs(std::sin(K * j) + std::sin(K * i));
 
 				*ptr++ = c;
@@ -239,7 +230,7 @@ namespace gl
 		return texture;
 	}
 
-	Texture create_stencil_texture(i32 width, i32 height)
+	Texture create_stencil_texture(uint width, uint height)
 	{
 		Texture texture;
 
@@ -258,28 +249,6 @@ namespace gl
 	}
 
 
-	bool try_create_texture(Texture& texture)
-	{
-		texture = create_texture();
-
-		return texture.valid();
-	}
-
-	bool try_create_texture(Texture& texture, i32 width, i32 height, GLenum format)
-	{
-		texture = create_texture(width, height, format);
-
-		return texture.valid();
-	}
-
-	bool try_create_test_texture(Texture& texture, i32 width, i32 height, i32 period)
-	{
-		texture = create_test_texture(width, height, period);
-
-		return texture.valid();
-	}
-
-
 	// vertex array
 	VertexArray create_vertex_array()
 	{
@@ -288,13 +257,6 @@ namespace gl
 		glCreateVertexArrays(1, &array.id);
 
 		return array;
-	}
-
-	bool try_create_vertex_array(VertexArray& vertexArray)
-	{
-		vertexArray = create_vertex_array();
-
-		return vertexArray.valid();
 	}
 
 
@@ -313,13 +275,6 @@ namespace gl
 		return buffer;
 	}
 
-	bool try_create_storage_buffer(Buffer& buffer, GLsizeiptr size, GLbitfield usageFlags, void* data)
-	{
-		buffer = create_storage_buffer(size, usageFlags, data);
-
-		return buffer.valid();
-	}
-
 
 	// query
 	Query create_query()
@@ -329,13 +284,6 @@ namespace gl
 		return query;
 	}
 
-	bool try_create_query(Query& query)
-	{
-		query = create_query();
-
-		return query.valid();
-	}
-
 
 	// framebuffer
 	Framebuffer create_framebuffer()
@@ -343,13 +291,6 @@ namespace gl
 		Framebuffer result;
 		glCreateFramebuffers(1, &result.id);
 		return result;
-	}
-
-	bool try_create_framebuffer(Framebuffer& framebuffer)
-	{
-		framebuffer = create_framebuffer();
-
-		return framebuffer.valid();
 	}
 
 
@@ -363,13 +304,6 @@ namespace gl
 		sync.id = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
 
 		return sync;
-	}
-
-	bool try_create_sync(FenceSync& sync)
-	{
-		sync = create_fence_sync();
-
-		return sync.valid();
 	}
 
 
