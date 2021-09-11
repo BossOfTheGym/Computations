@@ -1,9 +1,12 @@
 #include "app.h"
+
+#include <string>
+#include <iomanip>
 #include <exception>
 
 int main()
 {
-	std::unique_ptr<app::App> app;
+	/*std::unique_ptr<app::App> app;
 	
 	try {
 		app = std::make_unique<app::App>();
@@ -15,7 +18,7 @@ int main()
 	catch (...) {
 		std::cerr << "Unexpected error." << std::endl;
 		std::terminate();
-	}
+	}*/
 
 	return 0;
 }
