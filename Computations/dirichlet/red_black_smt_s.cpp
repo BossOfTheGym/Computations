@@ -84,11 +84,11 @@ namespace dir2d
 
 
 	// method
-	RedBlackTiledSmtS::RedBlackTiledSmtS(uint workgroupSizeX, uint workgroupSizeY, gl::ShaderProgram&& program)
+	RedBlackTiledSmtS::RedBlackTiledSmtS(uint workgroupSizeX, uint workgroupSizeY, gl::Id program)
 		: m_workgroupSizeX{workgroupSizeX}
 		, m_workgroupSizeY{workgroupSizeY}
-		, m_program{std::move(program)}
-		, m_uniforms(m_program.id)
+		, m_program{program}
+		, m_uniforms(m_program)
 	{}
 
 	Handle RedBlackTiledSmtS::create(const DomainAabb2D& domain, const DataAabb2D& data, const UpdateParams& config)
@@ -146,17 +146,17 @@ namespace dir2d
 		constexpr int IMGF = 3;
 		constexpr int CORNERS = 0;
 
-		// TODO : count workgroups
-
 		m_query.start();
 
-		glUseProgram(m_program.id);
+		glUseProgram(m_program);
 		for (auto& handle : m_domainStorage) {
 			auto& domain   = m_domainStorage.get(handle);
 			auto& solution = m_solutionStorage.get(handle);
 			auto& config   = m_configStorage.get(handle);
 
 			auto [numWorkgroupsX, numWorkgroupsY] = get_num_workgroups(domain.xSplit, domain.ySplit, m_workgroupSizeX, m_workgroupSizeY);
+			auto stage0Workgroups = count_stage_workgroups(numWorkgroupsX, numWorkgroupsY, Stage::Stage0);
+			auto stage1Workgroups = count_stage_workgroups(numWorkgroupsX, numWorkgroupsY, Stage::Stage1);
 
 			glBindImageTexture(IMG0, solution.s[0].id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
 			glBindImageTexture(IMG1, solution.s[1].id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
@@ -173,13 +173,14 @@ namespace dir2d
 			for (uint i = 0; i < config.itersPerUpdate; i++) {
 				glUniform1i(m_uniforms.curr, solution.curr);
 
-				glUniform1i(m_uniforms.stage, 0);
-				glDispatchCompute(numWorkgroupsX, numWorkgroupsY, 1);
+				glUniform1i(m_uniforms.stage, (int)Stage::Stage0);
+				glDispatchCompute(stage0Workgroups, 1, 1);
 				glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);
 
-				glUniform1i(m_uniforms.stage, 1);
-				glDispatchCompute(numWorkgroupsX, numWorkgroupsY, 1);
+				glUniform1i(m_uniforms.stage, (int)Stage::Stage1);
+				glDispatchCompute(stage1Workgroups, 1, 1);
 				glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
+
 				solution.pingpong();
 			}
 		}

@@ -147,8 +147,6 @@ namespace dir2d
 		constexpr int IMGF = 3;
 		constexpr int CORNERS = 0;
 
-		// TODO : count workgroups
-
 		// stage 0
 		m_querySt0.start();
 
@@ -163,6 +161,7 @@ namespace dir2d
 			}
 
 			auto [numWorkgroupsX, numWorkgroupsY] = get_num_workgroups(domain.xSplit, domain.ySplit, m_workgroupSizeX, m_workgroupSizeY);
+			auto stage0Workgroups = count_stage_workgroups(numWorkgroupsX, numWorkgroupsY, Stage::Stage0);
 
 			glBindImageTexture(IMG0, solution.s[0].id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
 			glBindImageTexture(IMG1, solution.s[1].id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
@@ -177,7 +176,7 @@ namespace dir2d
 			glUniform1f(m_uniforms.numWorkgroupsX, numWorkgroupsX);
 			glUniform1f(m_uniforms.numWorkgroupsY, numWorkgroupsY);
 
-			glDispatchCompute(numWorkgroupsX, numWorkgroupsY, 1);
+			glDispatchCompute(stage0Workgroups, 1, 1);
 			glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);
 		}
 
@@ -197,6 +196,7 @@ namespace dir2d
 			}
 
 			auto [numWorkgroupsX, numWorkgroupsY] = get_num_workgroups(domain.xSplit, domain.ySplit, m_workgroupSizeX, m_workgroupSizeY);
+			auto stage1Workgroups = count_stage_workgroups(numWorkgroupsX, numWorkgroupsY, Stage::Stage1);
 
 			glBindImageTexture(IMG0, solution.s[0].id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
 			glBindImageTexture(IMG1, solution.s[1].id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
@@ -211,7 +211,7 @@ namespace dir2d
 			glUniform1f(m_uniforms.numWorkgroupsX, numWorkgroupsX);
 			glUniform1f(m_uniforms.numWorkgroupsY, numWorkgroupsY);
 
-			glDispatchCompute(numWorkgroupsX, numWorkgroupsY, 1);
+			glDispatchCompute(stage1Workgroups, 1, 1);
 			glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
 			solution.pingpong();
 		}

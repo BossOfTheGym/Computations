@@ -140,9 +140,6 @@ namespace dir2d
 		constexpr int IMG_INTERMEDIATE = 2;
 		constexpr int IMGF = 3;
 
-		// TODO : count workgroups
-
-		// stage 0
 		m_query.start();
 
 		glUseProgram(m_program);
@@ -152,6 +149,8 @@ namespace dir2d
 			auto& config   = m_configStorage.get(handle);
 
 			auto [numWorkgroupsX, numWorkgroupsY] = get_num_workgroups(domain.xSplit, domain.ySplit, m_workgroupSizeX, m_workgroupSizeY);
+			auto stage0Workgroups  = count_stage_workgroups(numWorkgroupsX, numWorkgroupsY, Stage::Stage0);
+			auto stage1Workgroups  = count_stage_workgroups(numWorkgroupsX, numWorkgroupsY, Stage::Stage1);
 
 			glBindImageTexture(IMG0, solution.s[0].id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
 			glBindImageTexture(IMG1, solution.s[1].id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
@@ -167,12 +166,12 @@ namespace dir2d
 			for (uint i = 0; i < config.itersPerUpdate; i++) {
 				glUniform1i(m_uniforms.curr, solution.curr);
 
-				glUniform1i(m_uniforms.stage, 0);
-				glDispatchCompute(numWorkgroupsX, numWorkgroupsY, 1);
+				glUniform1i(m_uniforms.stage, (int)Stage::Stage0);
+				glDispatchCompute(stage0Workgroups, 1, 1);
 				glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
 
-				glUniform1i(m_uniforms.stage, 1);
-				glDispatchCompute(numWorkgroupsX, numWorkgroupsY, 1);
+				glUniform1i(m_uniforms.stage, (int)Stage::Stage1);
+				glDispatchCompute(stage1Workgroups, 1, 1);
 				glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
 
 				solution.pingpong();
