@@ -4,7 +4,9 @@
 #include <memory>
 #include <unordered_map>
 
-class Module
+#include "placeholder.h"
+
+class Module : public Placeholder
 {
 public:
 	using Entry =  std::shared_ptr<Module>;

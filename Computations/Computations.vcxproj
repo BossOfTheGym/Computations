@@ -200,7 +200,6 @@
     <ClInclude Include="dirichlet\red_black_tiled.h" />
     <ClInclude Include="dirichlet\resource_provider.h" />
     <ClInclude Include="dirichlet\time_query.h" />
-    <ClInclude Include="dirichlet_system.h" />
     <ClInclude Include="file-util.h" />
     <ClInclude Include="fs.h" />
     <ClInclude Include="gl-cxx\gl-fwd.h" />
@@ -224,7 +223,6 @@
     <ClInclude Include="shader-provider.h" />
     <ClInclude Include="shader-storage.h" />
     <ClInclude Include="storage.h" />
-    <ClInclude Include="element_registry.h" />
     <ClInclude Include="type-id.h" />
     <ClInclude Include="window-builder.h" />
   </ItemGroup>

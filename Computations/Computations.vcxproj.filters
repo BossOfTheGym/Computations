@@ -167,12 +167,6 @@
     <ClInclude Include="core.h">
       <Filter>main\headers</Filter>
     </ClInclude>
-    <ClInclude Include="dirichlet_system.h">
-      <Filter>main\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="element_registry.h">
-      <Filter>main\headers</Filter>
-    </ClInclude>
     <ClInclude Include="dirichlet\dirichlet-2d.h">
       <Filter>dirichlet\headers</Filter>
     </ClInclude>
