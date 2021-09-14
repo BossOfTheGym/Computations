@@ -183,7 +183,7 @@ namespace gl
 		return texture;
 	}
 
-	Texture create_texture(i32 width, i32 height, GLenum format)
+	Texture create_texture(uint width, uint height, GLenum format)
 	{
 		Texture texture{};
 

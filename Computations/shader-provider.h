@@ -9,5 +9,5 @@ class IShaderProvider
 public:
 	virtual ~IShaderProvider() = default;
 
-	gl::Id get(const std::string& name) const = 0;
+	virtual gl::Id get(const std::string& name) const = 0;
 };

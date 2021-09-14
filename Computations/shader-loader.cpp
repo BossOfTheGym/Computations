@@ -12,11 +12,11 @@ gl::Shader ShaderLoader::loadShader(const cfg::json& config, const fs::path& pat
 	m_preprocessor.reset();
 
 	std::string shaderSource;
-	if (!configureShaderSource(path, shaderSource)) {
+	if (!configureShaderSource(config, path, shaderSource)) {
 		return gl::Shader();
 	}
 	
-	GLenum shaderType = gl::shader_type_from_extension(shaderPath);
+	GLenum shaderType = gl::shader_type_from_extension(path);
 	return gl::create_shader_from_source(shaderType, shaderSource);
 }
 
@@ -37,7 +37,7 @@ bool ShaderLoader::configureShaderSource(const cfg::json& config, const fs::path
 	}
 
 	if (config.contains("macros")) {
-		for (auto& [macro, value] : config["macros"]) {
+		for (auto& [macro, value] : config["macros"].items()) {
 			if (value.is_null()) {
 				m_preprocessor.defineMacro(macro);
 			}
@@ -49,5 +49,5 @@ bool ShaderLoader::configureShaderSource(const cfg::json& config, const fs::path
 			}
 		}
 	}
-	return m_preprocessor.process(shaderSource)
+	return m_preprocessor.process(shaderSource);
 }

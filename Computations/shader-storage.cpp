@@ -1,5 +1,7 @@
 #include "shader-storage.h"
 
+#include <cfg.h>
+
 ShaderStorage::ShaderStorage(const fs::path& shaderFolder)
 	: m_pathResolver(shaderFolder)
 {}
@@ -12,7 +14,7 @@ void ShaderStorage::clear()
 bool ShaderStorage::loadAll(const cfg::json& config)
 {
 	bool loadedSuccessfully = true;
-	for (auto& [name, shaderConfig] : config) {
+	for (auto& [name, shaderConfig] : config.items()) {
 		auto [it, inserted] = load(shaderConfig, name);
 		if (it == end() || !inserted) {
 			loadedSuccessfully = false;
@@ -36,7 +38,7 @@ bool ShaderStorage::unload(const std::string& shaderName)
 	return m_shaders.erase(shaderName) != 0;
 }
 
-auto ShaderStorage::find(const std::string& shaderName) -> Iterator const
+auto ShaderStorage::find(const std::string& shaderName) const -> Iterator
 {
 	return m_shaders.find(shaderName);
 }
@@ -46,12 +48,12 @@ bool ShaderStorage::has(const std::string& shaderName) const
 	return find(shaderName) != end();
 }
 
-auto ShaderStorage::begin() const
+auto ShaderStorage::begin() const -> Iterator
 {
 	return m_shaders.begin();
 }
 
-auto ShaderStorage::end() const
+auto ShaderStorage::end() const -> Iterator
 {
 	return m_shaders.end();
 }

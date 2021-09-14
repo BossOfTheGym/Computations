@@ -18,7 +18,7 @@ win::MainWindow WindowBuilder::build(const cfg::json& config)
 		return {};
 	}
 
-	if (config.contains["height"]) {
+	if (config.contains("height")) {
 		info.height = config["height"].get<int>();
 	}
 	else {

@@ -2,7 +2,7 @@
 
 auto Module::load(const std::string& name, Entry entry) -> Status
 {
-	return m_modules.insert({name, std::move(entry)})
+	return m_modules.insert({name, std::move(entry)});
 }
 
 bool Module::unload(const std::string& name)

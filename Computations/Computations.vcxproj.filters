@@ -111,6 +111,33 @@
     <ClCompile Include="dirichlet\red_black_smtm_s.cpp">
       <Filter>dirichlet\sources</Filter>
     </ClCompile>
+    <ClCompile Include="dependency-resolver.cpp">
+      <Filter>main\sources</Filter>
+    </ClCompile>
+    <ClCompile Include="file-util.cpp">
+      <Filter>main\sources</Filter>
+    </ClCompile>
+    <ClCompile Include="module.cpp">
+      <Filter>main\sources</Filter>
+    </ClCompile>
+    <ClCompile Include="prog-builder.cpp">
+      <Filter>main\sources</Filter>
+    </ClCompile>
+    <ClCompile Include="prog-storage.cpp">
+      <Filter>main\sources</Filter>
+    </ClCompile>
+    <ClCompile Include="shader-loader.cpp">
+      <Filter>main\sources</Filter>
+    </ClCompile>
+    <ClCompile Include="shader-path-resolver.cpp">
+      <Filter>main\sources</Filter>
+    </ClCompile>
+    <ClCompile Include="shader-storage.cpp">
+      <Filter>main\sources</Filter>
+    </ClCompile>
+    <ClCompile Include="window-builder.cpp">
+      <Filter>main\sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="glfw-cxx\glfw3.h">
@@ -214,6 +241,54 @@
     </ClInclude>
     <ClInclude Include="dirichlet\red_black_smtm_s.h">
       <Filter>dirichlet\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="cfg.h">
+      <Filter>main\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="cfg-fwd.h">
+      <Filter>main\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="dependency.h">
+      <Filter>main\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="dependency-resolver.h">
+      <Filter>main\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="file-util.h">
+      <Filter>main\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="fs.h">
+      <Filter>main\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="module.h">
+      <Filter>main\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="placeholder.h">
+      <Filter>main\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="prog-builder.h">
+      <Filter>main\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="prog-storage.h">
+      <Filter>main\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="shader-loader.h">
+      <Filter>main\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="shader-path-resolver.h">
+      <Filter>main\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="shader-provider.h">
+      <Filter>main\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="shader-storage.h">
+      <Filter>main\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="type-id.h">
+      <Filter>main\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="window-builder.h">
+      <Filter>main\headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

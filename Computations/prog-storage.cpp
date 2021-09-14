@@ -10,7 +10,7 @@ void ProgramStorage::clear()
 bool ProgramStorage::loadAll(const cfg::json& config, IShaderProvider& shaderProvider)
 {
 	bool loadedSuccessfully = true;
-	for (auto& [name, programConfig]) {
+	for (auto& [name, programConfig] : config.items()) {
 		auto [it, inserted] = load(name, programConfig, shaderProvider);
 		if (it == end() || !inserted) {
 			loadedSuccessfully = false;
@@ -21,10 +21,10 @@ bool ProgramStorage::loadAll(const cfg::json& config, IShaderProvider& shaderPro
 
 auto ProgramStorage::load(const std::string& name, const cfg::json& config, IShaderProvider& shaderProvider) -> Status
 {
-	m_builder.clear();
+	m_builder.reset();
 	
 	auto shaders = config.get<std::vector<std::string>>();
-	for (auto& shader : entry.shaders) {
+	for (auto& shader : shaders) {
 		gl::Id id = shaderProvider.get(shader);
 		if (id == gl::null) {
 			return {end(), false};
@@ -37,12 +37,12 @@ auto ProgramStorage::load(const std::string& name, const cfg::json& config, ISha
 		return {end(), false};
 	}
 
-	return m_programs.insert({std::move(shaders), std::move(program)});
+	return m_storage.insert({name, Entry{std::move(program), std::move(shaders)}});
 }
 
 bool ProgramStorage::unload(const std::string& name)
 {
-	return m_programs.erase(name) != 0;
+	return m_storage.erase(name) != 0;
 }
 
 auto ProgramStorage::find(const std::string& name) const -> Iterator

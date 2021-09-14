@@ -31,13 +31,13 @@ public:
 	Status load(const std::string& name, const cfg::json& config, IShaderProvider& shaderProvider);
 	bool unload(const std::string& name);
 
-	Iterator find(const std::string& name);
-	bool has(const std::string& name);
+	Iterator find(const std::string& name) const;
+	bool has(const std::string& name) const;
 
 	Iterator begin() const;
 	Iterator end() const;
 
 private:
 	ProgramBuilder m_builder;
-	Storage m_programs;
+	Storage m_storage;
 };

@@ -8,7 +8,7 @@ void DependencyResolver::clear()
 
 bool DependencyResolver::addDependencies(const std::string& name, const Dependencies& dependencies)
 {
-	auto [it, inserted] = m_storage.insert({name, Label::White, dependencies});
+	auto [it, inserted] = m_storage.insert({name, {Label::White, dependencies}});
 	return inserted;
 }
 
@@ -23,9 +23,9 @@ bool DependencyResolver::resolve(Dependencies& deps)
 	m_curr = m_storage.size();
 
 	m_order.resize(m_curr);
-	for (auto it = m_storage.begin(), e = m_storage.end(); i != e; i++) {
+	for (auto it = m_storage.begin(), e = m_storage.end(); it != e; it++) {
 		auto& [name, entry] = *it;
-		if (entry.label == Labels::White && !dfs(it)) {
+		if (entry.label == Label::White && !dfs(it)) {
 			return false;
 		}
 	}
@@ -42,7 +42,7 @@ bool DependencyResolver::dfs(Iterator it)
 		return false;
 	}
 	
-	auto& [name, entry] = it->second;
+	auto& [name, entry] = *it;
 	if (entry.label == Label::Gray) { // cycle detected, cannot build dependency order
 		return false;
 	}

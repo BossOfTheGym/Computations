@@ -11,13 +11,13 @@ bool read_whole_file(const std::string& path, std::string& contents)
 	if (!stream) {
 		return false;
 	}
-	return read_whole_file(stream, contents);
+	return read_whole_stream(stream, contents);
 }
 
 bool read_whole_stream(std::istream& is, std::string& contents)
 {
 	constexpr int CHUNK_SIZE = 256;
-	char chunk[BUFFER_SIZE + 1];
+	char chunk[CHUNK_SIZE + 1];
 
 	std::ostringstream output;
 	while (is.good()) {

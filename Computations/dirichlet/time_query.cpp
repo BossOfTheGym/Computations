@@ -9,7 +9,8 @@ namespace dir2d
 {
 	TimeQuery::TimeQuery()
 	{
-		if (!gl::try_create_query(m_timeQuery)) {
+		m_timeQuery = gl::create_query();
+		if (!m_timeQuery.valid()) {
 			throw std::runtime_error("Failed to create time query.");
 		}
 	}

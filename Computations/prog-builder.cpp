@@ -1,4 +1,4 @@
-#include "program-builder.h"
+#include "prog-builder.h"
 
 #include <algorithm>
 
@@ -23,7 +23,7 @@ void ProgramBuilder::detachShader(gl::Id id)
 	m_ids.erase(it, m_ids.end());
 }
 
-auto ProgramBuilder::build()
+gl::ShaderProgram ProgramBuilder::build()
 {
 	if (m_ids.empty()) {
 		return {};
