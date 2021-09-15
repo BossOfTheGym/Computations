@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cfg.h>
+#include <cfg-fwd.h>
 
 namespace app
 {
