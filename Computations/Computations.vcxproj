@@ -168,6 +168,8 @@
     <ClCompile Include="glsl-preproc.cpp" />
     <ClCompile Include="main-window.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="module-builder-1.cpp" />
+    <ClCompile Include="module-builder-2.cpp" />
     <ClCompile Include="module.cpp" />
     <ClCompile Include="prog-builder.cpp" />
     <ClCompile Include="prog-storage.cpp" />
@@ -182,6 +184,7 @@
     <ClInclude Include="cfg-fwd.h" />
     <ClInclude Include="cfg.h" />
     <ClInclude Include="core.h" />
+    <ClInclude Include="dependency-registry.h" />
     <ClInclude Include="dependency-resolver.h" />
     <ClInclude Include="dependency.h" />
     <ClInclude Include="dirichlet\dirichlet-2d.h" />
@@ -214,6 +217,8 @@
     <ClInclude Include="handle-pool.h" />
     <ClInclude Include="handle.h" />
     <ClInclude Include="main-window.h" />
+    <ClInclude Include="module-builder-t.h" />
+    <ClInclude Include="module-builders.h" />
     <ClInclude Include="module.h" />
     <ClInclude Include="placeholder.h" />
     <ClInclude Include="prog-builder.h" />
