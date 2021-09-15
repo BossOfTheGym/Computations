@@ -60,4 +60,5 @@ bool DependencyResolver::dfs(Iterator it)
 	entry.label = Label::Black;
 
 	m_order[--m_curr] = name;
+	return true;
 }
