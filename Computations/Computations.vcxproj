@@ -168,8 +168,6 @@
     <ClCompile Include="glsl-preproc.cpp" />
     <ClCompile Include="main-window.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="module-builder-1.cpp" />
-    <ClCompile Include="module-builder-2.cpp" />
     <ClCompile Include="module.cpp" />
     <ClCompile Include="prog-builder.cpp" />
     <ClCompile Include="prog-storage.cpp" />

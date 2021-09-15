@@ -138,12 +138,6 @@
     <ClCompile Include="window-builder.cpp">
       <Filter>main\sources</Filter>
     </ClCompile>
-    <ClCompile Include="module-builder-1.cpp">
-      <Filter>main\sources</Filter>
-    </ClCompile>
-    <ClCompile Include="module-builder-2.cpp">
-      <Filter>main\sources</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="glfw-cxx\glfw3.h">
