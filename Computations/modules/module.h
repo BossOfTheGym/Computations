@@ -22,6 +22,9 @@ public:
 	ConstIterator find(const std::string& name) const;
 	bool has(const std::string& name) const;
 
+	Module& get(const std::string& name);
+	const Module& get(const std::string& name) const;
+
 	Iterator begin();
 	Iterator end();
 	ConstIterator begin() const;
@@ -30,3 +33,5 @@ public:
 private:
 	Storage m_modules;
 };
+
+using ModulePtr = std::shared_ptr<Module>;

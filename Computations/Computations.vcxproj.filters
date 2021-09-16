@@ -120,12 +120,6 @@
     <ClCompile Include="file-util.cpp">
       <Filter>main\sources</Filter>
     </ClCompile>
-    <ClCompile Include="prog-builder.cpp">
-      <Filter>main\sources</Filter>
-    </ClCompile>
-    <ClCompile Include="prog-storage.cpp">
-      <Filter>main\sources</Filter>
-    </ClCompile>
     <ClCompile Include="shader-loader.cpp">
       <Filter>main\sources</Filter>
     </ClCompile>
@@ -140,6 +134,21 @@
     </ClCompile>
     <ClCompile Include="modules\module.cpp">
       <Filter>modules</Filter>
+    </ClCompile>
+    <ClCompile Include="modules\programs-module.cpp">
+      <Filter>modules</Filter>
+    </ClCompile>
+    <ClCompile Include="modules\shaders-module.cpp">
+      <Filter>modules</Filter>
+    </ClCompile>
+    <ClCompile Include="modules\window-module.cpp">
+      <Filter>modules</Filter>
+    </ClCompile>
+    <ClCompile Include="program-builder.cpp">
+      <Filter>main\headers</Filter>
+    </ClCompile>
+    <ClCompile Include="program-storage.cpp">
+      <Filter>main\headers</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -260,12 +269,6 @@
     <ClInclude Include="placeholder.h">
       <Filter>main\headers</Filter>
     </ClInclude>
-    <ClInclude Include="prog-builder.h">
-      <Filter>main\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="prog-storage.h">
-      <Filter>main\headers</Filter>
-    </ClInclude>
     <ClInclude Include="shader-loader.h">
       <Filter>main\headers</Filter>
     </ClInclude>
@@ -289,6 +292,24 @@
     </ClInclude>
     <ClInclude Include="modules\module.h">
       <Filter>modules</Filter>
+    </ClInclude>
+    <ClInclude Include="modules\module-builders.h">
+      <Filter>modules</Filter>
+    </ClInclude>
+    <ClInclude Include="modules\programs-module.h">
+      <Filter>modules</Filter>
+    </ClInclude>
+    <ClInclude Include="modules\shaders-module.h">
+      <Filter>modules</Filter>
+    </ClInclude>
+    <ClInclude Include="modules\window-module.h">
+      <Filter>modules</Filter>
+    </ClInclude>
+    <ClInclude Include="program-builder.h">
+      <Filter>main\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="program-storage.h">
+      <Filter>main\headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

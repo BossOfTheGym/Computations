@@ -169,8 +169,11 @@
     <ClCompile Include="main-window.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="modules\module.cpp" />
-    <ClCompile Include="prog-builder.cpp" />
-    <ClCompile Include="prog-storage.cpp" />
+    <ClCompile Include="modules\programs-module.cpp" />
+    <ClCompile Include="modules\shaders-module.cpp" />
+    <ClCompile Include="modules\window-module.cpp" />
+    <ClCompile Include="program-builder.cpp" />
+    <ClCompile Include="program-storage.cpp" />
     <ClCompile Include="shader-loader.cpp" />
     <ClCompile Include="shader-path-resolver.cpp" />
     <ClCompile Include="shader-storage.cpp" />
@@ -200,7 +203,13 @@
     <ClInclude Include="dirichlet\red_black_tiled.h" />
     <ClInclude Include="dirichlet\resource_provider.h" />
     <ClInclude Include="dirichlet\time_query.h" />
+    <ClInclude Include="modules\module-builders.h" />
     <ClInclude Include="modules\module.h" />
+    <ClInclude Include="modules\programs-module.h" />
+    <ClInclude Include="modules\shaders-module.h" />
+    <ClInclude Include="modules\window-module.h" />
+    <ClInclude Include="program-builder.h" />
+    <ClInclude Include="program-storage.h" />
     <ClInclude Include="static-storage.h" />
     <ClInclude Include="file-util.h" />
     <ClInclude Include="fs.h" />
@@ -217,8 +226,6 @@
     <ClInclude Include="handle.h" />
     <ClInclude Include="main-window.h" />
     <ClInclude Include="placeholder.h" />
-    <ClInclude Include="prog-builder.h" />
-    <ClInclude Include="prog-storage.h" />
     <ClInclude Include="shader-loader.h" />
     <ClInclude Include="shader-path-resolver.h" />
     <ClInclude Include="shader-provider.h" />

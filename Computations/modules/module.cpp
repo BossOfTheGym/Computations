@@ -25,6 +25,16 @@ bool Module::has(const std::string& name) const
 	return find(name) != end();
 }
 
+Module& Module::get(const std::string& name)
+{
+	return *find(name)->second;
+}
+
+const Module& Module::get(const std::string& name) const
+{
+	return *find(name)->second;
+}
+
 auto Module::begin() -> Iterator
 {
 	return m_modules.begin();

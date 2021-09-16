@@ -8,7 +8,7 @@
 #include <gl-cxx/gl-res.h>
 
 #include "shader-provider.h"
-#include "prog-builder.h"
+#include "program-builder.h"
 
 class ProgramStorage
 {
