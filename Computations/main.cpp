@@ -2,10 +2,30 @@
 
 #include <string>
 #include <iomanip>
+#include <iostream>
 #include <exception>
+
+#include "static-storage.h"
+
+struct penis
+{};
+
+struct A
+{};
+
+REGISTER_RESOURCE(penis, A, abc);
+
+struct B
+{};
+
+
 
 int main()
 {
+	for (auto& [name, resource] : ACCESS_STORAGE(penis, A)) {
+		std::cout << name << std::endl;
+	}
+
 	/*std::unique_ptr<app::App> app;
 	
 	try {
