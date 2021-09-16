@@ -46,6 +46,9 @@
     <Filter Include="dirichlet\sources">
       <UniqueIdentifier>{912721c4-2b3b-4773-8b51-eea76ce3ebdb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="modules">
+      <UniqueIdentifier>{b8473994-0f73-433c-8c95-ae104cbe4e66}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glfw-cxx\sources\glfw3.cpp">
@@ -117,9 +120,6 @@
     <ClCompile Include="file-util.cpp">
       <Filter>main\sources</Filter>
     </ClCompile>
-    <ClCompile Include="module.cpp">
-      <Filter>main\sources</Filter>
-    </ClCompile>
     <ClCompile Include="prog-builder.cpp">
       <Filter>main\sources</Filter>
     </ClCompile>
@@ -137,6 +137,9 @@
     </ClCompile>
     <ClCompile Include="window-builder.cpp">
       <Filter>main\sources</Filter>
+    </ClCompile>
+    <ClCompile Include="modules\module.cpp">
+      <Filter>modules</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -254,9 +257,6 @@
     <ClInclude Include="fs.h">
       <Filter>main\headers</Filter>
     </ClInclude>
-    <ClInclude Include="module.h">
-      <Filter>main\headers</Filter>
-    </ClInclude>
     <ClInclude Include="placeholder.h">
       <Filter>main\headers</Filter>
     </ClInclude>
@@ -286,6 +286,9 @@
     </ClInclude>
     <ClInclude Include="static-storage.h">
       <Filter>main\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="modules\module.h">
+      <Filter>modules</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
