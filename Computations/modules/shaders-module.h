@@ -1,7 +1,5 @@
 #pragma once
 
-#include <shader-storage.h>
-
 #include "module-builders.h"
 
 class ShaderStorageModuleBuilder : public IModuleBuilder

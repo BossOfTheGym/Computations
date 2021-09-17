@@ -1,5 +1,7 @@
 #include "shaders-module.h"
 
+#include <shader-storage.h>
+
 #include <cfg.h>
 #include <exception>
 
