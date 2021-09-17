@@ -311,6 +311,9 @@
     <ClInclude Include="program-storage.h">
       <Filter>main\headers</Filter>
     </ClInclude>
+    <ClInclude Include="config-gen.h">
+      <Filter>main\headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\quad.frag">
