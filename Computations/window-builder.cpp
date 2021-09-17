@@ -5,7 +5,7 @@
 
 #include <cfg.h>
 
-win::MainWindow WindowBuilder::build(const cfg::json& config)
+MainWindowPtr WindowBuilder::build(const cfg::json& config)
 {
 	constexpr int DEFAULT_HEIGHT = 512;
 	constexpr int DEFAULT_WIDTH = 1024;
@@ -39,5 +39,5 @@ win::MainWindow WindowBuilder::build(const cfg::json& config)
 	info.intHints.push_back({glfw::Hint::ContextVersionMinor, 5});
 	info.intHints.push_back({glfw::Hint::DoubleBuffer, (int)glfw::Value::True});
 
-	return win::MainWindow(info);
+	return std::make_unique<win::MainWindow>(info);
 }

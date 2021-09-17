@@ -11,9 +11,13 @@
 class ShaderLoader
 {
 public:
-	// gets json config as a parameter
-	// see shader config specification
-	// path should be relative to shader folder stored in config
+	/* json :  {
+			...
+			<macro_name_i> : <macro_value_i>,
+			...
+		}
+		path : path relative to shader folder
+	*/
 	gl::Shader loadShader(const cfg::json& config, const fs::path& path);
 
 private:

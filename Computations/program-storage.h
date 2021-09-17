@@ -26,8 +26,15 @@ public:
 public:
 	void clear();
 
+	// json : {
+	//		...
+	// 	    <program_name_i> : [<shader_name>, ...],
+	// 		...
+	// }
+	// shaderProvider : object that can access shader storage
 	bool loadAll(const cfg::json& config, IShaderProvider& shaderProvider);
 
+	// json : [<shader_name_i>, ...]
 	Status load(const std::string& name, const cfg::json& config, IShaderProvider& shaderProvider);
 	bool unload(const std::string& name);
 

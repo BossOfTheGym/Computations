@@ -15,13 +15,25 @@ public:
 	using Iterator = typename Storage::const_iterator;
 	using Status = std::pair<Iterator, bool>;
 
+
+	// folder containing all shaders
 	ShaderStorage(const fs::path& shaderFolder);
 
 public:
 	void clear();
 
+	/* json
+		"shaders" : {
+			...
+			<shader_rel_path_i> : {
+				<shader_config_i>
+			},
+			...
+		}
+	*/
 	bool loadAll(const cfg::json& config);
 
+	/* see shader-loader for json config spec */
 	Status load(const cfg::json& config, const fs::path& shaderPath);
 	bool unload(const std::string& shaderName);
 
