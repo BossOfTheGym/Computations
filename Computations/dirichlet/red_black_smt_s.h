@@ -69,7 +69,7 @@ namespace dir2d
 
 	public: // IResourceProvider
 		bool valid(Handle handle) const override;
-		void destroy(Handle handle);
+		void destroy(Handle handle) override;
 
 		const DomainAabb2D& domain(Handle handle) const override;
 		gl::Id texture(Handle handle) const override;
