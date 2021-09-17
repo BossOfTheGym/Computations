@@ -17,6 +17,16 @@ namespace detail
 	template<class T>
 	struct Placeholder
 	{
+		Placeholder(const T& value) : object(value)
+		{
+			static_assert(std::is_copy_constructible_v<T>, "Placeholder : type is not copy constructible.");
+		}
+
+		Placeholder(T&& value) : object(std::move(value))
+		{
+			static_assert(std::is_move_constructible_v<T>, "Placeholder : type is not move constructible.");
+		}
+
 		template<class ... Args, class TT = T, std::enable_if_t<std::is_aggregate_v<TT>, int> = 0>
 		Placeholder(Args&& ... args) : object{std::forward<Args>(args)...}
 		{}
@@ -32,6 +42,20 @@ namespace detail
 class Placeholder
 {
 public:
+	template<class T>
+	void store(const T& value)
+	{
+		m_placeholder = std::make_unique<detail::Placeholder<T>>(value);
+		m_type = getTypeId<T>();
+	}
+
+	template<class T>
+	void store(T&& value)
+	{
+		m_placeholder = std::make_unique<detail::Placeholder<T>>(std::move(value));
+		m_type = getTypeId<T>();
+	}
+
 	template<class T, class ... Args>
 	void store(Args&& ... args)
 	{
