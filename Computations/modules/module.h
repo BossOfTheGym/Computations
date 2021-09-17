@@ -9,6 +9,8 @@
 class Module : public Placeholder
 {
 public:
+	using Placeholder::Placeholder;
+
 	using Entry =  std::shared_ptr<Module>;
 	using Storage = std::unordered_map<std::string, Entry>;
 	using Iterator = typename Storage::iterator;

@@ -15,7 +15,7 @@ namespace detail
 	};
 
 	template<class T>
-	struct Placeholder
+	struct Placeholder : public IPlaceholder
 	{
 		Placeholder(const T& value) : object(value)
 		{
@@ -102,7 +102,7 @@ private:
 	template<class T>
 	id_t getTypeId() const
 	{
-		return type_id<Placeholder>::template id;
+		return type_id<Placeholder>::template id<T>;
 	}
 
 private:
