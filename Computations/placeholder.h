@@ -39,9 +39,30 @@ namespace detail
 	};
 }
 
+template<class type>
+struct placeholder_type {};
+
 class Placeholder
 {
 public:
+	template<class T>
+	Placeholder(const T& value)
+	{
+		store<T>(value);
+	}
+
+	template<class T>
+	Placeholder(T&& value)
+	{
+		store<T>(std::move(value));
+	}
+
+	template<class T, class ... Args>
+	Placeholder(placeholder_type<T>, Args&& ... args)
+	{
+		store<T>(std::forward<Args>(args)...);
+	}
+
 	template<class T>
 	void store(const T& value)
 	{
