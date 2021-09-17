@@ -2,7 +2,7 @@
 
 #include <cfg.h>
 
-ModulePtr DirichletModuleBuilder::build(Module& root, const cfg::json& config) override
+ModulePtr DirichletModuleBuilder::build(Module& root, const cfg::json& config)
 {
 	return {};
 }

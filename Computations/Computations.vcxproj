@@ -168,6 +168,7 @@
     <ClCompile Include="glsl-preproc.cpp" />
     <ClCompile Include="main-window.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="modules\dirichlet-module.cpp" />
     <ClCompile Include="modules\module.cpp" />
     <ClCompile Include="modules\programs-module.cpp" />
     <ClCompile Include="modules\shaders-module.cpp" />
@@ -204,6 +205,7 @@
     <ClInclude Include="dirichlet\red_black_tiled.h" />
     <ClInclude Include="dirichlet\resource_provider.h" />
     <ClInclude Include="dirichlet\time_query.h" />
+    <ClInclude Include="modules\dirichlet-module.h" />
     <ClInclude Include="modules\module-builders.h" />
     <ClInclude Include="modules\module.h" />
     <ClInclude Include="modules\programs-module.h" />

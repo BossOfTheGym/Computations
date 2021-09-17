@@ -150,6 +150,9 @@
     <ClCompile Include="program-storage.cpp">
       <Filter>main\headers</Filter>
     </ClCompile>
+    <ClCompile Include="modules\dirichlet-module.cpp">
+      <Filter>modules</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="glfw-cxx\glfw3.h">
@@ -313,6 +316,9 @@
     </ClInclude>
     <ClInclude Include="config-gen.h">
       <Filter>main\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="modules\dirichlet-module.h">
+      <Filter>modules</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
