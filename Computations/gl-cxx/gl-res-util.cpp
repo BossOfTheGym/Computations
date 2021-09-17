@@ -3,9 +3,10 @@
 #include "gl-header.h"
 
 #include <map>
+#include <cstdarg>
 #include <string>
 #include <fstream>
-#include <cstdarg>
+#include <iostream>
 
 namespace
 {
@@ -58,6 +59,11 @@ namespace gl
 		glShaderSource(shader.id, 1, &src, &size);
 
 		glCompileShader(shader.id);
+
+		// TODO : remove, workaround to see if shaders compile
+		if (auto infoLog = get_shader_info_log(shader); !infoLog.empty()) {
+			std::cout << infoLog << std::endl;
+		}
 
 		GLint compileStatus{};
 		glGetShaderiv(shader.id, GL_COMPILE_STATUS, &compileStatus);
@@ -125,6 +131,11 @@ namespace gl
 
 		glLinkProgram(shaderProgram.id);
 
+		// TODO : remove, used only to see if shader programs link
+		if (auto infoLog = get_shader_program_info_log(shaderProgram); !infoLog.empty()) {
+			std::cout << infoLog << std::endl;
+		}
+
 		va_start(shaderIds, count);
 		for (uint i = 0; i < count; i++) {
 			Id shaderId = va_arg(shaderIds, Id);
@@ -155,6 +166,11 @@ namespace gl
 		}
 
 		glLinkProgram(shaderProgram.id);
+
+		// TODO : remove, used only to see if shader programs link
+		if (auto infoLog = get_shader_program_info_log(shaderProgram); !infoLog.empty()) {
+			std::cout << infoLog << std::endl;
+		}
 
 		for (i32 i = 0; i < count; i++) {
 			glDetachShader(shaderProgram.id, shaderIds[i]);

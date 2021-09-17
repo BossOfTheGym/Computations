@@ -2,6 +2,8 @@
 
 #include <cfg.h>
 
+#include <iostream>
+
 ShaderStorage::ShaderStorage(const fs::path& shaderFolder)
 	: m_pathResolver(shaderFolder)
 {}
@@ -16,8 +18,14 @@ bool ShaderStorage::loadAll(const cfg::json& config)
 	bool loadedSuccessfully = true;
 	for (auto& [name, shaderConfig] : config.items()) {
 		auto [it, inserted] = load(shaderConfig, name);
+
+		// TODO : workaround, remove (engineering niggas)
 		if (it == end() || !inserted) {
 			loadedSuccessfully = false;
+			std::cout << "Shader " << name << " loaded successfully." << std::endl;
+		}
+		else {
+			std::cout << "Failed to load shader " << name << " ." << std::endl;
 		}
 	}
 	return loadedSuccessfully;

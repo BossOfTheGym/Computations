@@ -2,6 +2,8 @@
 
 #include <cfg.h>
 
+#include <iostream>
+
 void ProgramStorage::clear()
 {
 	m_storage.clear();
@@ -12,8 +14,14 @@ bool ProgramStorage::loadAll(const cfg::json& config, IShaderProvider& shaderPro
 	bool loadedSuccessfully = true;
 	for (auto& [name, programConfig] : config.items()) {
 		auto [it, inserted] = load(name, programConfig, shaderProvider);
+		
+		// TODO : workaround, need to identify bad programs
 		if (it == end() || !inserted) {
 			loadedSuccessfully = false;
+			std::cout << "Program " << name << " loaded successfullly." << std::endl;
+		}
+		else {
+			std::cout << "Failed to load program " << name << std::endl;
 		}
 	}
 	return loadedSuccessfully;
