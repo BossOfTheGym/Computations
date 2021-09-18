@@ -144,14 +144,14 @@
     <ClCompile Include="modules\window-module.cpp">
       <Filter>modules</Filter>
     </ClCompile>
-    <ClCompile Include="program-builder.cpp">
-      <Filter>main\headers</Filter>
-    </ClCompile>
-    <ClCompile Include="program-storage.cpp">
-      <Filter>main\headers</Filter>
-    </ClCompile>
     <ClCompile Include="modules\dirichlet-module.cpp">
       <Filter>modules</Filter>
+    </ClCompile>
+    <ClCompile Include="program-builder.cpp">
+      <Filter>main\sources</Filter>
+    </ClCompile>
+    <ClCompile Include="program-storage.cpp">
+      <Filter>main\sources</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -319,6 +319,9 @@
     </ClInclude>
     <ClInclude Include="modules\dirichlet-module.h">
       <Filter>modules</Filter>
+    </ClInclude>
+    <ClInclude Include="dirichlet\dirichlet-proxy.h">
+      <Filter>dirichlet\headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

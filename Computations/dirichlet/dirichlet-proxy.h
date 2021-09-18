@@ -60,7 +60,7 @@ namespace dir2d
 
 		void destroy(Handle handle)
 		{
-			return m_destroyFunc(m_indtance, handle);
+			return m_destroyFunc(m_instance, handle);
 		}
 
 		void update()
