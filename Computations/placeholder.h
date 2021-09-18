@@ -45,6 +45,8 @@ struct placeholder_type {};
 class Placeholder
 {
 public:
+	Placeholder() = default;
+
 	template<class T>
 	Placeholder(const T& value)
 	{
