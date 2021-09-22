@@ -189,6 +189,7 @@
     <ClInclude Include="core.h" />
     <ClInclude Include="dependency-resolver.h" />
     <ClInclude Include="dependency.h" />
+    <ClInclude Include="dirichlet-params.h" />
     <ClInclude Include="dirichlet\dirichlet-2d.h" />
     <ClInclude Include="dirichlet\dirichlet-proxy.h" />
     <ClInclude Include="dirichlet\dirichlet_cfg.h" />
@@ -213,6 +214,7 @@
     <ClInclude Include="modules\programs-module.h" />
     <ClInclude Include="modules\shaders-module.h" />
     <ClInclude Include="modules\window-module.h" />
+    <ClInclude Include="parse-util.h" />
     <ClInclude Include="program-builder.h" />
     <ClInclude Include="program-storage.h" />
     <ClInclude Include="static-storage.h" />

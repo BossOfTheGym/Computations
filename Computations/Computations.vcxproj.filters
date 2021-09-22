@@ -326,6 +326,12 @@
     <ClInclude Include="dirichlet\dirichlet_cfg.h">
       <Filter>dirichlet\headers</Filter>
     </ClInclude>
+    <ClInclude Include="dirichlet-params.h">
+      <Filter>main\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="parse-util.h">
+      <Filter>main\headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\quad.frag">
