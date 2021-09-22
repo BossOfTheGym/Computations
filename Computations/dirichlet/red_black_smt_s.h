@@ -47,10 +47,10 @@ namespace dir2d
 			f32 w{};
 		};
 
-		struct UpdateParams
+		/*struct UpdateParams
 		{
 			uint itersPerUpdate{};
-		};
+		};*/
 
 	public:
 		RedBlackTiledSmtS(uint workgroupSizeX, uint workgroupSizeY, gl::Id program);

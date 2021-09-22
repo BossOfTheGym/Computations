@@ -323,6 +323,9 @@
     <ClInclude Include="dirichlet\dirichlet-proxy.h">
       <Filter>dirichlet\headers</Filter>
     </ClInclude>
+    <ClInclude Include="dirichlet\dirichlet_cfg.h">
+      <Filter>dirichlet\headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\quad.frag">

@@ -3,6 +3,7 @@
 #include <type_traits>
 
 #include <gl-cxx/gl-types.h>
+#include <dirichlet/dirichlet_cfg.h>
 #include <dirichlet/dirichlet_handle.h>
 #include <dirichlet/dirichlet_function.h>
 #include <dirichlet/dirichlet_dataaabb2d.h>
@@ -17,9 +18,9 @@ namespace dir2d
 	template<class T>
 	struct is_dirichlet_system<T, 
 		std::enable_if_t<
-			std::is_invocable_r_v<Handle, decltype(&T::create), T*, const DomainAabb2D&, const DataAabb2D&>
-			&& std::is_invocable_r_v<SmartHandle, decltype(&T::createSmart), T*, const DomainAabb2D&, const DataAabb2D&>
-			&& std::is_invocable_r_v<void, decltype(&T::destroy), T*>
+			std::is_invocable_r_v<Handle, decltype(&T::create), T*, const DomainAabb2D&, const DataAabb2D&, const UpdateParams&>
+			&& std::is_invocable_r_v<SmartHandle, decltype(&T::createSmart), T*, const DomainAabb2D&, const DataAabb2D&, const UpdateParams&>
+			&& std::is_invocable_r_v<void, decltype(&T::destroy), T*, Handle>
 			&& std::is_invocable_r_v<void, decltype(&T::update), T*>
 			&& std::is_invocable_r_v<GLuint64, decltype(&T::elapsed), T*>
 			&& std::is_invocable_r_v<f64, decltype(&T::elapsedMean), T*>
@@ -53,13 +54,13 @@ namespace dir2d
 
 			m_instance = &instance;
 
-			m_createFunc = [] (void* inst, const DomainAabb2D& domain, const DataAabb2D& data)
+			m_createFunc = [] (void* inst, const DomainAabb2D& domain, const DataAabb2D& data, const UpdateParams& params)
 			{
-				return static_cast<T*>(inst)->create(domain, data);
+				return static_cast<T*>(inst)->create(domain, data, params);
 			};
-			m_createSmartFunc = [] (void* inst, const DomainAabb2D& domain, const DataAabb2D& data)
+			m_createSmartFunc = [] (void* inst, const DomainAabb2D& domain, const DataAabb2D& data, const UpdateParams& params)
 			{
-				return static_cast<T*>(inst)->createSmart(domain, data);
+				return static_cast<T*>(inst)->createSmart(domain, data, params);
 			};
 			m_destroyFunc = [] (void* inst, Handle handle)
 			{

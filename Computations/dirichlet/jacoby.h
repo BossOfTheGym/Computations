@@ -9,6 +9,7 @@
 #include <gl-cxx/gl-types.h>
 
 #include "time_query.h"
+#include "dirichlet_cfg.h"
 #include "dirichlet_handle.h"
 #include "resource_provider.h"
 #include "dirichlet_dataaabb2d.h"
@@ -46,10 +47,10 @@ namespace dir2d
 			int curr{};
 		};
 
-		struct UpdateParams
+		/*struct UpdateParams
 		{
 			uint itersPerUpdate{};
-		};
+		};*/
 
 	public:
 		Jacoby(uint workgroupSizeX, uint workgroupSizeY, gl::Id program);

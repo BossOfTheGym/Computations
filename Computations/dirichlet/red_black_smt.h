@@ -46,10 +46,10 @@ namespace dir2d
 			f32 w{};
 		};
 
-		struct UpdateParams
-		{
-			uint itersPerUpdate{}; // if zero then no update. updated once otherwise
-		};
+		//struct UpdateParams
+		//{
+		//	uint itersPerUpdate{}; // if zero then no update. updated once otherwise
+		//};
 
 	public:
 		RedBlackTiledSmt(uint workgroupSizeX, uint workgroupSizeY, gl::Id programSt0, gl::Id programSt1);

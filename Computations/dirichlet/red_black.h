@@ -9,6 +9,7 @@
 #include <gl-cxx/gl-types.h>
 
 #include "time_query.h"
+#include "dirichlet_cfg.h"
 #include "dirichlet_util.h"
 #include "dirichlet_handle.h"
 #include "resource_provider.h"
@@ -48,10 +49,10 @@ namespace dir2d
 			f32 w{}; // optimal parameter for successive overrelaxation method
 		};
 			
-		struct UpdateParams
+		/*struct UpdateParams
 		{
 			uint itersPerUpdate{};
-		};
+		};*/
 
 	public:
 		RedBlack(uint workgroupSizeX, uint workgroupSizeY, gl::Id program);

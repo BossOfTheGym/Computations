@@ -191,6 +191,7 @@
     <ClInclude Include="dependency.h" />
     <ClInclude Include="dirichlet\dirichlet-2d.h" />
     <ClInclude Include="dirichlet\dirichlet-proxy.h" />
+    <ClInclude Include="dirichlet\dirichlet_cfg.h" />
     <ClInclude Include="dirichlet\dirichlet_dataaabb2d.h" />
     <ClInclude Include="dirichlet\dirichlet_domainaabb2d.h" />
     <ClInclude Include="dirichlet\dirichlet_function.h" />
