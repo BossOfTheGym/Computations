@@ -7,6 +7,13 @@
 #include <utility>
 #include <type_traits>
 
+template<class type>
+struct placeholder_type
+{};
+
+template<class type>
+inline constexpr placeholder_type<type> placeholder_t;
+
 namespace detail
 {
 	struct IPlaceholder
@@ -17,30 +24,33 @@ namespace detail
 	template<class T>
 	struct Placeholder : public IPlaceholder
 	{
-		Placeholder(const T& value) : object(value)
-		{
-			static_assert(std::is_copy_constructible_v<T>, "Placeholder : type is not copy constructible.");
-		}
+		struct aggregate_tag
+		{};
 
-		Placeholder(T&& value) : object(std::move(value))
-		{
-			static_assert(std::is_move_constructible_v<T>, "Placeholder : type is not move constructible.");
-		}
+		struct non_aggregate_tag
+		{};
 
-		template<class ... Args, class TT = T, std::enable_if_t<std::is_aggregate_v<TT>, int> = 0>
-		Placeholder(Args&& ... args) : object{std::forward<Args>(args)...}
+		template<class ... Args>
+		Placeholder(Args&& ... args) 
+			: Placeholder(
+				std::conditional_t<std::is_aggregate_v<T>, aggregate_tag, non_aggregate_tag>{},
+				std::forward<Args>(args)...
+			)
 		{}
 
-		template<class ... Args, class TT = T, std::enable_if_t<!std::is_aggregate_v<TT>, int> = 0>
-		Placeholder(Args&& ... args) : object(std::forward<Args>(args)...)
+	private:
+		template<class ... Args>
+		Placeholder(aggregate_tag, Args&& ... args) : object{std::forward<Args>(args)...}
 		{}
 
+		template<class ... Args>
+		Placeholder(non_aggregate_tag, Args&& ... args) : object(std::forward<Args>(args)...)
+		{}
+
+	public:
 		T object;
 	};
 }
-
-template<class type>
-struct placeholder_type {};
 
 class Placeholder
 {
@@ -86,6 +96,10 @@ public:
 		m_type = getTypeId<T>();
 	}
 
+private:
+	
+
+public:
 	template<class T>
 	bool stores() const
 	{
@@ -111,3 +125,4 @@ private:
 	std::unique_ptr<detail::IPlaceholder> m_placeholder;
 	id_t m_type{null_id};
 };
+
