@@ -34,8 +34,8 @@ namespace dir2d
 	class Proxy
 	{
 	public:
-		using CreateFunc = Handle(*)(void*, const DomainAabb2D&, const DataAabb2D&);
-		using CreateSmartFunc = SmartHandle(*)(void*, const DomainAabb2D&, const DataAabb2D&);
+		using CreateFunc = Handle(*)(void*, const DomainAabb2D&, const DataAabb2D&, const UpdateParams&);
+		using CreateSmartFunc = SmartHandle(*)(void*, const DomainAabb2D&, const DataAabb2D&, const UpdateParams&);
 		using DestroyFunc = void(*)(void*, Handle);
 		using UpdateFunc = void(*)(void*);
 		using ElapsedFunc = GLuint64(*)(void*);
@@ -80,14 +80,14 @@ namespace dir2d
 			};
 		}
 
-		Handle create(const DomainAabb2D& domain, const DataAabb2D& data)
+		Handle create(const DomainAabb2D& domain, const DataAabb2D& data, const UpdateParams& params)
 		{
-			return m_createFunc(m_instance, domain, data);
+			return m_createFunc(m_instance, domain, data, params);
 		}
 
-		SmartHandle createSmart(const DomainAabb2D& domain, const DataAabb2D& data)
+		SmartHandle createSmart(const DomainAabb2D& domain, const DataAabb2D& data, const UpdateParams& params)
 		{
-			return m_createSmartFunc(m_instance, domain, data);
+			return m_createSmartFunc(m_instance, domain, data, params);
 		}
 
 		void destroy(Handle handle)
