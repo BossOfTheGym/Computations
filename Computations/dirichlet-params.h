@@ -6,5 +6,5 @@ struct DirichletParams
 {
 	uint xSplit{};
 	uint ySplit{};
-	uint iterPerUpdate{};
+	uint itersPerUpdate{};
 };
