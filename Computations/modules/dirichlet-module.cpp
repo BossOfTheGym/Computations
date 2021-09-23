@@ -105,8 +105,8 @@ namespace
 		ModulePtr systemModule = std::make_shared<Module>(placeholder_t<System>, workgroupX, workgroupY, programId);
 		try_load_module(systems, systemModule, name);
 
-		//ModulePtr systemProxy = std::make_shared<Module>(placeholder_t<dir2d::Proxy>, systemModule->get<System>());
-		//try_load_module(controls, systemProxy, name);
+		ModulePtr systemProxy = std::make_shared<Module>(placeholder_t<dir2d::Proxy>, systemModule->get<System>());
+		try_load_module(controls, systemProxy, name);
 	}
 
 	template<class System>
