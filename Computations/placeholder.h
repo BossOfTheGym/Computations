@@ -96,9 +96,6 @@ public:
 		m_type = getTypeId<T>();
 	}
 
-private:
-	
-
 public:
 	template<class T>
 	bool stores() const
