@@ -3,11 +3,10 @@
 #include <string>
 #include <vector>
 
+#include <dependency.h>
 #include <static-storage.h>
 
 struct ModuleBuildDependencyTag;
-
-using Dependencies = std::vector<std::string>;
 
 template<class ... Args>
 Dependencies construct_dependencies(Args&& ... args)
