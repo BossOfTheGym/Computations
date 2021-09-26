@@ -9,11 +9,11 @@ struct ModuleBuildDependencyTag;
 
 using Dependencies = std::vector<std::string>;
 
-template<class ... Deps>
-Dependencies construct_dependencies(Deps&& ... deps)
+template<class ... Args>
+Dependencies construct_dependencies(Args&& ... args)
 {
 	Dependencies deps;
-	(deps.push_back(std::forward<Deps>(deps)), ...);
+	(deps.push_back(std::forward<Args>(args)), ...);
 	return deps;
 }
 

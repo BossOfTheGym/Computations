@@ -1,4 +1,5 @@
 #include "programs-module.h"
+#include "module-dependencies.h"
 
 #include <cfg.h>
 #include <shader-storage.h>
@@ -59,3 +60,4 @@ ModulePtr ProgramStorageModuleBuilder::build(Module& root, const cfg::json& conf
 }
 
 REGISTER_MODULE_BUILDER(program_storage, ProgramStorageModuleBuilder);
+REGISTER_MODULE_BUILD_DEPENDENCY(program_storage, shader_storage);

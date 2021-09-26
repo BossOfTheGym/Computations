@@ -1,4 +1,5 @@
 #include "dirichlet-module.h"
+#include "module-dependencies.h"
 
 #include <cfg.h>
 #include <parse-util.h>
@@ -183,3 +184,4 @@ ModulePtr DirichletModuleBuilder::build(Module& root, const cfg::json& config)
 }
 
 REGISTER_MODULE_BUILDER(dirichlet, DirichletModuleBuilder);
+REGISTER_MODULE_BUILD_DEPENDENCY(dirichlet, program_storage);

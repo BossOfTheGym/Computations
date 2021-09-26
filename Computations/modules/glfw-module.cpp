@@ -1,4 +1,5 @@
 #include "glfw-module.h"
+#include "module-dependencies.h"
 
 #include <cfg.h>
 #include <glfw-guard.h>
@@ -19,3 +20,4 @@ ModulePtr GlfwModuleBuilder::build(Module& root, const cfg::json& config)
 }
 
 REGISTER_MODULE_BUILDER(glfw, GlfwModuleBuilder);
+REGISTER_MODULE_BUILD_DEPENDENCY(glfw);
