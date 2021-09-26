@@ -49,6 +49,12 @@
     <Filter Include="modules">
       <UniqueIdentifier>{b8473994-0f73-433c-8c95-ae104cbe4e66}</UniqueIdentifier>
     </Filter>
+    <Filter Include="modules\headers">
+      <UniqueIdentifier>{8a9dff74-a6f9-4549-95f2-8549ee41907d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="modules\sources">
+      <UniqueIdentifier>{6744f868-9977-4e9f-8ba2-1d4585668480}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glfw-cxx\sources\glfw3.cpp">
@@ -132,21 +138,6 @@
     <ClCompile Include="window-builder.cpp">
       <Filter>main\sources</Filter>
     </ClCompile>
-    <ClCompile Include="modules\module.cpp">
-      <Filter>modules</Filter>
-    </ClCompile>
-    <ClCompile Include="modules\programs-module.cpp">
-      <Filter>modules</Filter>
-    </ClCompile>
-    <ClCompile Include="modules\shaders-module.cpp">
-      <Filter>modules</Filter>
-    </ClCompile>
-    <ClCompile Include="modules\window-module.cpp">
-      <Filter>modules</Filter>
-    </ClCompile>
-    <ClCompile Include="modules\dirichlet-module.cpp">
-      <Filter>modules</Filter>
-    </ClCompile>
     <ClCompile Include="program-builder.cpp">
       <Filter>main\sources</Filter>
     </ClCompile>
@@ -156,8 +147,23 @@
     <ClCompile Include="glfw-guard.cpp">
       <Filter>main\sources</Filter>
     </ClCompile>
+    <ClCompile Include="modules\dirichlet-module.cpp">
+      <Filter>modules\sources</Filter>
+    </ClCompile>
     <ClCompile Include="modules\glfw-module.cpp">
-      <Filter>modules</Filter>
+      <Filter>modules\sources</Filter>
+    </ClCompile>
+    <ClCompile Include="modules\module.cpp">
+      <Filter>modules\sources</Filter>
+    </ClCompile>
+    <ClCompile Include="modules\programs-module.cpp">
+      <Filter>modules\sources</Filter>
+    </ClCompile>
+    <ClCompile Include="modules\shaders-module.cpp">
+      <Filter>modules\sources</Filter>
+    </ClCompile>
+    <ClCompile Include="modules\window-module.cpp">
+      <Filter>modules\sources</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -299,21 +305,6 @@
     <ClInclude Include="static-storage.h">
       <Filter>main\headers</Filter>
     </ClInclude>
-    <ClInclude Include="modules\module.h">
-      <Filter>modules</Filter>
-    </ClInclude>
-    <ClInclude Include="modules\module-builders.h">
-      <Filter>modules</Filter>
-    </ClInclude>
-    <ClInclude Include="modules\programs-module.h">
-      <Filter>modules</Filter>
-    </ClInclude>
-    <ClInclude Include="modules\shaders-module.h">
-      <Filter>modules</Filter>
-    </ClInclude>
-    <ClInclude Include="modules\window-module.h">
-      <Filter>modules</Filter>
-    </ClInclude>
     <ClInclude Include="program-builder.h">
       <Filter>main\headers</Filter>
     </ClInclude>
@@ -322,9 +313,6 @@
     </ClInclude>
     <ClInclude Include="config-gen.h">
       <Filter>main\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="modules\dirichlet-module.h">
-      <Filter>modules</Filter>
     </ClInclude>
     <ClInclude Include="dirichlet\dirichlet-proxy.h">
       <Filter>dirichlet\headers</Filter>
@@ -341,8 +329,26 @@
     <ClInclude Include="glfw-guard.h">
       <Filter>main\headers</Filter>
     </ClInclude>
+    <ClInclude Include="modules\dirichlet-module.h">
+      <Filter>modules\headers</Filter>
+    </ClInclude>
     <ClInclude Include="modules\glfw-module.h">
-      <Filter>modules</Filter>
+      <Filter>modules\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="modules\module.h">
+      <Filter>modules\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="modules\module-builders.h">
+      <Filter>modules\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="modules\programs-module.h">
+      <Filter>modules\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="modules\shaders-module.h">
+      <Filter>modules\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="modules\window-module.h">
+      <Filter>modules\headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
