@@ -19,10 +19,9 @@ bool DependencyResolver::removeDependencies(const std::string& name)
 
 bool DependencyResolver::resolve(Dependencies& deps)
 {
-	m_order.clear();
-	m_curr = m_storage.size();
+	m_order.resize(m_storage.size());
 
-	m_order.resize(m_curr);
+	m_curr = 0;
 	for (auto it = m_storage.begin(), e = m_storage.end(); it != e; it++) {
 		auto& [name, entry] = *it;
 		if (entry.label == Label::White && !dfs(it)) {
@@ -59,6 +58,7 @@ bool DependencyResolver::dfs(Iterator it)
 	}
 	entry.label = Label::Black;
 
-	m_order[--m_curr] = name;
+	m_order[m_curr++] = name;
+
 	return true;
 }
