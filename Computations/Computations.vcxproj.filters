@@ -350,6 +350,9 @@
     <ClInclude Include="modules\window-module.h">
       <Filter>modules\headers</Filter>
     </ClInclude>
+    <ClInclude Include="modules\module-dependencies.h">
+      <Filter>modules\headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\quad.frag">

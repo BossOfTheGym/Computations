@@ -214,6 +214,7 @@
     <ClInclude Include="modules\dirichlet-module.h" />
     <ClInclude Include="modules\glfw-module.h" />
     <ClInclude Include="modules\module-builders.h" />
+    <ClInclude Include="modules\module-dependencies.h" />
     <ClInclude Include="modules\module.h" />
     <ClInclude Include="modules\programs-module.h" />
     <ClInclude Include="modules\shaders-module.h" />
