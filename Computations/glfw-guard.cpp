@@ -2,12 +2,12 @@
 
 #include <glfw-cxx/glfw3.h>
 
-#include <exception>
+#include <stdexcept>
 
 GlfwGuard::GlfwGuard()
 {
 	if (!glfw::initialize()) {
-		throw std::runtime_eror("Failed to initialize glfw.");
+		throw std::runtime_error("Failed to initialize glfw.");
 	}
 }
 
