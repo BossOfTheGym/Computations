@@ -153,6 +153,9 @@
     <ClCompile Include="program-storage.cpp">
       <Filter>main\sources</Filter>
     </ClCompile>
+    <ClCompile Include="glfw-guard.cpp">
+      <Filter>main\sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="glfw-cxx\glfw3.h">
@@ -330,6 +333,9 @@
       <Filter>main\headers</Filter>
     </ClInclude>
     <ClInclude Include="parse-util.h">
+      <Filter>main\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="glfw-guard.h">
       <Filter>main\headers</Filter>
     </ClInclude>
   </ItemGroup>

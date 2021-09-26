@@ -165,6 +165,7 @@
     <ClCompile Include="gl-cxx\gl-state-info.cpp" />
     <ClCompile Include="glfw-cxx\sources\glfw3.cpp" />
     <ClCompile Include="glfw-cxx\sources\opengl-loader.cpp" />
+    <ClCompile Include="glfw-guard.cpp" />
     <ClCompile Include="glsl-preproc.cpp" />
     <ClCompile Include="main-window.cpp" />
     <ClCompile Include="main.cpp" />
@@ -208,6 +209,7 @@
     <ClInclude Include="dirichlet\red_black_tiled.h" />
     <ClInclude Include="dirichlet\resource_provider.h" />
     <ClInclude Include="dirichlet\time_query.h" />
+    <ClInclude Include="glfw-guard.h" />
     <ClInclude Include="modules\dirichlet-module.h" />
     <ClInclude Include="modules\module-builders.h" />
     <ClInclude Include="modules\module.h" />
