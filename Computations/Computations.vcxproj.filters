@@ -156,6 +156,9 @@
     <ClCompile Include="glfw-guard.cpp">
       <Filter>main\sources</Filter>
     </ClCompile>
+    <ClCompile Include="modules\glfw-module.cpp">
+      <Filter>modules</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="glfw-cxx\glfw3.h">
@@ -337,6 +340,9 @@
     </ClInclude>
     <ClInclude Include="glfw-guard.h">
       <Filter>main\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="modules\glfw-module.h">
+      <Filter>modules</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
