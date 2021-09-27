@@ -1,10 +1,10 @@
 #pragma once
 
-#include <map>
-#include <set>
 #include <regex>
 #include <string>
 #include <sstream>
+#include <unordered_set>
+#include <unordered_map>
 
 class GlslPreprocessor
 {
@@ -41,8 +41,8 @@ private:
 	std::string m_source;
 	std::string m_shaderPath;
 	std::string m_versionString;
-	std::map<std::string, std::string> m_macros;
-	std::set<std::string> m_included;
+	std::unordered_map<std::string, std::string> m_macros;
+	std::unordered_set<std::string> m_included;
 
 	std::ostringstream m_processed;
 	std::istringstream m_toProcess;
