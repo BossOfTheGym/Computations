@@ -39,5 +39,7 @@ MainWindowPtr WindowBuilder::build(const cfg::json& config)
 	info.intHints.push_back({glfw::Hint::ContextVersionMinor, 5});
 	info.intHints.push_back({glfw::Hint::DoubleBuffer, (int)glfw::Value::True});
 
-	return std::make_unique<win::MainWindow>(info);
+	auto window = std::make_unique<win::MainWindow>(info);
+	window->makeContextCurrent();
+	return window;
 }
