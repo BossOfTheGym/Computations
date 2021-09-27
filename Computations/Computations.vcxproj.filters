@@ -168,6 +168,9 @@
     <ClCompile Include="modules\bundle.cpp">
       <Filter>modules\sources</Filter>
     </ClCompile>
+    <ClCompile Include="config-builder.cpp">
+      <Filter>main\sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="glfw-cxx\glfw3.h">
@@ -358,6 +361,9 @@
     </ClInclude>
     <ClInclude Include="modules\bundle.h">
       <Filter>modules\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="config-builder.h">
+      <Filter>main\headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -146,6 +146,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="app.cpp" />
+    <ClCompile Include="config-builder.cpp" />
     <ClCompile Include="dependency-resolver.cpp" />
     <ClCompile Include="dirichlet\dirichlet_dataaabb2d.cpp" />
     <ClCompile Include="dirichlet\dirichlet_domainaabb2d.cpp" />
@@ -188,6 +189,7 @@
     <ClInclude Include="app.h" />
     <ClInclude Include="cfg-fwd.h" />
     <ClInclude Include="cfg.h" />
+    <ClInclude Include="config-builder.h" />
     <ClInclude Include="config-gen.h" />
     <ClInclude Include="core.h" />
     <ClInclude Include="dependency-resolver.h" />
