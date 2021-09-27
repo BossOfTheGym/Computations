@@ -148,21 +148,9 @@ namespace
 ModulePtr DirichletModuleBuilder::build(Module& root, const cfg::json& config)
 {
 	auto& dirichlet = try_get_value(config, "dirichlet");
-
-	DirichletParams dirichletParams
-	{
-		.xSplit = parse_value<uint>(config, "x_split"),
-		.ySplit = parse_value<uint>(config, "y_split"),
-		.itersPerUpdate = parse_value<uint>(config, "iters_per_update")
-	};
-
 	auto& programStorage = try_get_module_data<ProgramStorage>(root, "program_storage");
 
-	auto modulePtr  = std::make_shared<Module>(DirichletParams{
-		.xSplit = parse_value<uint>(config, "x_split"),
-		.ySplit = parse_value<uint>(config, "y_split"),
-		.itersPerUpdate = parse_value<uint>(config, "iters_per_update")
-	});
+	auto modulePtr  = std::make_shared<Module>();
 	auto systemsPtr = std::make_shared<Module>();
 	auto controlsPtr = std::make_shared<Module>();
 
@@ -171,7 +159,7 @@ ModulePtr DirichletModuleBuilder::build(Module& root, const cfg::json& config)
 	try_load_module(root, modulePtr, "dirichlet");
 
 	// TODO : can be definitely registered & loaded automatically
-	create_one_shader_sys<dir2d::Jacoby>(root, *systemsPtr, *controlsPtr, programStorage, config, "jacoby", "jacoby");
+	//create_one_shader_sys<dir2d::Jacoby>(root, *systemsPtr, *controlsPtr, programStorage, config, "jacoby", "jacoby");
 	create_one_shader_sys<dir2d::RedBlack>(root, *systemsPtr, *controlsPtr, programStorage, config, "red_black", "red_black");
 	create_one_shader_sys<dir2d::RedBlackTiled>(root, *systemsPtr, *controlsPtr, programStorage, config, "red_black_tiled", "red_black_tiled");
 	create_one_shader_sys<dir2d::RedBlackTiledSmtS>(root, *systemsPtr, *controlsPtr, programStorage, config, "red_black_smt_s", "red_black_smt_s");
