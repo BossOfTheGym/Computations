@@ -218,7 +218,7 @@ void main()
 {
 	// some invocation's parameters
 	ivec2 work, global, local;
-	getWorkgroupID(work, stage);
+	getWorkgroupID(work, STAGE);
 	getGlobalLocalInvocationID(work, global, local);
 
 	ivec2 size = imageSize(solution[curr]);
