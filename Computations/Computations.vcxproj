@@ -169,6 +169,7 @@
     <ClCompile Include="glsl-preproc.cpp" />
     <ClCompile Include="main-window.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="modules\bundle.cpp" />
     <ClCompile Include="modules\dirichlet-module.cpp" />
     <ClCompile Include="modules\glfw-module.cpp" />
     <ClCompile Include="modules\module.cpp" />
@@ -211,6 +212,7 @@
     <ClInclude Include="dirichlet\resource_provider.h" />
     <ClInclude Include="dirichlet\time_query.h" />
     <ClInclude Include="glfw-guard.h" />
+    <ClInclude Include="modules\bundle.h" />
     <ClInclude Include="modules\dirichlet-module.h" />
     <ClInclude Include="modules\glfw-module.h" />
     <ClInclude Include="modules\module-builders.h" />

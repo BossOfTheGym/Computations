@@ -165,6 +165,9 @@
     <ClCompile Include="modules\window-module.cpp">
       <Filter>modules\sources</Filter>
     </ClCompile>
+    <ClCompile Include="modules\bundle.cpp">
+      <Filter>modules\sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="glfw-cxx\glfw3.h">
@@ -351,6 +354,9 @@
       <Filter>modules\headers</Filter>
     </ClInclude>
     <ClInclude Include="modules\module-dependencies.h">
+      <Filter>modules\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="modules\bundle.h">
       <Filter>modules\headers</Filter>
     </ClInclude>
   </ItemGroup>
