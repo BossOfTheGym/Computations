@@ -96,11 +96,11 @@ namespace
 		const std::string& name,
 		const std::string& prog)
 	{
-		auto& systemConfig = try_get_value(config, json::json_pointer("dirichlet/systems/" + name));
-		auto& shaderConfig = try_get_value(config, json::json_pointer("shader_storage/shaders/" + prog + ".comp"));
+		auto& systemConfig = try_get_value(config, json::json_pointer("/dirichlet/" + name));
+		auto& shaderConfig = try_get_value(config, json::json_pointer("/shader_storage/shaders/" + prog + ".comp"));
 
-		uint workgroupX = parse_value<uint>(shaderConfig, "WORKGROUP_X");
-		uint workgroupY = parse_value<uint>(shaderConfig, "WORKGROUP_Y");
+		uint workgroupX = parse_value<uint>(shaderConfig["macros"], "WORKGROUP_X");
+		uint workgroupY = parse_value<uint>(shaderConfig["macros"], "WORKGROUP_Y");
 		gl::Id programId = get_shader_program(storage, prog);
 
 		ModulePtr systemModule = std::make_shared<Module>(placeholder_t<System>, workgroupX, workgroupY, programId);
@@ -116,21 +116,21 @@ namespace
 		Module& systems,
 		Module& controls,
 		ProgramStorage& storage,
+		const cfg::json& config,
 		const std::string& name,
 		const std::string& prog0,
-		const std::string& prog1,
-		const cfg::json& config)
+		const std::string& prog1)
 	{
-		auto& systemConfig = try_get_value(config, json::json_pointer("dirichlet/systems/" + name));
-		auto& shaderConfig0 = try_get_value(config, json::json_pointer("shader_storage/shaders/" + prog0 + ".comp"));
-		auto& shaderConfig1 = try_get_value(config, json::json_pointer("shader_storage/shaders/" + prog1 + ".comp"));
+		auto& systemConfig = try_get_value(config, json::json_pointer("/dirichlet/" + name));
+		auto& shaderConfig0 = try_get_value(config, json::json_pointer("/shader_storage/shaders/" + prog0 + ".comp"));
+		auto& shaderConfig1 = try_get_value(config, json::json_pointer("/shader_storage/shaders/" + prog1 + ".comp"));
 
-		uint workgroupX0 = parse_value<uint>(shaderConfig0, "WORKGROUP_X");
-		uint workgroupY0 = parse_value<uint>(shaderConfig0, "WORKGROUP_Y");
+		uint workgroupX0 = parse_value<uint>(shaderConfig0["macros"], "WORKGROUP_X");
+		uint workgroupY0 = parse_value<uint>(shaderConfig0["macros"], "WORKGROUP_Y");
 		gl::Id programId0 = get_shader_program(storage, prog0);
 
-		uint workgroupX1 = parse_value<uint>(shaderConfig1, "WORKGROUP_X");
-		uint workgroupY1 = parse_value<uint>(shaderConfig1, "WORKGROUP_Y");
+		uint workgroupX1 = parse_value<uint>(shaderConfig1["macros"], "WORKGROUP_X");
+		uint workgroupY1 = parse_value<uint>(shaderConfig1["macros"], "WORKGROUP_Y");
 		gl::Id programId1 = get_shader_program(storage, prog1);
 
 		if (workgroupX0 != workgroupX1 || workgroupY0 != workgroupY1) {
