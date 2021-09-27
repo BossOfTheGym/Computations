@@ -16,22 +16,13 @@ bool read_whole_file(const std::string& path, std::string& contents)
 
 bool read_whole_stream(std::istream& is, std::string& contents)
 {
-	constexpr int CHUNK_SIZE = 256;
-	char chunk[CHUNK_SIZE + 1];
-
+	std::string line;
 	std::ostringstream output;
-	while (is.good()) {
-		if (!is.read(chunk, CHUNK_SIZE)) {
-			return false;
-		}
-		chunk[is.gcount()] = '\0';
-
-		output << chunk;
+	// TODO : IO error checks
+	while (std::getline(is, line)) {
+		output << line << '\n';
 	}
-	if (is.fail()) {
-		return false;
-	}
-
 	contents = output.str();
+
 	return true;
 }
