@@ -15,7 +15,7 @@ public:
 		m_output = value;
 	}
 
-	void setSplit(uint value)
+	void setSplitX(uint value)
 	{	
 		m_xSplit = value;
 	}
