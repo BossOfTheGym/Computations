@@ -15,30 +15,39 @@ void ShaderStorage::clear()
 
 bool ShaderStorage::loadAll(const cfg::json& config)
 {
-	bool loadedSuccessfully = true;
-	for (auto& [name, shaderConfig] : config.items()) {
-		auto [it, inserted] = load(shaderConfig, name);
+	auto test = fs::current_path();
 
-		// TODO : workaround, remove (engineering niggas)
+	bool allLoaded = true;
+	for (auto& path : fs::recursive_directory_iterator(m_pathResolver.shaderFolder())) {
+		auto [it, inserted] = load(config, path);
 		if (it == end() || !inserted) {
-			loadedSuccessfully = false;
-			std::cout << "Shader " << name << " loaded successfully." << std::endl;
+			allLoaded = false;
+			std::cout << "Failed to load shader " << path << " ." << std::endl;
 		}
 		else {
-			std::cout << "Failed to load shader " << name << " ." << std::endl;
+			std::cout << "Shader " << path << " loaded successfully." << std::endl;
 		}
 	}
-	return loadedSuccessfully;
+	return allLoaded;
 }
 
 auto ShaderStorage::load(const cfg::json& config, const fs::path& shaderPath) -> Status
 {
-	fs::path resolvedPath = m_pathResolver.resolve(shaderPath);
-	gl::Shader loaded = m_shaderLoader.loadShader(config, resolvedPath);
+	std::string resolvedPathStr = m_pathResolver.resolve(shaderPath).string();
+	if (resolvedPathStr.empty()) {
+		return {end(), false};
+	}
+
+	if (!config.contains(resolvedPathStr)) {
+		return {end(), false};
+	}
+
+	gl::Shader loaded = m_shaderLoader.loadShader(config[resolvedPathStr], shaderPath);
 	if (!loaded.valid()) {
 		return {end(), false};
 	}
-	return m_shaders.insert({resolvedPath.string(), std::move(loaded)});
+
+	return m_shaders.insert({std::move(resolvedPathStr), std::move(loaded)});
 }
 
 bool ShaderStorage::unload(const std::string& shaderName)
