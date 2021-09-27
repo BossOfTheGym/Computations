@@ -18,10 +18,10 @@ bool ProgramStorage::loadAll(const cfg::json& config, IShaderProvider& shaderPro
 		// TODO : workaround, need to identify bad programs
 		if (it == end() || !inserted) {
 			loadedSuccessfully = false;
-			std::cout << "Program " << name << " loaded successfullly." << std::endl;
+			std::cout << "Failed to load program " << name << std::endl;
 		}
 		else {
-			std::cout << "Failed to load program " << name << std::endl;
+			std::cout << "Program " << name << " loaded successfullly." << std::endl;
 		}
 	}
 	return loadedSuccessfully;
