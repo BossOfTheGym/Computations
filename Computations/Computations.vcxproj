@@ -190,7 +190,6 @@
     <ClInclude Include="cfg-fwd.h" />
     <ClInclude Include="cfg.h" />
     <ClInclude Include="config-builder.h" />
-    <ClInclude Include="config-gen.h" />
     <ClInclude Include="core.h" />
     <ClInclude Include="dependency-resolver.h" />
     <ClInclude Include="dependency.h" />

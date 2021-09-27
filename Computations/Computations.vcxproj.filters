@@ -317,9 +317,6 @@
     <ClInclude Include="program-storage.h">
       <Filter>main\headers</Filter>
     </ClInclude>
-    <ClInclude Include="config-gen.h">
-      <Filter>main\headers</Filter>
-    </ClInclude>
     <ClInclude Include="dirichlet\dirichlet-proxy.h">
       <Filter>dirichlet\headers</Filter>
     </ClInclude>
