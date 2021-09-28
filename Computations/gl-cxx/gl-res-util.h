@@ -21,6 +21,8 @@ namespace gl
 	// shaders
 	GLenum shader_type_from_extension(const fs::path& file);
 
+	bool is_shader_file(const fs::path& file);
+
 	std::string get_shader_info_log(const Shader& shader);
 
 	Shader create_shader_from_source(GLenum shaderType, const std::string& source);

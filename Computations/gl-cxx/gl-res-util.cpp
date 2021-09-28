@@ -2,7 +2,7 @@
 
 #include "gl-header.h"
 
-#include <map>
+#include <unordered_map>
 #include <cstdarg>
 #include <string>
 #include <fstream>
@@ -10,7 +10,7 @@
 
 namespace
 {
-	std::map<std::string, GLenum> EXT_TO_SHADER_TYPE = 
+	std::unordered_map<std::string, GLenum> EXT_TO_SHADER_TYPE = 
 	{
 		{".vert", GL_VERTEX_SHADER}, 
 		{".tesc", GL_TESS_CONTROL_SHADER},
@@ -32,6 +32,12 @@ namespace gl
 		}
 		return -1;
 	}
+
+	bool is_shader_file(const fs::path& file)
+	{
+		return shader_type_from_extension(file) != -1;
+	}
+
 
 	std::string get_shader_info_log(const Shader& shader)
 	{
