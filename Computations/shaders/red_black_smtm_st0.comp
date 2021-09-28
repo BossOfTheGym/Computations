@@ -2,12 +2,14 @@
 
 #define STAGE 0
 
-#define STEPS 2
+#ifndef CONFIGURED
+	#define STEPS 2
+	#define WORKGROUP_X 8
+	#define WORKGROUP_Y 8
+#endif
 
 #define TRUE_STEPS (2 * STEPS)
 
-#define WORKGROUP_X 8
-#define WORKGROUP_Y 8
 #define WORKGROUP ivec2(WORKGROUP_X, WORKGROUP_Y)
 
 #define TRUE_WORKGROUP_X (2 * WORKGROUP_X)

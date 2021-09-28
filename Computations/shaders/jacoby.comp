@@ -1,7 +1,9 @@
 #version 460 core
 
-#define WORKGROUP_X 16
-#define WORKGROUP_Y 16
+#ifndef CONFIGURED
+	#define WORKGROUP_X 16
+	#define WORKGROUP_Y 16
+#endif
 
 #define WORKGROUP ivec2(WORKGROUP_X, WORKGROUP_Y)
 
