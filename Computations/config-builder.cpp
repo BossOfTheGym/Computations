@@ -1,6 +1,5 @@
 #include "config-builder.h"
 
-#include <string>
 #include <iomanip>
 #include <iostream>
 #include <stdexcept>
@@ -20,42 +19,42 @@ namespace
 		};
 	}
 
-	void get_app_config(json& config, uint xSplit, uint ySplit)
+	void get_app_config(json& config, uint xSplit, uint ySplit, uint totalUpdates)
 	{
 		config["app"] = {
 			{"x_split", xSplit},
 			{"y_split", ySplit},
+			{"total_updates", totalUpdates},
 			{"iters_per_update", 1},
 			{"grid_x", 3},
 			{"grid_y", 2},
 		};
 	}
 
-	void get_dirichlet_config(json& config)
+	void get_dirichlet_config(json& config, const std::vector<std::string>& systems)
 	{
-		json dirichlet = {
-			{"red_black", json::object()},
-			{"red_black_tiled", json::object()},
-			{"red_black_smt_s", json::object()},
-			{"red_black_smtm_s", json::object()},
-			{"red_black_smt", json::object()},
-			{"red_black_smtm", json::object()}
-		};
-
+		json dirichlet;	
+		for (auto& sys : systems) {
+			dirichlet[sys] = json::object();
+		}
 		config["dirichlet"] = dirichlet;
 	}
 
-	void get_shader_storage_config(json& config, uint workgroupSizeX, uint workgroupSizeY)
+	void get_shader_storage_config(json& config, uint workgroupSizeX, uint workgroupSizeY, uint steps)
 	{
 		if (workgroupSizeX % 2 != 0 || workgroupSizeY % 2 != 0) {
 			throw std::runtime_error("Workgroups dimensions must be even numbers.");
 		}
 
-		json wholeWorkgroup = {
+		json simpleConfig = {
+			{"CONFIGURED", ""},
 			{"WORKGROUP_X", std::to_string(workgroupSizeX)},
 			{"WORKGROUP_Y", std::to_string(workgroupSizeY)}
 		};
-		json halfWorkgroup = {
+
+		json tiledConfig = {
+			{"CONFIGURED", ""},
+			{"STEPS", std::to_string(steps)},
 			{"WORKGROUP_X", std::to_string(workgroupSizeX / 2)},
 			{"WORKGROUP_Y", std::to_string(workgroupSizeY / 2)}
 		};
@@ -63,15 +62,18 @@ namespace
 		json shaders;
 		shaders["quad.frag"]               = json::object();
 		shaders["quad.vert"]               = json::object();
-		shaders["jacoby.comp"]             = json::object({{"macros", wholeWorkgroup}});
-		shaders["red_black.comp"]          = json::object({{"macros", wholeWorkgroup}});
-		shaders["red_black_smt_s.comp"]    = json::object({{"macros", halfWorkgroup}});
-		shaders["red_black_smtm_s.comp"]   = json::object({{"macros", halfWorkgroup}});
-		shaders["red_black_tiled.comp"]    = json::object({{"macros", halfWorkgroup}});
-		shaders["red_black_smtm_st0.comp"] = json::object({{"macros", halfWorkgroup}});
-		shaders["red_black_smtm_st1.comp"] = json::object({{"macros", halfWorkgroup}});
-		shaders["red_black_smt_st0.comp"]  = json::object({{"macros", halfWorkgroup}});
-		shaders["red_black_smt_st1.comp"]  = json::object({{"macros", halfWorkgroup}});
+
+		shaders["jacoby.comp"]             = json::object({{"macros", simpleConfig}});
+		shaders["red_black.comp"]          = json::object({{"macros", simpleConfig}});
+
+		shaders["red_black_tiled.comp"]    = json::object({{"macros", tiledConfig}});
+		shaders["red_black_smt_s.comp"]    = json::object({{"macros", tiledConfig}});
+		shaders["red_black_smtm_s.comp"]   = json::object({{"macros", tiledConfig}});
+		shaders["red_black_smtm_st0.comp"] = json::object({{"macros", tiledConfig}});
+		shaders["red_black_smtm_st1.comp"] = json::object({{"macros", tiledConfig}});
+		shaders["red_black_smt_st0.comp"]  = json::object({{"macros", tiledConfig}});
+		shaders["red_black_smt_st1.comp"]  = json::object({{"macros", tiledConfig}});
+
 		shaders["test_compute.comp"]       = json::object();
 
 		json shader_storage;
@@ -117,9 +119,9 @@ json ConfigBuilder::build()
 {
 	json config;
 	get_output_config(config, m_output, m_xSplit, m_ySplit, m_workgroupSizeX, m_workgroupSizeY);
-	get_app_config(config, m_xSplit, m_ySplit);
-	get_dirichlet_config(config);
-	get_shader_storage_config(config, m_workgroupSizeX, m_workgroupSizeY);
+	get_app_config(config, m_xSplit, m_ySplit, m_totalUpdates);
+	get_dirichlet_config(config, m_systems);
+	get_shader_storage_config(config, m_workgroupSizeX, m_workgroupSizeY, m_steps);
 	get_program_storage_config(config);
 	get_window_config(config);
 	get_glfw_config(config);
