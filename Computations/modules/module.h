@@ -17,6 +17,8 @@ public:
 	using ConstIterator = typename Storage::const_iterator;
 	using Status = std::pair<Iterator, bool>;
 
+	Entry acquire(const std::string& name);
+
 	Status load(const std::string& name, Entry entry);
 	bool unload(const std::string& name);
 

@@ -10,6 +10,14 @@ bool Module::unload(const std::string& name)
 	return m_modules.erase(name) != 0;
 }
 
+auto Module::acquire(const std::string& name) -> Entry
+{
+	if (auto it = find(name); it != end()) {
+		return it->second;
+	}
+	return {};
+}
+
 auto Module::find(const std::string& name) -> Iterator
 {
 	return m_modules.find(name);
