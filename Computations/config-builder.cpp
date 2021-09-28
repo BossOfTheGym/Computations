@@ -8,26 +8,27 @@ using namespace cfg;
 
 namespace
 {
-	void get_output_config(json& config, const std::string& output, uint xSplit, uint ySplit, uint workgroupSizeX, uint workgroupSizeY)
+	void get_output_config(json& config, const std::string& output, uint xSplit, uint ySplit, uint workgroupSizeX, uint workgroupSizeY, uint steps)
 	{
 		config["output"] = {
 			{"output", output},
 			{"x_split", xSplit},
 			{"y_split", ySplit},
 			{"workgroup_size_x", workgroupSizeX},
-			{"workgroup_size_y", workgroupSizeY}
+			{"workgroup_size_y", workgroupSizeY},
+			{"steps", steps}
 		};
 	}
 
-	void get_app_config(json& config, uint xSplit, uint ySplit, uint totalUpdates)
+	void get_app_config(json& config, uint xSplit, uint ySplit, uint totalUpdates, uint gridX, uint gridY)
 	{
 		config["app"] = {
 			{"x_split", xSplit},
 			{"y_split", ySplit},
 			{"total_updates", totalUpdates},
 			{"iters_per_update", 1},
-			{"grid_x", 3},
-			{"grid_y", 2},
+			{"grid_x", gridX},
+			{"grid_y", gridY},
 		};
 	}
 
@@ -100,12 +101,12 @@ namespace
 		};
 	}
 
-	void get_window_config(json& config)
+	void get_window_config(json& config, uint width, uint height)
 	{
 		config["window"] = {
 			{"title", "computations"},
-			{"height", 800},
-			{"width", 1200},
+			{"height", height},
+			{"width", width},
 		};
 	}
 
@@ -118,12 +119,12 @@ namespace
 json ConfigBuilder::build()
 {
 	json config;
-	get_output_config(config, m_output, m_xSplit, m_ySplit, m_workgroupSizeX, m_workgroupSizeY);
-	get_app_config(config, m_xSplit, m_ySplit, m_totalUpdates);
+	get_output_config(config, m_output, m_xSplit, m_ySplit, m_workgroupSizeX, m_workgroupSizeY, m_steps);
+	get_app_config(config, m_xSplit, m_ySplit, m_totalUpdates, m_gridX, m_gridY);
 	get_dirichlet_config(config, m_systems);
 	get_shader_storage_config(config, m_workgroupSizeX, m_workgroupSizeY, m_steps);
 	get_program_storage_config(config);
-	get_window_config(config);
+	get_window_config(config, m_windowWidth, m_windowHeight);
 	get_glfw_config(config);
 
 	// DEBUG

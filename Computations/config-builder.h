@@ -15,6 +15,7 @@ public:
 
 	cfg::json build();
 
+
 	void setOutput(const std::string& value)
 	{
 		m_output = value;
@@ -24,6 +25,29 @@ public:
 	{
 		m_systems = value;
 	}
+
+
+	void setGridX(uint value)
+	{
+		m_gridX = value;
+	}
+
+	void steGridY(uint value)
+	{
+		m_gridY = value;
+	}
+
+
+	void setWindowWidth(uint value)
+	{
+		m_windowWidth = value;
+	}
+
+	void setWindowHeight(uint value)
+	{
+		m_windowHeight = value;
+	}
+
 
 	void setSplitX(uint value)
 	{	
@@ -58,6 +82,13 @@ public:
 private:
 	std::string m_output;
 	std::vector<std::string> m_systems;
+
+	uint m_gridX{3};
+	uint m_gridY{2};
+	
+	uint m_windowWidth{1200};
+	uint m_windowHeight{800};
+
 	uint m_xSplit{256};
 	uint m_ySplit{256};
 	uint m_totalUpdates{1000};
