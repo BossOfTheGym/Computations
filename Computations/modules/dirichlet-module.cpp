@@ -159,14 +159,28 @@ ModulePtr DirichletModuleBuilder::build(Module& root, const cfg::json& config)
 	try_load_module(root, modulePtr, "dirichlet");
 
 	// TODO : can be definitely registered & loaded automatically
-	//create_one_shader_sys<dir2d::Jacoby>(root, *systemsPtr, *controlsPtr, programStorage, config, "jacoby", "jacoby");
-	create_one_shader_sys<dir2d::RedBlack>(root, *systemsPtr, *controlsPtr, programStorage, config, "red_black", "red_black");
-	create_one_shader_sys<dir2d::RedBlackTiled>(root, *systemsPtr, *controlsPtr, programStorage, config, "red_black_tiled", "red_black_tiled");
-	create_one_shader_sys<dir2d::RedBlackTiledSmtS>(root, *systemsPtr, *controlsPtr, programStorage, config, "red_black_smt_s", "red_black_smt_s");
-	create_one_shader_sys<dir2d::RedBlackTiledSmtmS>(root, *systemsPtr, *controlsPtr, programStorage, config, "red_black_smtm_s", "red_black_smtm_s");
+	if (config.contains("/dirichlet/jacoby"_json_pointer)) {
+		create_one_shader_sys<dir2d::Jacoby>(root, *systemsPtr, *controlsPtr, programStorage, config, "jacoby", "jacoby");
+	}
+	if (config.contains("/dirichlet/red_black"_json_pointer)) {
+		create_one_shader_sys<dir2d::RedBlack>(root, *systemsPtr, *controlsPtr, programStorage, config, "red_black", "red_black");
+	}
+	if (config.contains("/dirichlet/red_black_tiled"_json_pointer)) {
+		create_one_shader_sys<dir2d::RedBlackTiled>(root, *systemsPtr, *controlsPtr, programStorage, config, "red_black_tiled", "red_black_tiled");
+	}
+	if (config.contains("/dirichlet/red_black_smt_s"_json_pointer)) {
+		create_one_shader_sys<dir2d::RedBlackTiledSmtS>(root, *systemsPtr, *controlsPtr, programStorage, config, "red_black_smt_s", "red_black_smt_s");
+	}
+	if (config.contains("/dirichlet/red_black_smtm_s"_json_pointer)) {
+		create_one_shader_sys<dir2d::RedBlackTiledSmtmS>(root, *systemsPtr, *controlsPtr, programStorage, config, "red_black_smtm_s", "red_black_smtm_s");
+	}
 
-	create_two_shader_sys<dir2d::RedBlackTiledSmt>(root, *systemsPtr, *controlsPtr, programStorage, config, "red_black_smt", "red_black_smt_st0", "red_black_smt_st1");
-	create_two_shader_sys<dir2d::RedBlackTiledSmtm>(root, *systemsPtr, *controlsPtr, programStorage, config, "red_black_smtm", "red_black_smtm_st0", "red_black_smtm_st1");
+	if (config.contains("/dirichlet/red_black_smt"_json_pointer)) {
+		create_two_shader_sys<dir2d::RedBlackTiledSmt>(root, *systemsPtr, *controlsPtr, programStorage, config, "red_black_smt", "red_black_smt_st0", "red_black_smt_st1");
+	}
+	if (config.contains("/dirichlet/red_black_smtm"_json_pointer)) {
+		create_two_shader_sys<dir2d::RedBlackTiledSmtm>(root, *systemsPtr, *controlsPtr, programStorage, config, "red_black_smtm", "red_black_smtm_st0", "red_black_smtm_st1");
+	}
 
 	return modulePtr;
 }
