@@ -1,6 +1,7 @@
 #include "shader-storage.h"
 
 #include <cfg.h>
+#include <gl-cxx/gl-res-util.h>
 
 #include <iostream>
 
@@ -18,7 +19,13 @@ bool ShaderStorage::loadAll(const cfg::json& config)
 	auto test = fs::current_path();
 
 	bool allLoaded = true;
-	for (auto& path : fs::recursive_directory_iterator(m_pathResolver.shaderFolder())) {
+	for (auto& entry: fs::recursive_directory_iterator(m_pathResolver.shaderFolder())) {
+		auto path = entry.path();
+
+		if (!entry.is_regular_file() || !gl::is_shader_file(path)) {
+			continue;
+		}
+
 		auto [it, inserted] = load(config, path);
 		if (it == end() || !inserted) {
 			allLoaded = false;
