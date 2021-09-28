@@ -362,6 +362,12 @@
     <ClInclude Include="config-builder.h">
       <Filter>main\headers</Filter>
     </ClInclude>
+    <ClInclude Include="app-params.h">
+      <Filter>main\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="output-params.h">
+      <Filter>main\headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\quad.frag">

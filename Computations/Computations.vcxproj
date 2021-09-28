@@ -185,6 +185,7 @@
     <ClCompile Include="window-builder.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="app-params.h" />
     <ClInclude Include="app-system.h" />
     <ClInclude Include="app.h" />
     <ClInclude Include="cfg-fwd.h" />
@@ -222,6 +223,7 @@
     <ClInclude Include="modules\programs-module.h" />
     <ClInclude Include="modules\shaders-module.h" />
     <ClInclude Include="modules\window-module.h" />
+    <ClInclude Include="output-params.h" />
     <ClInclude Include="parse-util.h" />
     <ClInclude Include="program-builder.h" />
     <ClInclude Include="program-storage.h" />

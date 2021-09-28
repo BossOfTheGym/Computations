@@ -8,15 +8,10 @@ using namespace cfg;
 
 namespace
 {
-	void get_output_config(json& config, const std::string& output, uint xSplit, uint ySplit, uint workgroupSizeX, uint workgroupSizeY, uint steps)
+	void get_output_config(json& config, const std::string& output)
 	{
 		config["output"] = {
 			{"output", output},
-			{"x_split", xSplit},
-			{"y_split", ySplit},
-			{"workgroup_size_x", workgroupSizeX},
-			{"workgroup_size_y", workgroupSizeY},
-			{"steps", steps}
 		};
 	}
 
@@ -119,7 +114,7 @@ namespace
 json ConfigBuilder::build()
 {
 	json config;
-	get_output_config(config, m_output, m_xSplit, m_ySplit, m_workgroupSizeX, m_workgroupSizeY, m_steps);
+	get_output_config(config, m_output);
 	get_app_config(config, m_xSplit, m_ySplit, m_totalUpdates, m_gridX, m_gridY);
 	get_dirichlet_config(config, m_systems);
 	get_shader_storage_config(config, m_workgroupSizeX, m_workgroupSizeY, m_steps);
