@@ -159,6 +159,8 @@ ModulePtr DirichletModuleBuilder::build(Module& root, const cfg::json& config)
 	try_load_module(root, modulePtr, "dirichlet");
 
 	// TODO : can be definitely registered & loaded automatically
+	// TODO : here definitely must be distinct builder for each system
+
 	if (config.contains("/dirichlet/jacoby"_json_pointer)) {
 		create_one_shader_sys<dir2d::Jacoby>(root, *systemsPtr, *controlsPtr, programStorage, config, "jacoby", "jacoby");
 	}
