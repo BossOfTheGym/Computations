@@ -32,7 +32,7 @@ public:
 		m_gridX = value;
 	}
 
-	void steGridY(uint value)
+	void setGridY(uint value)
 	{
 		m_gridY = value;
 	}
