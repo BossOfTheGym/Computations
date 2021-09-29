@@ -28,6 +28,7 @@
 
 #include <string>
 #include <fstream>
+#include <iostream>
 #include <stdexcept>
 #include <unordered_map>
 
@@ -123,6 +124,14 @@ namespace app
 			return handles;
 		}
 
+		void print_proxy_order(ModulePtr proxies)
+		{
+			std::cout << "Proxy order : ";
+			for (auto& [name, ptr] : *proxies) {
+				std::cout << name << " ";
+			}
+			std::cout << "\n";
+		}
 
 		class AppImpl
 		{
@@ -142,6 +151,8 @@ namespace app
 				uint updates = requiredModules.app->get<AppParams>().totalUpdates;
 
 				std::vector<SmartHandle> handles = create_handles(appParams.xSplit, appParams.ySplit, requiredModules.dirichletProxy);
+
+				print_proxy_order(requiredModules.dirichletProxy);
 
 				std::unordered_map<std::string, Tracker> trackers;
 				while (updates-- > 0 && !window->shouldClose())
