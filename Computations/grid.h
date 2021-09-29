@@ -3,7 +3,6 @@
 #include <core.h>
 #include <gl-cxx/gl-fwd.h>
 #include <gl-cxx/gl-res.h>
-#include <dirichlet/dirichlet_handle.h>
 
 class Grid
 {
@@ -12,7 +11,7 @@ public:
 
 	void setup();
 
-	void render(const dir2d::SmartHandle& handle, uint index);
+	void render(gl::Id texture, uint index);
 
 private:
 	uint m_gridX{};

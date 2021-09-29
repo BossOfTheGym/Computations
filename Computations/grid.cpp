@@ -28,7 +28,7 @@ void Grid::setup()
 	glBindVertexArray(m_dummy.id);
 }
 
-void Grid::render(const dir2d::SmartHandle& handle, uint index)
+void Grid::render(gl::Id texture, uint index)
 {
 	if (index >= m_gridX * m_gridY) {
 		return;
@@ -42,6 +42,6 @@ void Grid::render(const dir2d::SmartHandle& handle, uint index)
 	constexpr int UNIT_INDEX = 0;
 
 	glViewport(j * w, i * h, w, h);
-	glBindTextureUnit(UNIT_INDEX, handle.texture());
+	glBindTextureUnit(UNIT_INDEX, texture);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
