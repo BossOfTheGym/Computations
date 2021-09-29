@@ -1,10 +1,12 @@
 #version 460 core
 
-#ifndef CONFIGURED
-	#define WORKGROUP_X 16
-	#define WORKGROUP_Y 16
+#ifndef _CONFIGURED
+	#define _WORKGROUP_X 16
+	#define _WORKGROUP_Y 16
 #endif
 
+#define WORKGROUP_X _WORKGROUP_X
+#define WORKGROUP_Y _WORKGROUP_Y
 #define WORKGROUP ivec2(WORKGROUP_X, WORKGROUP_Y)
 
 #define CACHE_X (WORKGROUP_X + 2)

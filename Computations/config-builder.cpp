@@ -42,17 +42,18 @@ namespace
 			throw std::runtime_error("Workgroups dimensions must be even numbers.");
 		}
 
+		// TODO : two config types are almost the same now
 		json simpleConfig = {
-			{"CONFIGURED", ""},
-			{"WORKGROUP_X", std::to_string(workgroupSizeX)},
-			{"WORKGROUP_Y", std::to_string(workgroupSizeY)}
+			{"_CONFIGURED", ""},
+			{"_WORKGROUP_X", std::to_string(workgroupSizeX)},
+			{"_WORKGROUP_Y", std::to_string(workgroupSizeY)}
 		};
 
 		json tiledConfig = {
-			{"CONFIGURED", ""},
-			{"STEPS", std::to_string(steps)},
-			{"WORKGROUP_X", std::to_string(workgroupSizeX / 2)},
-			{"WORKGROUP_Y", std::to_string(workgroupSizeY / 2)}
+			{"_CONFIGURED", ""},
+			{"_STEPS", std::to_string(steps)},
+			{"_WORKGROUP_X", std::to_string(workgroupSizeX)},
+			{"_WORKGROUP_Y", std::to_string(workgroupSizeY)}
 		};
 		
 		json shaders;
