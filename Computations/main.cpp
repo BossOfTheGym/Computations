@@ -1,25 +1,27 @@
 #include "app.h"
 
-#include <string>
-#include <iomanip>
-#include <iostream>
-#include <exception>
+#include <modules/bundle.h>
+#include <config-builder.h>
+
+#include <memory>
 
 int main()
 {
-	/*std::unique_ptr<app::App> app;
-	
-	try {
-		app = std::make_unique<app::App>();
-		app->mainloop();
-	}
-	catch (std::runtime_error e) {
-		std::cerr << "Runtime error : " << e.what() << std::endl;
-	}
-	catch (...) {
-		std::cerr << "Unexpected error." << std::endl;
-		std::terminate();
-	}*/
+	ConfigBuilder builder;
+	builder.setSystems({"red_black_tiled", "red_black_smt"});
+	builder.setOutput("test");
+	builder.setSplitX(1024);
+	builder.setSplitY(1024);
+	builder.setGridX(2);
+	builder.setGridY(1);
+	builder.setWindowWidth(1024);
+	builder.setWindowHeight(512);
+	builder.setTotalUpdates(10000000);
+	builder.setWorkgroupSizeX(16);
+	builder.setWorkgroupSizeY(16);
+
+	auto application = std::make_unique<app::App>(builder.build());
+	application->mainloop();
 
 	return 0;
 }
