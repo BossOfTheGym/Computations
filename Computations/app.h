@@ -1,9 +1,15 @@
 #pragma once
 
 #include <cfg-fwd.h>
+#include <memory>
 
 namespace app
 {
+	namespace detail
+	{
+		class AppImpl;	
+	}
+
 	class App
 	{
 	public:
@@ -19,5 +25,8 @@ namespace app
 
 	public:
 		void mainloop();
+
+	private:
+		std::unique_ptr<detail::AppImpl> m_impl;
 	};
 }
