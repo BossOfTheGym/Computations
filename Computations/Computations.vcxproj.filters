@@ -177,6 +177,12 @@
     <ClCompile Include="modules\output-module.cpp">
       <Filter>modules\sources</Filter>
     </ClCompile>
+    <ClCompile Include="grid.cpp">
+      <Filter>main\sources</Filter>
+    </ClCompile>
+    <ClCompile Include="modules\grid-module.cpp">
+      <Filter>modules\sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="glfw-cxx\glfw3.h">
@@ -378,6 +384,12 @@
       <Filter>modules\headers</Filter>
     </ClInclude>
     <ClInclude Include="modules\output-module.h">
+      <Filter>modules\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="grid.h">
+      <Filter>main\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="modules\grid-module.h">
       <Filter>modules\headers</Filter>
     </ClInclude>
   </ItemGroup>

@@ -168,12 +168,14 @@
     <ClCompile Include="glfw-cxx\sources\opengl-loader.cpp" />
     <ClCompile Include="glfw-guard.cpp" />
     <ClCompile Include="glsl-preproc.cpp" />
+    <ClCompile Include="grid.cpp" />
     <ClCompile Include="main-window.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="modules\app-module.cpp" />
     <ClCompile Include="modules\bundle.cpp" />
     <ClCompile Include="modules\dirichlet-module.cpp" />
     <ClCompile Include="modules\glfw-module.cpp" />
+    <ClCompile Include="modules\grid-module.cpp" />
     <ClCompile Include="modules\module.cpp" />
     <ClCompile Include="modules\output-module.cpp" />
     <ClCompile Include="modules\programs-module.cpp" />
@@ -216,10 +218,12 @@
     <ClInclude Include="dirichlet\resource_provider.h" />
     <ClInclude Include="dirichlet\time_query.h" />
     <ClInclude Include="glfw-guard.h" />
+    <ClInclude Include="grid.h" />
     <ClInclude Include="modules\app-module.h" />
     <ClInclude Include="modules\bundle.h" />
     <ClInclude Include="modules\dirichlet-module.h" />
     <ClInclude Include="modules\glfw-module.h" />
+    <ClInclude Include="modules\grid-module.h" />
     <ClInclude Include="modules\module-builders.h" />
     <ClInclude Include="modules\module-dependencies.h" />
     <ClInclude Include="modules\module.h" />
