@@ -37,4 +37,4 @@ ModulePtr ShaderStorageModuleBuilder::build(Module& root, const cfg::json& confi
 }
 
 REGISTER_MODULE_BUILDER(shader_storage, ShaderStorageModuleBuilder);
-REGISTER_MODULE_BUILD_DEPENDENCY(shader_storage, window);
+REGISTER_MODULE_BUILD_DEPENDENCY(shader_storage, "window");

@@ -188,4 +188,4 @@ ModulePtr DirichletModuleBuilder::build(Module& root, const cfg::json& config)
 }
 
 REGISTER_MODULE_BUILDER(dirichlet, DirichletModuleBuilder);
-REGISTER_MODULE_BUILD_DEPENDENCY(dirichlet, program_storage);
+REGISTER_MODULE_BUILD_DEPENDENCY(dirichlet, "program_storage");

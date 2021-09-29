@@ -25,4 +25,4 @@ ModulePtr WindowModuleBuilder::build(Module& root, const cfg::json& config)
 }
 
 REGISTER_MODULE_BUILDER(window, WindowModuleBuilder);
-REGISTER_MODULE_BUILD_DEPENDENCY(window, glfw);
+REGISTER_MODULE_BUILD_DEPENDENCY(window, "glfw");

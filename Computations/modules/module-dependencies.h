@@ -17,4 +17,4 @@ Dependencies construct_dependencies(Args&& ... args)
 }
 
 #define ACCESS_MODULE_BUILD_DEPENDENCIES() ACCESS_STORAGE(ModuleBuildDependencyTag, Dependencies)
-#define REGISTER_MODULE_BUILD_DEPENDENCY(name, ...) REGISTER_RESOURCE(ModuleBuildDependencyTag, Dependencies, name, construct_dependencies(#__VA_ARGS__))
+#define REGISTER_MODULE_BUILD_DEPENDENCY(name, ...) REGISTER_RESOURCE(ModuleBuildDependencyTag, Dependencies, name, construct_dependencies(__VA_ARGS__))

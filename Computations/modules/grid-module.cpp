@@ -28,4 +28,4 @@ ModulePtr GridModuleBuilder::build(Module& root, const cfg::json& config)
 }
 
 REGISTER_MODULE_BUILDER(grid, GridModuleBuilder);
-REGISTER_MODULE_BUILD_DEPENDENCY(grid, app, window, program_storage);
+REGISTER_MODULE_BUILD_DEPENDENCY(grid, "app", "window", "program_storage");
