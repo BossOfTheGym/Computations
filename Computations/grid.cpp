@@ -34,14 +34,14 @@ void Grid::render(gl::Id texture, uint index)
 		return;
 	}
 
-	uint i = index % m_gridY;
+	uint i = index % m_gridX;
 	uint j = index / m_gridX;
 	uint w = m_width / m_gridX;
 	uint h = m_height / m_gridY;
 
 	constexpr int UNIT_INDEX = 0;
 
-	glViewport(j * w, i * h, w, h);
+	glViewport(i * w, j * h, w, h);
 	glBindTextureUnit(UNIT_INDEX, texture);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
