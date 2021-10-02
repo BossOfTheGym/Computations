@@ -118,9 +118,7 @@ void main()
 			cacheStoreValue(local + ivec2(-1, 0), imageLoad(solution, global + ivec2(-1, 0)).x);
 		}
 	}
-
 	barrier();
-	memoryBarrierShared();
 
 	float u00  = cacheLoadValue(local               );
 	float um10 = cacheLoadValue(local + ivec2(-1, 0));

@@ -158,7 +158,6 @@ void main()
 	cacheStoreValue(local + ivec2(1, 1), u11);
 
 	barrier();
-	memoryBarrierShared();
 	
 	// computations	
 	for (int i = 1; i <= STEPS; i++, steps--) {	
@@ -180,7 +179,6 @@ void main()
 		}
 
 		barrier();
-		memoryBarrierShared();
 
 		// red update
 		float u0m1 = cacheLoadValue(local + ivec2( 0, -1)); // bottom
@@ -200,7 +198,6 @@ void main()
 		}
 
 		barrier();
-		memoryBarrierShared();
 	}
 	
 	if (steps >= 0) { // out of bound writes are ignored, u[01][01] are already updated

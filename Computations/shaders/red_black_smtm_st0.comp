@@ -129,14 +129,6 @@ bool onBoundary(ivec2 global, ivec2 size)
 	return any(equal(global, ivec2(0))) || any(equal(global, size - 1)); 
 }
 
-bool onMainBorder()
-{
-	ivec2 local = ivec2(gl_LocalInvocationID.xy);
-	ivec2 r0 = ivec2(STEPS);
-	ivec2 r1 = WORKGROUP + STEPS;
-	return inRegion(local, r0, r1) && !inRegion(local, r0 + 1, r1 - 1);
-}
-
 bool onFlowerLeaf(ivec2 work)
 {
 	int X = WORKGROUP_X;
@@ -157,8 +149,8 @@ bool onFlowerLeaf(ivec2 work)
 			y1 = X;
 		}
 		return y0 < y && y < y1;
-	}	
-	
+	}
+
 	if (p.y >= S + Y) { // top, base: (S + X - 1, S + Y)
 		int x = p.y - (S + Y);
 		int y = -(p.x - (S + X - 1));
@@ -172,7 +164,7 @@ bool onFlowerLeaf(ivec2 work)
 		}
 		return y0 < y && y < y1;
 	}
-	
+
 	if (p.x < S) { // left, base: (S - 1, S + Y - 1)
 		int x = -(p.x - (S - 1));
 		int y = -(p.y - (S + Y - 1));
@@ -200,7 +192,7 @@ bool onFlowerLeaf(ivec2 work)
 		}
 		return y0 < y && y < y1;
 	}
-	
+
 	return false;
 }
 
@@ -230,7 +222,6 @@ void main()
 	pred_t u11Updateable = pred_t(inBounds(global + ivec2(1, 1), size) && !onBoundary(global + ivec2(1, 1), size));
 
 	bool onFlowerLeafPred = onFlowerLeaf(work);
-	bool onFlowerPred = onMainBorder() || onFlowerLeafPred;
 
 	int steps = (inBounds(global, size) ? getCurrStep() : -1);
 
@@ -260,12 +251,11 @@ void main()
 	cacheStoreValue(local + ivec2(1, 1), u11);
 
 	barrier();
-	memoryBarrierShared();
 	
 	// computations	
 	for (int i = 1; i < STEPS; i++, steps--) {
 		// store intermediate values
-		if (steps == 1 && onFlowerPred) { // could've been steps == i but steps var is decremented
+		if (steps == 1 && onFlowerLeafPred) { // could've been steps == i but steps var is decremented
 			imageStore(intermediate, global              , vec4(u00));
 			imageStore(intermediate, global + ivec2(1, 0), vec4(u10));
 			imageStore(intermediate, global + ivec2(0, 1), vec4(u01));
@@ -290,7 +280,6 @@ void main()
 		}
 
 		barrier();
-		memoryBarrierShared();
 
 		// red update
 		float u0m1 = cacheLoadValue(local + ivec2( 0, -1)); // bottom
@@ -310,11 +299,10 @@ void main()
 		}
 
 		barrier();
-		memoryBarrierShared();
 	}
 
 	// predicate describes whole domain
-	if (steps >= 0 || onFlowerLeafPred) { // out of bound writes are ignored, u[01][01] are already updated
+	if (steps >= 1 || onFlowerLeafPred) { // out of bound writes are ignored, u[01][01] are already updated
 		imageStore(solution[curr ^ 1], global              , vec4(u00));
 		imageStore(solution[curr ^ 1], global + ivec2(1, 0), vec4(u10));
 		imageStore(solution[curr ^ 1], global + ivec2(0, 1), vec4(u01));

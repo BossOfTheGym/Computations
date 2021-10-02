@@ -117,7 +117,6 @@ void main()
 			cacheStoreValue(local + ivec2(-1, 0), imageLoad(solution[curr], global + ivec2(-1, 0)).x);
 		}
 	}
-	memoryBarrierShared();
 	barrier();
 
 	

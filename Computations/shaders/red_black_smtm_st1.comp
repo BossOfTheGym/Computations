@@ -19,8 +19,8 @@
 #define TRUE_WORKGROUP_Y (2 * WORKGROUP_Y)
 #define TRUE_WORKGROUP ivec2(TRUE_WORKGROUP_X, TRUE_WORKGROUP_Y)
 
-#define WORKGROUP_X_OVERLAP (WORKGROUP_X + 2)
-#define WORKGROUP_Y_OVERLAP (WORKGROUP_Y + 2)
+#define WORKGROUP_X_OVERLAP (WORKGROUP_X)
+#define WORKGROUP_Y_OVERLAP (WORKGROUP_Y)
 #define WORKGROUP_OVERLAP ivec2(WORKGROUP_X_OVERLAP, WORKGROUP_Y_OVERLAP)
 
 #define TRUE_WORKGROUP_X_OVERLAP (2 * WORKGROUP_X_OVERLAP)
@@ -35,7 +35,7 @@
 	#define UPDATE_VALUE(u, u_new, pred) ((u) + ((u_new) - (u)) * (pred))
 #endif
 
-layout(local_size_x = WORKGROUP_X + 2, local_size_y = WORKGROUP_Y + 2) in;
+layout(local_size_x = WORKGROUP_X, local_size_y = WORKGROUP_Y) in;
 
 #define CACHE_X (TRUE_WORKGROUP_X_OVERLAP + 2)
 #define CACHE_Y (TRUE_WORKGROUP_Y_OVERLAP + 2)
@@ -96,7 +96,7 @@ void getWorkgroupID(out ivec2 work, int currStage)
 void getGlobalLocalInvocationID(in ivec2 work, out ivec2 global, out ivec2 local)
 {
 	local = 2 * ivec2(gl_LocalInvocationID.xy);
-	global = local + work * TRUE_WORKGROUP - 2;
+	global = local + work * TRUE_WORKGROUP;
 }
 
 // step function, in fact return signed distance to the frame defined by start coord and end coord
@@ -117,16 +117,14 @@ int getCurrStep(ivec2 work)
 		r0.x = 0;
 	}
 	if (work.x == numWorkgroupsX - 1) {
-		r1.x = WORKGROUP_X;
+		r1.x = WORKGROUP_X - 1;
 	}
 	if (work.y == 0) {
 		r0.y = 0;
 	}
 	if (work.y == numWorkgroupsY - 1) {
-		r1.y = WORKGROUP_Y;
+		r1.y = WORKGROUP_Y - 1;
 	}
-	r0 += 1;
-	r1 += 1;
 	return stepFunction(local, r0, r1);
 }
 
@@ -144,15 +142,6 @@ bool onBoundary(ivec2 global, ivec2 size)
 {
 	return any(equal(global, ivec2(0))) || any(equal(global, size - 1)); 
 }
-
-bool onMainBorder()
-{
-	ivec2 local = ivec2(gl_LocalInvocationID.xy);
-	ivec2 r0 = ivec2(1);
-	ivec2 r1 = WORKGROUP + 1;
-	return inRegion(local, r0, r1) && !inRegion(local, r0 + 1, r1 - 1);
-}
-
 
 // red-black step
 float update(float u00, float um10, float u10, float u0m1, float u01, float f00)
@@ -179,7 +168,7 @@ void main()
 	pred_t u01Updateable = pred_t(inBounds(global + ivec2(0, 1), size) && !onBoundary(global + ivec2(0, 1), size));
 	pred_t u11Updateable = pred_t(inBounds(global + ivec2(1, 1), size) && !onBoundary(global + ivec2(1, 1), size));
 
-	int steps = (inBounds(global, size) ? getCurrStep(work) : -STEPS - 1);
+	int steps = (inBounds(global, size) ? getCurrStep(work) : -STEPS - 2);
 
 	// cache data
 	float f01, f11;
@@ -195,7 +184,7 @@ void main()
 	float u00 = 0, u10 = 0;
 
 	// loads either value or zero if out of bounds
-	if (steps >= 0) {
+	if (steps >= 0) { // hmmmmmmmmmmmmmmm
 		u00 = imageLoad(solution[curr], global              ).x;
 		u10 = imageLoad(solution[curr], global + ivec2(1, 0)).x;
 		u01 = imageLoad(solution[curr], global + ivec2(0, 1)).x;
@@ -209,7 +198,6 @@ void main()
 	cacheStoreValue(local + ivec2(1, 1), u11);
 
 	barrier();
-	memoryBarrierShared();
 	
 	// computations	
 	for (int i = 1; i < STEPS; i++, steps++) {
@@ -227,7 +215,6 @@ void main()
 		cacheStoreValue(local + ivec2(1, 1), u11);
 
 		barrier();
-		memoryBarrierShared();
 
 		// black update
 		float u20  = cacheLoadValue(local + ivec2(2,  0)); // right
@@ -247,7 +234,6 @@ void main()
 		}
 
 		barrier();
-		memoryBarrierShared();
 
 		// red update
 		float u0m1 = cacheLoadValue(local + ivec2( 0, -1)); // bottom
@@ -267,7 +253,6 @@ void main()
 		}
 
 		barrier();
-		memoryBarrierShared();
 
 		// load next iter
 		if (steps == -1) {
