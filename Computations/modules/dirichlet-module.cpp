@@ -10,9 +10,7 @@
 #include <dirichlet/jacoby.h>
 #include <dirichlet/red_black.h>
 #include <dirichlet/red_black_tiled.h>
-#include <dirichlet/red_black_smt.h>
 #include <dirichlet/red_black_smtm.h>
-#include <dirichlet/red_black_smt_s.h>
 #include <dirichlet/red_black_smtm_s.h>
 
 #include <string>
@@ -170,16 +168,10 @@ ModulePtr DirichletModuleBuilder::build(Module& root, const cfg::json& config)
 	if (config.contains("/dirichlet/red_black_tiled"_json_pointer)) {
 		create_one_shader_sys<dir2d::RedBlackTiled>(root, *systemsPtr, *controlsPtr, programStorage, config, "red_black_tiled", "red_black_tiled");
 	}
-	if (config.contains("/dirichlet/red_black_smt_s"_json_pointer)) {
-		create_one_shader_sys<dir2d::RedBlackTiledSmtS>(root, *systemsPtr, *controlsPtr, programStorage, config, "red_black_smt_s", "red_black_smt_s");
-	}
 	if (config.contains("/dirichlet/red_black_smtm_s"_json_pointer)) {
 		create_one_shader_sys<dir2d::RedBlackTiledSmtmS>(root, *systemsPtr, *controlsPtr, programStorage, config, "red_black_smtm_s", "red_black_smtm_s");
 	}
 
-	if (config.contains("/dirichlet/red_black_smt"_json_pointer)) {
-		create_two_shader_sys<dir2d::RedBlackTiledSmt>(root, *systemsPtr, *controlsPtr, programStorage, config, "red_black_smt", "red_black_smt_st0", "red_black_smt_st1");
-	}
 	if (config.contains("/dirichlet/red_black_smtm"_json_pointer)) {
 		create_two_shader_sys<dir2d::RedBlackTiledSmtm>(root, *systemsPtr, *controlsPtr, programStorage, config, "red_black_smtm", "red_black_smtm_st0", "red_black_smtm_st1");
 	}

@@ -78,9 +78,6 @@
     <ClCompile Include="dirichlet\red_black.cpp">
       <Filter>dirichlet\sources</Filter>
     </ClCompile>
-    <ClCompile Include="dirichlet\red_black_smt.cpp">
-      <Filter>dirichlet\sources</Filter>
-    </ClCompile>
     <ClCompile Include="dirichlet\red_black_smtm.cpp">
       <Filter>dirichlet\sources</Filter>
     </ClCompile>
@@ -113,9 +110,6 @@
     </ClCompile>
     <ClCompile Include="glsl-preproc.cpp">
       <Filter>main\sources</Filter>
-    </ClCompile>
-    <ClCompile Include="dirichlet\red_black_smt_s.cpp">
-      <Filter>dirichlet\sources</Filter>
     </ClCompile>
     <ClCompile Include="dirichlet\red_black_smtm_s.cpp">
       <Filter>dirichlet\sources</Filter>
@@ -221,9 +215,6 @@
     <ClInclude Include="dirichlet\red_black.h">
       <Filter>dirichlet\headers</Filter>
     </ClInclude>
-    <ClInclude Include="dirichlet\red_black_smt.h">
-      <Filter>dirichlet\headers</Filter>
-    </ClInclude>
     <ClInclude Include="dirichlet\red_black_smtm.h">
       <Filter>dirichlet\headers</Filter>
     </ClInclude>
@@ -274,9 +265,6 @@
     </ClInclude>
     <ClInclude Include="glsl-preproc.h">
       <Filter>main\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="dirichlet\red_black_smt_s.h">
-      <Filter>dirichlet\headers</Filter>
     </ClInclude>
     <ClInclude Include="dirichlet\red_black_smtm_s.h">
       <Filter>dirichlet\headers</Filter>
