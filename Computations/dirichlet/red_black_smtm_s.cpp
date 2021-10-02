@@ -137,8 +137,8 @@ namespace dir2d
 	{
 		constexpr int IMG0 = 0;
 		constexpr int IMG1 = 1;
-		constexpr int IMG_INTERMEDIATE = 2;
-		constexpr int IMGF = 3;
+		constexpr int IMGF = 2;
+		constexpr int IMG_INTERMEDIATE = 3;
 
 		m_query.start();
 
@@ -154,14 +154,14 @@ namespace dir2d
 
 			glBindImageTexture(IMG0, solution.s[0].id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
 			glBindImageTexture(IMG1, solution.s[1].id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
-			glBindImageTexture(IMG_INTERMEDIATE, solution.intermediate.id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
 			glBindImageTexture(IMGF, solution.f.id, 0, GL_FALSE, 0, GL_READ_ONLY, GL_R32F);
+			glBindImageTexture(IMG_INTERMEDIATE, solution.intermediate.id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
 
 			glUniform1f(m_uniforms.w, solution.w);
 			glUniform1f(m_uniforms.hx, domain.hx);
 			glUniform1f(m_uniforms.hy, domain.hy);
-			glUniform1f(m_uniforms.numWorkgroupsX, numWorkgroupsX);
-			glUniform1f(m_uniforms.numWorkgroupsY, numWorkgroupsY);
+			glUniform1i(m_uniforms.numWorkgroupsX, numWorkgroupsX);
+			glUniform1i(m_uniforms.numWorkgroupsY, numWorkgroupsY);
 
 			for (uint i = 0; i < config.itersPerUpdate; i++) {
 				glUniform1i(m_uniforms.curr, solution.curr);

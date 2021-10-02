@@ -43,8 +43,8 @@ layout(local_size_x = WORKGROUP_X + STEPS * 2, local_size_y = WORKGROUP_Y + STEP
 // picture is stored in a row-major manner
 // used both for read and write, boundary is not calculated
 layout(binding = 0, r32f) uniform image2D solution[2];
-layout(binding = 2, r32f) uniform image2D intermediate;
-layout(binding = 3, r32f) uniform readonly image2D f;
+layout(binding = 2, r32f) uniform readonly image2D f;
+layout(binding = 3, r32f) uniform image2D intermediate;
 
 uniform int curr; // 0 or 1
 uniform float w;
@@ -84,11 +84,9 @@ void cacheStoreValue(ivec2 indices, float value)
 // 0 1 | 0 1 | 0
 void getWorkgroupID(out ivec2 work, int currStage)
 {
-	currStage ^= 1;
-
-	int workFlat = int(gl_WorkGroupID.x);
-	work.x = workFlat % numWorkgroupsX;     // base case
-	work.y = workFlat / numWorkgroupsX * 2; // base case
+	int id = int(gl_WorkGroupID.x);
+	work.x = id % numWorkgroupsX;     // base case
+	work.y = id / numWorkgroupsX * 2; // base case
 	if (work.y == numWorkgroupsY - 1) { // triggered only if numWorkgroupsY is uneven and work.y is last row
 		work.x = 2 * work.x + currStage; // last row index (stage inverted)
 	}
@@ -118,20 +116,21 @@ int getCurrStepSt0()
 
 int getCurrStepSt1(ivec2 work)
 {
+	// TODO
 	ivec2 local = ivec2(gl_LocalInvocationID.xy);
 	ivec2 r0 = ivec2(STEPS) - 1;
-	ivec2 r1 = WORKGROUP - STEPS + 1;
-	if (work.x == numWorkgroupsX - 1) {
-		r1.x = WORKGROUP_X;
-	}
+	ivec2 r1 = WORKGROUP - STEPS;
 	if (work.x == 0) {
 		r0.x = 0;
 	}
-	if (work.y == numWorkgroupsY - 1) {
-		r1.y = WORKGROUP_Y;
+	if (work.x == numWorkgroupsX - 1) {
+		r1.x = WORKGROUP_X;
 	}
 	if (work.y == 0) {
 		r0.y = 0;
+	}
+	if (work.y == numWorkgroupsY - 1) {
+		r1.y = WORKGROUP_Y;
 	}
 	r0 += STEPS;
 	r1 += STEPS;
@@ -162,7 +161,7 @@ bool onMainBorder()
 	return inRegion(local, r0, r1) && !inRegion(local, r0 + 1, r1 - 1);
 }
 
-bool onFlowerLeave(ivec2 work)
+bool onFlowerLeaf(ivec2 work)
 {
 	int X = WORKGROUP_X;
 	int Y = WORKGROUP_Y;
@@ -170,17 +169,11 @@ bool onFlowerLeave(ivec2 work)
 	ivec2 p = ivec2(gl_LocalInvocationID.xy);
 	ivec2 W = ivec2(numWorkgroupsX, numWorkgroupsY);
 
-	int x;
-	int y;
-	int y0;
-	int y1;
-
-	// x case
 	if (p.y < S) { // bottom, base: (S, S - 1)
-		x = p.y - S + 1;
-		y = p.x - S;
-		y0 = x - 1;     // default line
-		y1 = y - 1 - x; // default line
+		int x = -(p.y - (S - 1));
+		int y = p.x - (S);
+		int y0 = x - 1;     // default line
+		int y1 = (X - 1) - x; // default line
 		if (work.x == 0) {
 			y0 = -1;
 		}
@@ -188,12 +181,13 @@ bool onFlowerLeave(ivec2 work)
 			y1 = X;
 		}
 		return y0 < y && y < y1;
-	}
-	else if (p.y >= S + Y) { // top, base: (S + X - 1, S + Y)
-		x = p.y - S - Y;
-		y = p.x - S - X + 1;
-		y0 = x - 1;     // default line
-		y1 = y - 1 - x; // default line
+	}	
+	
+	if (p.y >= S + Y) { // top, base: (S + X - 1, S + Y)
+		int x = p.y - (S + Y);
+		int y = -(p.x - (S + X - 1));
+		int y0 = x - 1;     // default line
+		int y1 = (X - 1) - x; // default line
 		if (work.x == 0) {
 			y1 = X;
 		}
@@ -202,13 +196,12 @@ bool onFlowerLeave(ivec2 work)
 		}
 		return y0 < y && y < y1;
 	}
-
-	// y case
+	
 	if (p.x < S) { // left, base: (S - 1, S + Y - 1)
-		x = p.x - S + 1;
-		y = p.y - S - Y + 1;
-		y0 = x - 1;     // default line
-		y1 = y - 1 - x; // default line
+		int x = -(p.x - (S - 1));
+		int y = -(p.y - (S + Y - 1));
+		int y0 = x - 1;     // default line
+		int y1 = (Y - 1) - x; // default line
 		if (work.y == 0) {
 			y1 = Y;
 		}
@@ -217,11 +210,12 @@ bool onFlowerLeave(ivec2 work)
 		}
 		return y0 < y && y < y1;
 	}
-	else if (p.x >= S + X) { // right, base: (S + X, S)
-		x = p.x - S - X;
-		y = p.y - S;
-		y0 = x - 1;     // default line
-		y1 = y - 1 - x; // default line
+	
+	if (p.x >= S + X) { // right, base: (S + X, S)
+		int x = p.x - (S + X);
+		int y = p.y - S;
+		int y0 = x - 1;     // default line
+		int y1 = (Y - 1) - x; // default line
 		if (work.y == 0) {
 			y0 = -1;
 		}
@@ -230,7 +224,7 @@ bool onFlowerLeave(ivec2 work)
 		}
 		return y0 < y && y < y1;
 	}
-
+	
 	return false;
 }
 
@@ -253,14 +247,14 @@ void stage0()
 	getGlobalLocalInvocationID(work, global, local);
 
 	ivec2 size = imageSize(solution[curr]);
+	
+	pred_t u00Updateable = pred_t(inBounds(global              , size) && !onBoundary(global              , size));
+	pred_t u10Updateable = pred_t(inBounds(global + ivec2(1, 0), size) && !onBoundary(global + ivec2(1, 0), size));
+	pred_t u01Updateable = pred_t(inBounds(global + ivec2(0, 1), size) && !onBoundary(global + ivec2(0, 1), size));
+	pred_t u11Updateable = pred_t(inBounds(global + ivec2(1, 1), size) && !onBoundary(global + ivec2(1, 1), size));
 
-	float u00Updateable = float(inBounds(global              , size) && !onBoundary(global              , size));
-	float u10Updateable = float(inBounds(global + ivec2(1, 0), size) && !onBoundary(global + ivec2(1, 0), size));
-	float u01Updateable = float(inBounds(global + ivec2(0, 1), size) && !onBoundary(global + ivec2(0, 1), size));
-	float u11Updateable = float(inBounds(global + ivec2(1, 1), size) && !onBoundary(global + ivec2(1, 1), size));
-
-	bool onFlowerLeavePred = onFlowerLeave(work);
-	bool onFlowerPred = onMainBorder() || onFlowerLeavePred;
+	bool onFlowerLeafPred = onFlowerLeaf(work);
+	bool onFlowerPred = onMainBorder() || onFlowerLeafPred;
 
 	int steps = (inBounds(global, size) ? getCurrStepSt0() : -1);
 
@@ -312,8 +306,8 @@ void stage0()
 		float u10_new = update(u10, u00, u20, u1m1, u11, f10);
 		float u01_new = update(u01, um11, u11, u00, u02, f01);
 
-		u10 = u10 + (u10_new - u10) * u10Updateable;
-		u01 = u01 + (u01_new - u01) * u01Updateable;
+		u10 = UPDATE_VALUE(u10, u10_new, u10Updateable);
+		u01 = UPDATE_VALUE(u01, u01_new, u01Updateable);
 		if (steps >= 0) {
 			cacheStoreValue(local + ivec2(1, 0), u10);
 			cacheStoreValue(local + ivec2(0, 1), u01);
@@ -332,8 +326,8 @@ void stage0()
 		float u00_new = update(u00, um10, u10, u0m1, u01, f00);
 		float u11_new = update(u11, u01, u21, u10, u12, f11);
 
-		u00 = u00 + (u00_new - u00) * u00Updateable;
-		u11 = u11 + (u11_new - u11) * u11Updateable;
+		u00 = UPDATE_VALUE(u00, u00_new, u00Updateable);
+		u11 = UPDATE_VALUE(u11, u11_new, u11Updateable);
 		if (steps > 0)	{
 			cacheStoreValue(local + ivec2(0, 0), u00);
 			cacheStoreValue(local + ivec2(1, 1), u11);
@@ -344,7 +338,7 @@ void stage0()
 	}
 	
 	// predicate describes whole domain
-	if (steps >= 0 || onFlowerLeavePred) { // out of bound writes are ignored, u[01][01] are already updated
+	if (steps >= 0 || onFlowerLeafPred) { // out of bound writes are ignored, u[01][01] are already updated
 		imageStore(solution[curr ^ 1], global              , vec4(u00));
 		imageStore(solution[curr ^ 1], global + ivec2(1, 0), vec4(u10));
 		imageStore(solution[curr ^ 1], global + ivec2(0, 1), vec4(u01));
@@ -361,10 +355,10 @@ void stage1()
 
 	ivec2 size = imageSize(solution[curr]);
 
-	float u00Updateable = float(inBounds(global              , size) && !onBoundary(global              , size));
-	float u10Updateable = float(inBounds(global + ivec2(1, 0), size) && !onBoundary(global + ivec2(1, 0), size));
-	float u01Updateable = float(inBounds(global + ivec2(0, 1), size) && !onBoundary(global + ivec2(0, 1), size));
-	float u11Updateable = float(inBounds(global + ivec2(1, 1), size) && !onBoundary(global + ivec2(1, 1), size));
+	pred_t u00Updateable = pred_t(inBounds(global              , size) && !onBoundary(global              , size));
+	pred_t u10Updateable = pred_t(inBounds(global + ivec2(1, 0), size) && !onBoundary(global + ivec2(1, 0), size));
+	pred_t u01Updateable = pred_t(inBounds(global + ivec2(0, 1), size) && !onBoundary(global + ivec2(0, 1), size));
+	pred_t u11Updateable = pred_t(inBounds(global + ivec2(1, 1), size) && !onBoundary(global + ivec2(1, 1), size));
 
 	int steps = (inBounds(global, size) ? getCurrStepSt1(work) : -STEPS - 1);
 
@@ -426,9 +420,7 @@ void stage1()
 		float u10_new = update(u10, u00, u20, u1m1, u11, f10);
 		float u01_new = update(u01, um11, u11, u00, u02, f01);
 
-		//u10 = u10 + (u10_new - u10) * u10Updateable;
 		u10 = UPDATE_VALUE(u10, u10_new, u10Updateable);
-		//u01 = u01 + (u01_new - u01) * u01Updateable;
 		u01 = UPDATE_VALUE(u01, u01_new, u01Updateable);
 		if (steps >= -1) {
 			cacheStoreValue(local + ivec2(1, 0), u10);
@@ -448,14 +440,15 @@ void stage1()
 		float u00_new = update(u00, um10, u10, u0m1, u01, f00);
 		float u11_new = update(u11, u01, u21, u10, u12, f11);
 
-		//u00 = u00 + (u00_new - u00) * u00Updateable;
 		u00 = UPDATE_VALUE(u00, u00_new, u00Updateable);
-		//u11 = u11 + (u11_new - u11) * u11Updateable;
 		u11 = UPDATE_VALUE(u11, u11_new, u11Updateable);
 		if (steps > -1)	{
 			cacheStoreValue(local + ivec2(0, 0), u00);
 			cacheStoreValue(local + ivec2(1, 1), u11);
 		}
+
+		barrier();
+		memoryBarrierShared();
 
 		// load next iter
 		if (steps == -1) {
@@ -464,15 +457,6 @@ void stage1()
 			u01 = imageLoad(solution[curr ^ 1], global + ivec2(0, 1)).x;
 			u11 = imageLoad(solution[curr ^ 1], global + ivec2(1, 1)).x;
 		}
-
-		// stored in cache in the next loop iteration
-		//cacheStoreValue(local              , u00);
-		//cacheStoreValue(local + ivec2(1, 0), u10);
-		//cacheStoreValue(local + ivec2(0, 1), u01);
-		//cacheStoreValue(local + ivec2(1, 1), u11);
-
-		//barrier();
-		//memoryBarrierShared();
 	}
 	
 	// store updated value

@@ -172,9 +172,7 @@ void main()
 		float u10_new = update(u10, u00, u20, u1m1, u11, f10);
 		float u01_new = update(u01, um11, u11, u00, u02, f01);
 
-		//u10 = u10 + (u10_new - u10) * u10Updateable;
 		u10 = UPDATE_VALUE(u10, u10_new, u10Updateable);
-		//u01 = u01 + (u01_new - u01) * u01Updateable;
 		u01 = UPDATE_VALUE(u01, u01_new, u01Updateable);
 		if (steps >= 0) {
 			cacheStoreValue(local + ivec2(1, 0), u10);
@@ -194,9 +192,7 @@ void main()
 		float u00_new = update(u00, um10, u10, u0m1, u01, f00);
 		float u11_new = update(u11, u01, u21, u10, u12, f11);
 
-		//u00 = u00 + (u00_new - u00) * u00Updateable;
 		u00 = UPDATE_VALUE(u00, u00_new, u00Updateable);
-		//u11 = u11 + (u11_new - u11) * u11Updateable;
 		u11 = UPDATE_VALUE(u11, u11_new, u11Updateable);
 		if (steps > 0)	{
 			cacheStoreValue(local + ivec2(0, 0), u00);

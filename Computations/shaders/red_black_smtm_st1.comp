@@ -83,11 +83,9 @@ void cacheStoreValue(ivec2 indices, float value)
 // 0 1 | 0 1 | 0
 void getWorkgroupID(out ivec2 work, int currStage)
 {
-	currStage ^= 1;
-
-	int workFlat = int(gl_WorkGroupID.x);
-	work.x = workFlat % numWorkgroupsX;     // base case
-	work.y = workFlat / numWorkgroupsX * 2; // base case
+	int id = int(gl_WorkGroupID.x);
+	work.x = id % numWorkgroupsX;     // base case
+	work.y = id / numWorkgroupsX * 2; // base case
 	if (work.y == numWorkgroupsY - 1) { // triggered only if numWorkgroupsY is uneven and work.y is last row
 		work.x = 2 * work.x + currStage; // last row index (stage inverted)
 	}
@@ -98,7 +96,7 @@ void getWorkgroupID(out ivec2 work, int currStage)
 void getGlobalLocalInvocationID(in ivec2 work, out ivec2 global, out ivec2 local)
 {
 	local = 2 * ivec2(gl_LocalInvocationID.xy);
-	global = local + work * TRUE_WORKGROUP - TRUE_STEPS;
+	global = local + work * TRUE_WORKGROUP - 2;
 }
 
 // step function, in fact return signed distance to the frame defined by start coord and end coord
@@ -114,18 +112,18 @@ int getCurrStep(ivec2 work)
 {
 	ivec2 local = ivec2(gl_LocalInvocationID.xy);
 	ivec2 r0 = ivec2(STEPS) - 1;
-	ivec2 r1 = WORKGROUP - STEPS + 1;
-	if (work.x == numWorkgroupsX - 1) {
-		r1.x = WORKGROUP_X;
-	}
+	ivec2 r1 = WORKGROUP - STEPS;
 	if (work.x == 0) {
 		r0.x = 0;
 	}
-	if (work.y == numWorkgroupsY - 1) {
-		r1.y = WORKGROUP_Y;
+	if (work.x == numWorkgroupsX - 1) {
+		r1.x = WORKGROUP_X;
 	}
 	if (work.y == 0) {
 		r0.y = 0;
+	}
+	if (work.y == numWorkgroupsY - 1) {
+		r1.y = WORKGROUP_Y;
 	}
 	r0 += 1;
 	r1 += 1;
@@ -145,6 +143,14 @@ bool inBounds(ivec2 global, ivec2 size)
 bool onBoundary(ivec2 global, ivec2 size)
 {
 	return any(equal(global, ivec2(0))) || any(equal(global, size - 1)); 
+}
+
+bool onMainBorder()
+{
+	ivec2 local = ivec2(gl_LocalInvocationID.xy);
+	ivec2 r0 = ivec2(1);
+	ivec2 r1 = WORKGROUP + 1;
+	return inRegion(local, r0, r1) && !inRegion(local, r0 + 1, r1 - 1);
 }
 
 
@@ -233,9 +239,7 @@ void main()
 		float u10_new = update(u10, u00, u20, u1m1, u11, f10);
 		float u01_new = update(u01, um11, u11, u00, u02, f01);
 
-		//u10 = u10 + (u10_new - u10) * u10Updateable;
 		u10 = UPDATE_VALUE(u10, u10_new, u10Updateable);
-		//u01 = u01 + (u01_new - u01) * u01Updateable;
 		u01 = UPDATE_VALUE(u01, u01_new, u01Updateable);
 		if (steps >= -1) {
 			cacheStoreValue(local + ivec2(1, 0), u10);
@@ -255,9 +259,7 @@ void main()
 		float u00_new = update(u00, um10, u10, u0m1, u01, f00);
 		float u11_new = update(u11, u01, u21, u10, u12, f11);
 
-		//u00 = u00 + (u00_new - u00) * u00Updateable;
 		u00 = UPDATE_VALUE(u00, u00_new, u00Updateable);
-		//u11 = u11 + (u11_new - u11) * u11Updateable;
 		u11 = UPDATE_VALUE(u11, u11_new, u11Updateable);
 		if (steps > -1)	{
 			cacheStoreValue(local + ivec2(0, 0), u00);
@@ -274,15 +276,6 @@ void main()
 			u01 = imageLoad(solution[curr ^ 1], global + ivec2(0, 1)).x;
 			u11 = imageLoad(solution[curr ^ 1], global + ivec2(1, 1)).x;
 		}
-
-		// stored in cache in the next loop iteration
-		//cacheStoreValue(local              , u00);
-		//cacheStoreValue(local + ivec2(1, 0), u10);
-		//cacheStoreValue(local + ivec2(0, 1), u01);
-		//cacheStoreValue(local + ivec2(1, 1), u11);
-
-		//barrier();
-		//memoryBarrierShared();
 	}
 	
 	// store updated value

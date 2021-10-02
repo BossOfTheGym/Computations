@@ -53,6 +53,7 @@ namespace dir2d
 		}
 
 		solution.intermediate = gl::create_texture(xVar, yVar, GL_R32F);
+		glClearTexImage(solution.intermediate.id, 0, GL_RED, GL_FLOAT, nullptr);
 
 		solution.f = gl::create_texture(xVar, yVar, GL_R32F);
 		glTextureSubImage2D(solution.f.id, 0, 0, 0, xVar, yVar, GL_RED, GL_FLOAT, data.f.get());
@@ -82,7 +83,8 @@ namespace dir2d
 		, m_workgroupSizeY{workgroupSizeY}
 		, m_programSt0{programSt0}
 		, m_programSt1{programSt1}
-		, m_uniforms(m_programSt0)
+		, m_uniformsSt0(m_programSt0)
+		, m_uniformsSt1(m_programSt1)
 	{
 		Uniforms dummy(m_programSt1); // dummys check, no need for second uniforms struct 'cause uniform set is the same in both stages
 	}
@@ -138,8 +140,8 @@ namespace dir2d
 	{
 		constexpr int IMG0 = 0;
 		constexpr int IMG1 = 1;
-		constexpr int IMG_INTERMEDIATE = 2;
-		constexpr int IMGF = 3;
+		constexpr int IMGF = 2;
+		constexpr int IMG_INTERMEDIATE = 3;
 
 		// stage 0
 		m_querySt0.start();
@@ -159,19 +161,19 @@ namespace dir2d
 
 			glBindImageTexture(IMG0, solution.s[0].id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
 			glBindImageTexture(IMG1, solution.s[1].id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
-			glBindImageTexture(IMG_INTERMEDIATE, solution.intermediate.id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
 			glBindImageTexture(IMGF, solution.f.id, 0, GL_FALSE, 0, GL_READ_ONLY, GL_R32F);
+			glBindImageTexture(IMG_INTERMEDIATE, solution.intermediate.id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
 
-			glUniform1i(m_uniforms.curr, solution.curr);
-			glUniform1f(m_uniforms.w, solution.w);
-			glUniform1f(m_uniforms.hx, domain.hx);
-			glUniform1f(m_uniforms.hy, domain.hy);
-			glUniform1f(m_uniforms.numWorkgroupsX, numWorkgroupsX);
-			glUniform1f(m_uniforms.numWorkgroupsY, numWorkgroupsY);
+			glUniform1i(m_uniformsSt0.curr, solution.curr);
+			glUniform1f(m_uniformsSt0.w, solution.w);
+			glUniform1f(m_uniformsSt0.hx, domain.hx);
+			glUniform1f(m_uniformsSt0.hy, domain.hy);
+			glUniform1i(m_uniformsSt0.numWorkgroupsX, numWorkgroupsX);
+			glUniform1i(m_uniformsSt0.numWorkgroupsY, numWorkgroupsY);
 
 			glDispatchCompute(stage0Workgroups, 1, 1);
-			glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
 		}
+		glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
 
 		m_querySt0.end();
 
@@ -193,20 +195,20 @@ namespace dir2d
 
 			glBindImageTexture(IMG0, solution.s[0].id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
 			glBindImageTexture(IMG1, solution.s[1].id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
-			glBindImageTexture(IMG_INTERMEDIATE, solution.intermediate.id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
 			glBindImageTexture(IMGF, solution.f.id, 0, GL_FALSE, 0, GL_READ_ONLY, GL_R32F);
+			glBindImageTexture(IMG_INTERMEDIATE, solution.intermediate.id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
 
-			glUniform1i(m_uniforms.curr, solution.curr);
-			glUniform1f(m_uniforms.w, solution.w);
-			glUniform1f(m_uniforms.hx, domain.hx);
-			glUniform1f(m_uniforms.hy, domain.hy);
-			glUniform1f(m_uniforms.numWorkgroupsX, numWorkgroupsX);
-			glUniform1f(m_uniforms.numWorkgroupsY, numWorkgroupsY);
+			glUniform1i(m_uniformsSt1.curr, solution.curr);
+			glUniform1f(m_uniformsSt1.w, solution.w);
+			glUniform1f(m_uniformsSt1.hx, domain.hx);
+			glUniform1f(m_uniformsSt1.hy, domain.hy);
+			glUniform1i(m_uniformsSt1.numWorkgroupsX, numWorkgroupsX);
+			glUniform1i(m_uniformsSt1.numWorkgroupsY, numWorkgroupsY);
 
 			glDispatchCompute(stage1Workgroups, 1, 1);
-			glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
 			solution.pingpong();
 		}
+		glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
 
 		m_querySt1.end();
 	}

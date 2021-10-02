@@ -84,7 +84,8 @@ namespace dir2d
 
 		gl::Id m_programSt0;
 		gl::Id m_programSt1;
-		Uniforms m_uniforms;
+		Uniforms m_uniformsSt0;
+		Uniforms m_uniformsSt1;
 		TimeQuery m_querySt0;
 		TimeQuery m_querySt1;
 
