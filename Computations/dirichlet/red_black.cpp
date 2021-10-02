@@ -115,10 +115,9 @@ namespace dir2d
 		constexpr int IMG = 0;
 		constexpr int IMGF = 1;
 
-		m_query.start();
-
 		glUseProgram(m_program);
 
+		m_query.start();
 		for (auto& handle : m_domainStorage) {
 			auto& domain   = m_domainStorage.get(handle);
 			auto& solution = m_solutionStorage.get(handle);

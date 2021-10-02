@@ -144,9 +144,9 @@ namespace dir2d
 		constexpr int IMG_INTERMEDIATE = 3;
 
 		// stage 0
-		m_querySt0.start();
-
 		glUseProgram(m_programSt0);
+
+		m_querySt0.start();
 		for (auto& handle : m_domainStorage) {
 			auto& domain   = m_domainStorage.get(handle);
 			auto& solution = m_solutionStorage.get(handle);
@@ -174,13 +174,12 @@ namespace dir2d
 			glDispatchCompute(stage0Workgroups, 1, 1);
 		}
 		glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
-
 		m_querySt0.end();
 
 		// stage1 
-		m_querySt1.start();
-
 		glUseProgram(m_programSt1);
+
+		m_querySt1.start();
 		for (auto& handle : m_domainStorage) {
 			auto& domain   = m_domainStorage.get(handle);
 			auto& solution = m_solutionStorage.get(handle);
@@ -209,7 +208,6 @@ namespace dir2d
 			solution.pingpong();
 		}
 		glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
-
 		m_querySt1.end();
 	}
 
