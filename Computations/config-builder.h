@@ -9,10 +9,6 @@
 class ConfigBuilder
 {
 public:
-	// TODO : specify loaded systems
-	// TODO : steps for tiled systems
-	// TODO : total_updates
-
 	cfg::json build();
 
 
