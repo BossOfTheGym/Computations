@@ -177,6 +177,9 @@
     <ClCompile Include="modules\grid-module.cpp">
       <Filter>modules\sources</Filter>
     </ClCompile>
+    <ClCompile Include="modules\metainfo-module.cpp">
+      <Filter>modules\sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="glfw-cxx\glfw3.h">
@@ -380,6 +383,9 @@
     <ClInclude Include="modules\grid-module.h">
       <Filter>modules\headers</Filter>
     </ClInclude>
+    <ClInclude Include="modules\metainfo-module.h">
+      <Filter>modules\headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\quad.frag">
@@ -401,15 +407,6 @@
       <Filter>shaders</Filter>
     </None>
     <None Include="shaders\red_black_smtm_st1.comp">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="shaders\red_black_smt_st0.comp">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="shaders\red_black_smt_st1.comp">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="shaders\red_black_smt_s.comp">
       <Filter>shaders</Filter>
     </None>
     <None Include="shaders\red_black_smtm_s.comp">

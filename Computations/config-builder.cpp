@@ -27,6 +27,17 @@ namespace
 		};
 	}
 
+	void get_meta_config(json& config, uint xSplit, uint ySplit, uint steps, uint workgroupSizeX, uint workgroupSizeY)
+	{
+		config["meta"] = {
+			{"x_split", xSplit},
+			{"y_split", ySplit},
+			{"steps", steps},
+			{"workgroup_size_x", workgroupSizeX},
+			{"workgroup_size_y", workgroupSizeY},
+		};
+	}
+
 	void get_dirichlet_config(json& config, const std::vector<std::string>& systems)
 	{
 		json dirichlet;	
@@ -117,14 +128,12 @@ json ConfigBuilder::build()
 	json config;
 	get_output_config(config, m_output);
 	get_app_config(config, m_xSplit, m_ySplit, m_totalUpdates, m_gridX, m_gridY);
+	get_meta_config(config, m_xSplit, m_ySplit, m_steps, m_workgroupSizeX, m_workgroupSizeY);
 	get_dirichlet_config(config, m_systems);
 	get_shader_storage_config(config, m_workgroupSizeX, m_workgroupSizeY, m_steps);
 	get_program_storage_config(config);
 	get_window_config(config, m_windowWidth, m_windowHeight);
 	get_glfw_config(config);
-
-	// DEBUG
-	std::cout << std::setw(4) << config << std::endl; 
 
 	return config;
 }
