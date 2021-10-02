@@ -216,6 +216,7 @@
     <ClInclude Include="dirichlet\time_query.h" />
     <ClInclude Include="glfw-guard.h" />
     <ClInclude Include="grid.h" />
+    <ClInclude Include="metainfo.h" />
     <ClInclude Include="modules\app-module.h" />
     <ClInclude Include="modules\bundle.h" />
     <ClInclude Include="modules\dirichlet-module.h" />
