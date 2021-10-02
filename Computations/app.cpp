@@ -16,9 +16,11 @@
 #include <dirichlet/dirichlet_domainaabb2d.h>
 #include <dirichlet/dirichlet_cfg.h>
 
+#include <fs.h>
 #include <cfg.h>
 #include <core.h>
 #include <grid.h>
+#include <metainfo.h>
 #include <app-params.h>
 #include <main-window.h>
 #include <output-params.h>
@@ -75,7 +77,8 @@ namespace app
 					.dirichletProxy = root.acquire("dirichlet")->acquire("controls"),
 					.app            = root.acquire("app"),
 					.output         = root.acquire("output"),
-					.grid           = root.acquire("grid")
+					.grid           = root.acquire("grid"),
+					.metainfo       = root.acquire("metainfo"),
 				};
 			}
 
@@ -85,6 +88,7 @@ namespace app
 			ModulePtr app;
 			ModulePtr output;
 			ModulePtr grid;
+			ModulePtr metainfo;
 		};
 
 		struct InitData
@@ -112,26 +116,6 @@ namespace app
 			DataAabb2D data;
 		};
 
-		std::vector<SmartHandle> create_handles(uint xSplit, uint ySplit, ModulePtr proxies)
-		{
-			auto initData = InitData::get(xSplit, ySplit);
-
-			std::vector<SmartHandle> handles;
-			for (auto& [name, ptr] : *proxies) {
-				auto& proxy = ptr->get<Proxy>();
-				handles.push_back(proxy.createSmart(initData.domain, initData.data, {1}));
-			}
-			return handles;
-		}
-
-		void print_proxy_order(ModulePtr proxies)
-		{
-			std::cout << "Proxy order : ";
-			for (auto& [name, ptr] : *proxies) {
-				std::cout << name << " ";
-			}
-			std::cout << "\n";
-		}
 
 		class AppImpl
 		{
@@ -150,9 +134,9 @@ namespace app
 
 				uint updates = requiredModules.app->get<AppParams>().totalUpdates;
 
-				std::vector<SmartHandle> handles = create_handles(appParams.xSplit, appParams.ySplit, requiredModules.dirichletProxy);
+				std::vector<SmartHandle> handles = createHandles(appParams.xSplit, appParams.ySplit, requiredModules.dirichletProxy);
 
-				print_proxy_order(requiredModules.dirichletProxy);
+				printProxyOrder(requiredModules.dirichletProxy);
 
 				std::unordered_map<std::string, Tracker> trackers;
 				while (updates-- > 0 && !window->shouldClose())
@@ -180,6 +164,72 @@ namespace app
 						}
 					}
 				}
+
+				json data;
+				data["data"] = createTrackerOutput(trackers.begin(), trackers.end());
+				data["meta"] = createMetadata(requiredModules.metainfo);
+				writeOutput(data, requiredModules.output);
+			}
+
+		private:
+			void printProxyOrder(ModulePtr proxies)
+			{
+				std::cout << "Proxy order : ";
+				for (auto& [name, ptr] : *proxies) {
+					std::cout << name << " ";
+				}
+				std::cout << "\n";
+			}
+
+			std::vector<SmartHandle> createHandles(uint xSplit, uint ySplit, ModulePtr proxies)
+			{
+				auto initData = InitData::get(xSplit, ySplit);
+
+				std::vector<SmartHandle> handles;
+				for (auto& [name, ptr] : *proxies) {
+					auto& proxy = ptr->get<Proxy>();
+					handles.push_back(proxy.createSmart(initData.domain, initData.data, {1}));
+				}
+				return handles;
+			}
+
+			template<class It>
+			json createTrackerOutput(It first, It last)
+			{
+				json output;
+				while (first != last) {
+					auto& [name, tracker] = *first;
+					output[name] = tracker.toJson();
+					++first;
+				}
+				return output;
+			}
+
+			json createMetadata(ModulePtr metainfo)
+			{
+				gl::GlStateInfo info;
+
+				json meta = metainfo->get<Metainfo>().metainfo;
+				meta["renderer"] = (const char*)info.renderer();
+				return meta;
+			}
+
+			void writeOutput(const json& data, ModulePtr output)
+			{
+				fs::path path = output->get<OutputParams>().output;
+
+				if (path.has_parent_path()) {
+					std::error_code ec;
+					if (fs::create_directories(path.parent_path(), ec); ec) {
+						throw std::runtime_error("Failed to create output directories.");
+					}
+				}
+
+				std::ofstream outputStream(path);
+				if (!outputStream) {
+					throw std::runtime_error("Failed to open/create output file.");
+				}
+				outputStream << std::setw(4) << data;
 			}
 
 		private:
