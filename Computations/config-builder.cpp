@@ -29,7 +29,7 @@ namespace
 
 	void get_meta_config(json& config, uint xSplit, uint ySplit, uint steps, uint workgroupSizeX, uint workgroupSizeY)
 	{
-		config["meta"] = {
+		config["metainfo"] = {
 			{"x_split", xSplit},
 			{"y_split", ySplit},
 			{"steps", steps},
