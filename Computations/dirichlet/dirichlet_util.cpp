@@ -40,7 +40,6 @@ namespace dir2d
 
 	uint count_stage_workgroups(uint workgroupsX, uint workgroupsY, Stage stage)
 	{
-		// TODO : check stage, check if it corresponds to the following stage in shader
 		uint count = (workgroupsY / 2) * workgroupsX;
 		if (workgroupsY % 2) {
 			count += (workgroupsX + ((uint)stage ^ 1)) / 2;
