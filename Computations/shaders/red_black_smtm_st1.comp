@@ -157,6 +157,9 @@ float update(float u00, float um10, float u10, float u0m1, float u01, float f00)
 }
 
 // TODO : this shader is broken
+// TODO : this shader is possibly not broken. The problem lies in the way updated values are stored.
+// intermediate values may store half updated cells, so this shader must take this into account.
+// Everything is twice checked so this can possibly be the problem.
 void main()
 {
 	// some invocation's parameters
