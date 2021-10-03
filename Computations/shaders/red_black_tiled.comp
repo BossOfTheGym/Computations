@@ -6,7 +6,7 @@
 	#define _WORKGROUP_Y 16
 #endif
 
-#define STEPS _STEPS
+#define STEPS (_STEPS - 1)
 #define TRUE_STEPS (2 * STEPS)
 
 #define WORKGROUP_X (_WORKGROUP_X / 2)
@@ -132,31 +132,24 @@ void main()
 	int steps = (inBounds(global, size) ? getCurrStep() : -1);
 
 	// cache data
-	float f01, f11;
-	float f00, f10;
-
 	// loads either value or zero if out of bounds (check optimized out)
-	f00 = imageLoad(f, global              ).x; 
-	f10 = imageLoad(f, global + ivec2(1, 0)).x;
-	f01 = imageLoad(f, global + ivec2(0, 1)).x;
-	f11 = imageLoad(f, global + ivec2(1, 1)).x;
+	float f00 = imageLoad(f, global              ).x; 
+	float f10 = imageLoad(f, global + ivec2(1, 0)).x;
+	float f01 = imageLoad(f, global + ivec2(0, 1)).x;
+	float f11 = imageLoad(f, global + ivec2(1, 1)).x;
 
 	// solution data
-	float u01, u11;
-	float u00, u10;
-
 	// loads either value or zero if out of bounds (check optimized out)
-	u00 = imageLoad(solution[curr], global              ).x;
-	u10 = imageLoad(solution[curr], global + ivec2(1, 0)).x;
-	u01 = imageLoad(solution[curr], global + ivec2(0, 1)).x;
-	u11 = imageLoad(solution[curr], global + ivec2(1, 1)).x;
+	float u00 = imageLoad(solution[curr], global              ).x;
+	float u10 = imageLoad(solution[curr], global + ivec2(1, 0)).x;
+	float u01 = imageLoad(solution[curr], global + ivec2(0, 1)).x;
+	float u11 = imageLoad(solution[curr], global + ivec2(1, 1)).x;
 
 	// cache store
 	cacheStoreValue(local              , u00);
 	cacheStoreValue(local + ivec2(1, 0), u10);
 	cacheStoreValue(local + ivec2(0, 1), u01);
 	cacheStoreValue(local + ivec2(1, 1), u11);
-
 	barrier();
 	
 	// computations	
@@ -177,7 +170,6 @@ void main()
 			cacheStoreValue(local + ivec2(1, 0), u10);
 			cacheStoreValue(local + ivec2(0, 1), u01);
 		}
-
 		barrier();
 
 		// red update
@@ -196,7 +188,6 @@ void main()
 			cacheStoreValue(local + ivec2(0, 0), u00);
 			cacheStoreValue(local + ivec2(1, 1), u11);
 		}
-
 		barrier();
 	}
 	
