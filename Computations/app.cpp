@@ -28,6 +28,7 @@
 #include <shader-storage.h>
 #include <program-storage.h>
 
+#include <thread>
 #include <string>
 #include <fstream>
 #include <iostream>
@@ -40,6 +41,7 @@ namespace app
 	{
 		using namespace cfg;
 		using namespace dir2d;
+		using namespace std::chrono;
 
 		class Tracker
 		{
@@ -141,9 +143,13 @@ namespace app
 				std::unordered_map<std::string, Tracker> trackers;
 				while (updates-- > 0 && !window->shouldClose())
 				{
+					// DEBUG
+					std::this_thread::sleep_for(1s);
+
 					glfw::poll_events();
 					window->swapBuffers();
 					
+
 					glClearColor(0.5, 0.5, 0.5, 1.0);
 					glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

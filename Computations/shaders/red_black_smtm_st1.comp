@@ -6,6 +6,8 @@
 	#define _WORKGROUP_Y 16
 #endif
 
+#define FMT rgba32f
+
 #define STAGE 1
 
 #define STEPS _STEPS
@@ -43,9 +45,9 @@ layout(local_size_x = WORKGROUP_X, local_size_y = WORKGROUP_Y) in;
 
 // picture is stored in a row-major manner
 // used both for read and write, boundary is not calculated
-layout(binding = 0, r32f) uniform image2D solution[2];
-layout(binding = 2, r32f) uniform readonly image2D f;
-layout(binding = 3, r32f) uniform image2D intermediate;
+layout(binding = 0, FMT) uniform restrict image2D solution[2];
+layout(binding = 2, FMT) uniform restrict readonly image2D f;
+layout(binding = 3, FMT) uniform restrict image2D intermediate;
 
 uniform int curr; // 0 or 1
 uniform float w;
@@ -154,6 +156,7 @@ float update(float u00, float um10, float u10, float u0m1, float u01, float f00)
 	return (1.0 - w) * u00 + w * u;
 }
 
+// TODO : this shader is broken
 void main()
 {
 	// some invocation's parameters
@@ -170,50 +173,62 @@ void main()
 
 	int steps = (inBounds(global, size) ? getCurrStep(work) : -STEPS - 2);
 
-	// cache data
-	float f01, f11;
-	float f00, f10;
+	// DEBUG
+	//if (steps == -2) {
+	//	vec3 u00 = imageLoad(intermediate, global              ).rgb;
+	//	vec3 u10 = imageLoad(intermediate, global + ivec2(1, 0)).rgb;
+	//	vec3 u01 = imageLoad(intermediate, global + ivec2(0, 1)).rgb;
+	//	vec3 u11 = imageLoad(intermediate, global + ivec2(1, 1)).rgb;
+	//	imageStore(intermediate, global              , vec4(mix(u00, vec3(1.0), 0.5), 1.0));
+	//	imageStore(intermediate, global + ivec2(1, 0), vec4(mix(u10, vec3(1.0), 0.5), 1.0));
+	//	imageStore(intermediate, global + ivec2(0, 1), vec4(mix(u01, vec3(1.0), 0.5), 1.0));
+	//	imageStore(intermediate, global + ivec2(1, 1), vec4(mix(u11, vec3(1.0), 0.5), 1.0));
+	//}
+	//return;
+	// ENDDEBUG
 
-	// loads either value or zero if out of bounds
-	f00 = imageLoad(f, global              ).x; 
-	f10 = imageLoad(f, global + ivec2(1, 0)).x;
-	f01 = imageLoad(f, global + ivec2(0, 1)).x;
-	f11 = imageLoad(f, global + ivec2(1, 1)).x;
+	// f data
+	float f00 = imageLoad(f, global              ).x; 
+	float f10 = imageLoad(f, global + ivec2(1, 0)).x;
+	float f01 = imageLoad(f, global + ivec2(0, 1)).x;
+	float f11 = imageLoad(f, global + ivec2(1, 1)).x;
 
-	float u01 = 0, u11 = 0;
-	float u00 = 0, u10 = 0;
+	// solution data
+	float u00 = imageLoad(solution[curr], global              ).x;
+	float u10 = imageLoad(solution[curr], global + ivec2(1, 0)).x;
+	float u01 = imageLoad(solution[curr], global + ivec2(0, 1)).x;
+	float u11 = imageLoad(solution[curr], global + ivec2(1, 1)).x;
 
-	// loads either value or zero if out of bounds
-	if (steps >= 0) { // hmmmmmmmmmmmmmmm
-		u00 = imageLoad(solution[curr], global              ).x;
-		u10 = imageLoad(solution[curr], global + ivec2(1, 0)).x;
-		u01 = imageLoad(solution[curr], global + ivec2(0, 1)).x;
-		u11 = imageLoad(solution[curr], global + ivec2(1, 1)).x;
-	}
+	// intermediate data
+	float i00 = imageLoad(intermediate, global              ).x; 
+	float i10 = imageLoad(intermediate, global + ivec2(1, 0)).x;
+	float i01 = imageLoad(intermediate, global + ivec2(0, 1)).x;
+	float i11 = imageLoad(intermediate, global + ivec2(1, 1)).x;
+
+	// next iter
+	float n00 = imageLoad(solution[curr ^ 1], global              ).x; 
+	float n10 = imageLoad(solution[curr ^ 1], global + ivec2(1, 0)).x;
+	float n01 = imageLoad(solution[curr ^ 1], global + ivec2(0, 1)).x;
+	float n11 = imageLoad(solution[curr ^ 1], global + ivec2(1, 1)).x;
 
 	// cache store
-	cacheStoreValue(local              , u00);
-	cacheStoreValue(local + ivec2(1, 0), u10);
-	cacheStoreValue(local + ivec2(0, 1), u01);
-	cacheStoreValue(local + ivec2(1, 1), u11);
-
-	barrier();
+	//cacheStoreValue(local              , u00);
+	//cacheStoreValue(local + ivec2(1, 0), u10);
+	//cacheStoreValue(local + ivec2(0, 1), u01);
+	//cacheStoreValue(local + ivec2(1, 1), u11);
+	//barrier();
 	
 	// computations	
 	for (int i = 1; i < STEPS; i++, steps++) {
-		// load intermediate values
-		if (steps == -1) {
-			u00 = imageLoad(intermediate, global              ).x;
-			u10 = imageLoad(intermediate, global + ivec2(1, 0)).x;
-			u01 = imageLoad(intermediate, global + ivec2(0, 1)).x;
-			u11 = imageLoad(intermediate, global + ivec2(1, 1)).x;
+		if (steps == -1) { // load intermediate values
+			u01 = i01; u11 = i11;
+			u00 = i00; u10 = i10;
 		}
 
 		cacheStoreValue(local              , u00);
 		cacheStoreValue(local + ivec2(1, 0), u10);
 		cacheStoreValue(local + ivec2(0, 1), u01);
 		cacheStoreValue(local + ivec2(1, 1), u11);
-
 		barrier();
 
 		// black update
@@ -232,7 +247,6 @@ void main()
 			cacheStoreValue(local + ivec2(1, 0), u10);
 			cacheStoreValue(local + ivec2(0, 1), u01);
 		}
-
 		barrier();
 
 		// red update
@@ -251,15 +265,11 @@ void main()
 			cacheStoreValue(local + ivec2(0, 0), u00);
 			cacheStoreValue(local + ivec2(1, 1), u11);
 		}
-
 		barrier();
 
-		// load next iter
-		if (steps == -1) {
-			u00 = imageLoad(solution[curr ^ 1], global              ).x;
-			u10 = imageLoad(solution[curr ^ 1], global + ivec2(1, 0)).x;
-			u01 = imageLoad(solution[curr ^ 1], global + ivec2(0, 1)).x;
-			u11 = imageLoad(solution[curr ^ 1], global + ivec2(1, 1)).x;
+		if (steps == -1) { // load next iter
+			u01 = n01; u11 = n11;
+			u00 = n00; u10 = n10;
 		}
 	}
 	

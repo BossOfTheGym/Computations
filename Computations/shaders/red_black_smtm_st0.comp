@@ -6,6 +6,8 @@
 	#define _WORKGROUP_Y 16
 #endif
 
+#define FMT rgba32f
+
 #define STAGE 0
 
 #define STEPS _STEPS
@@ -35,7 +37,6 @@
 	#define UPDATE_VALUE(u, u_new, pred) ((u) + ((u_new) - (u)) * (pred))
 #endif
 
-// work should be dispatched flattened and equal to (WX * WY) / 2 (+- 1 if odd) like this (total_workgroups, 1, 1)
 layout(local_size_x = WORKGROUP_X + STEPS * 2, local_size_y = WORKGROUP_Y + STEPS * 2) in;
 
 #define CACHE_X (TRUE_WORKGROUP_X_OVERLAP + 2)
@@ -44,9 +45,9 @@ layout(local_size_x = WORKGROUP_X + STEPS * 2, local_size_y = WORKGROUP_Y + STEP
 
 // picture is stored in a row-major manner
 // used both for read and write, boundary is not calculated
-layout(binding = 0, r32f) uniform image2D solution[2];
-layout(binding = 2, r32f) uniform readonly image2D f;
-layout(binding = 3, r32f) uniform image2D intermediate;
+layout(binding = 0, FMT) uniform restrict image2D solution[2];
+layout(binding = 2, FMT) uniform restrict readonly image2D f;
+layout(binding = 3, FMT) uniform restrict image2D intermediate;
 
 uniform int curr; // 0 or 1
 uniform float w;
@@ -129,7 +130,21 @@ bool onBoundary(ivec2 global, ivec2 size)
 	return any(equal(global, ivec2(0))) || any(equal(global, size - 1)); 
 }
 
-bool onFlowerLeaf(ivec2 work)
+#define NONE 0
+#define LEFT 1
+#define RIGHT 2
+#define TOP 3
+#define BOTTOM 4
+
+const vec3 leafColors[5] = {
+	vec3(0.0),
+	vec3(1.0, 0.0, 0.0),
+	vec3(0.0, 1.0, 0.0),
+	vec3(0.0, 0.0, 1.0),
+	vec3(0.5)
+};
+
+int onFlowerLeaf(ivec2 work)
 {
 	int X = WORKGROUP_X;
 	int Y = WORKGROUP_Y;
@@ -148,7 +163,9 @@ bool onFlowerLeaf(ivec2 work)
 		if (work.x == W.x - 1) {
 			y1 = X;
 		}
-		return y0 < y && y < y1;
+		if (y0 < y && y < y1) {
+			return BOTTOM;
+		}
 	}
 
 	if (p.y >= S + Y) { // top, base: (S + X - 1, S + Y)
@@ -162,7 +179,9 @@ bool onFlowerLeaf(ivec2 work)
 		if (work.x == W.x - 1) {
 			y0 = -1;
 		}
-		return y0 < y && y < y1;
+		if (y0 < y && y < y1) {
+			return TOP;
+		}
 	}
 
 	if (p.x < S) { // left, base: (S - 1, S + Y - 1)
@@ -176,7 +195,9 @@ bool onFlowerLeaf(ivec2 work)
 		if (work.y == W.y - 1) {
 			y0 = -1;
 		}
-		return y0 < y && y < y1;
+		if (y0 < y && y < y1) {
+			return LEFT;
+		}
 	}
 	
 	if (p.x >= S + X) { // right, base: (S + X, S)
@@ -190,10 +211,12 @@ bool onFlowerLeaf(ivec2 work)
 		if (work.y == W.y - 1) {
 			y1 = Y;
 		}
-		return y0 < y && y < y1;
+		if (y0 < y && y < y1) {
+			return RIGHT;
+		}
 	}
 
-	return false;
+	return NONE;
 }
 
 // red-black step
@@ -221,35 +244,41 @@ void main()
 	pred_t u01Updateable = pred_t(inBounds(global + ivec2(0, 1), size) && !onBoundary(global + ivec2(0, 1), size));
 	pred_t u11Updateable = pred_t(inBounds(global + ivec2(1, 1), size) && !onBoundary(global + ivec2(1, 1), size));
 
-	bool onFlowerLeafPred = onFlowerLeaf(work);
+	int leaf = onFlowerLeaf(work);
+	bool onFlowerLeafPred = (leaf != NONE);
 
 	int steps = (inBounds(global, size) ? getCurrStep() : -1);
 
+	// DEBUG
+	//if (steps >= STEPS || onFlowerLeafPred) {
+	//	vec3 color = leafColors[leaf];
+	//	imageStore(intermediate, global              , vec4(0.00 * color, 1.0));
+	//	imageStore(intermediate, global + ivec2(1, 0), vec4(0.25 * color, 1.0));
+	//	imageStore(intermediate, global + ivec2(0, 1), vec4(0.50 * color, 1.0));
+	//	imageStore(intermediate, global + ivec2(1, 1), vec4(1.00 * color, 1.0));
+	//}
+	//return;
+	// ENDDEBUG
+
+	
 	// cache data
-	float f01, f11;
-	float f00, f10;
+	// loads either value or zero if out of bounds
+	float = f00 = imageLoad(f, global              ).x; 
+	float = f10 = imageLoad(f, global + ivec2(1, 0)).x;
+	float = f01 = imageLoad(f, global + ivec2(0, 1)).x;
+	float = f11 = imageLoad(f, global + ivec2(1, 1)).x;
 
 	// loads either value or zero if out of bounds
-	f00 = imageLoad(f, global              ).x; 
-	f10 = imageLoad(f, global + ivec2(1, 0)).x;
-	f01 = imageLoad(f, global + ivec2(0, 1)).x;
-	f11 = imageLoad(f, global + ivec2(1, 1)).x;
-
-	float u01, u11;
-	float u00, u10;
-
-	// loads either value or zero if out of bounds
-	u00 = imageLoad(solution[curr], global              ).x;
-	u10 = imageLoad(solution[curr], global + ivec2(1, 0)).x;
-	u01 = imageLoad(solution[curr], global + ivec2(0, 1)).x;
-	u11 = imageLoad(solution[curr], global + ivec2(1, 1)).x;
+	float = u00 = imageLoad(solution[curr], global              ).x;
+	float = u10 = imageLoad(solution[curr], global + ivec2(1, 0)).x;
+	float = u01 = imageLoad(solution[curr], global + ivec2(0, 1)).x;
+	float = u11 = imageLoad(solution[curr], global + ivec2(1, 1)).x;
 
 	// cache store
 	cacheStoreValue(local              , u00);
 	cacheStoreValue(local + ivec2(1, 0), u10);
 	cacheStoreValue(local + ivec2(0, 1), u01);
 	cacheStoreValue(local + ivec2(1, 1), u11);
-
 	barrier();
 	
 	// computations	
@@ -278,7 +307,6 @@ void main()
 			cacheStoreValue(local + ivec2(1, 0), u10);
 			cacheStoreValue(local + ivec2(0, 1), u01);
 		}
-
 		barrier();
 
 		// red update
@@ -297,11 +325,9 @@ void main()
 			cacheStoreValue(local + ivec2(0, 0), u00);
 			cacheStoreValue(local + ivec2(1, 1), u11);
 		}
-
 		barrier();
 	}
 
-	// predicate describes whole domain
 	if (steps >= 1 || onFlowerLeafPred) { // out of bound writes are ignored, u[01][01] are already updated
 		imageStore(solution[curr ^ 1], global              , vec4(u00));
 		imageStore(solution[curr ^ 1], global + ivec2(1, 0), vec4(u10));
