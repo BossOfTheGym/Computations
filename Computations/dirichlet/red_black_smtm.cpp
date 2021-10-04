@@ -13,9 +13,9 @@ namespace dir2d
 	RedBlackTiledSmtm::Uniforms::Uniforms(gl::Id program)
 	{
 		setup(program);
-		//if (!valid()) {
-		//	throw std::runtime_error("Failed to get locations from red-black-tiled program.");
-		//}
+		if (!valid()) {
+			throw std::runtime_error("Failed to get locations from red-black-tiled program.");
+		}
 	}
 
 	void RedBlackTiledSmtm::Uniforms::setup(gl::Id program)
@@ -70,8 +70,6 @@ namespace dir2d
 	gl::Id RedBlackTiledSmtm::Solution::texture() const
 	{
 		return s[curr].id;
-		//return s[1].id;
-		//return intermediate.id;
 	}
 
 	void RedBlackTiledSmtm::Solution::pingpong()
