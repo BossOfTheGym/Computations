@@ -6,7 +6,7 @@
 	#define _WORKGROUP_Y 16
 #endif
 
-#define FMT rgba32f
+#define FMT r32f
 
 #define STAGE 1
 
@@ -156,10 +156,6 @@ float update(float u00, float um10, float u10, float u0m1, float u01, float f00)
 	return (1.0 - w) * u00 + w * u;
 }
 
-// TODO : this shader is broken
-// TODO : this shader is possibly not broken. The problem lies in the way updated values are stored.
-// intermediate values may store half updated cells, so this shader must take this into account.
-// Everything is twice checked so this can possibly be the problem.
 void main()
 {
 	// some invocation's parameters
@@ -175,20 +171,6 @@ void main()
 	pred_t u11Updateable = pred_t(inBounds(global + ivec2(1, 1), size) && !onBoundary(global + ivec2(1, 1), size));
 
 	int steps = (inBounds(global, size) ? getCurrStep(work) : -STEPS - 2);
-
-	// DEBUG
-	//if (steps == -2) {
-	//	vec3 u00 = imageLoad(intermediate, global              ).rgb;
-	//	vec3 u10 = imageLoad(intermediate, global + ivec2(1, 0)).rgb;
-	//	vec3 u01 = imageLoad(intermediate, global + ivec2(0, 1)).rgb;
-	//	vec3 u11 = imageLoad(intermediate, global + ivec2(1, 1)).rgb;
-	//	imageStore(intermediate, global              , vec4(mix(u00, vec3(1.0), 0.5), 1.0));
-	//	imageStore(intermediate, global + ivec2(1, 0), vec4(mix(u10, vec3(1.0), 0.5), 1.0));
-	//	imageStore(intermediate, global + ivec2(0, 1), vec4(mix(u01, vec3(1.0), 0.5), 1.0));
-	//	imageStore(intermediate, global + ivec2(1, 1), vec4(mix(u11, vec3(1.0), 0.5), 1.0));
-	//}
-	//return;
-	// ENDDEBUG
 
 	// f data
 	float f00 = imageLoad(f, global              ).x; 
@@ -214,13 +196,6 @@ void main()
 	float n01 = imageLoad(solution[curr ^ 1], global + ivec2(0, 1)).x;
 	float n11 = imageLoad(solution[curr ^ 1], global + ivec2(1, 1)).x;
 
-	// cache store
-	//cacheStoreValue(local              , u00);
-	//cacheStoreValue(local + ivec2(1, 0), u10);
-	//cacheStoreValue(local + ivec2(0, 1), u01);
-	//cacheStoreValue(local + ivec2(1, 1), u11);
-	//barrier();
-	
 	// computations	
 	for (int i = 1; i < STEPS; i++, steps++) {
 		if (steps == -1) { // load intermediate values

@@ -143,9 +143,6 @@ namespace app
 				std::unordered_map<std::string, Tracker> trackers;
 				while (updates-- > 0 && !window->shouldClose())
 				{
-					// DEBUG
-					std::this_thread::sleep_for(1s);
-
 					glfw::poll_events();
 					window->swapBuffers();
 					

@@ -9,8 +9,6 @@
 
 namespace dir2d
 {
-	constexpr GLenum FORMAT = GL_RGBA32F;
-
 	// uniforms
 	RedBlackTiledSmtm::Uniforms::Uniforms(gl::Id program)
 	{
@@ -50,14 +48,14 @@ namespace dir2d
 		i32 yVar = domain.ySplit + 1;
 
 		for (int i = 0; i < 2; i++) {
-			solution.s[i] = gl::create_texture(xVar, yVar, FORMAT);
+			solution.s[i] = gl::create_texture(xVar, yVar, GL_R32F);
 			glTextureSubImage2D(solution.s[i].id, 0, 0, 0, xVar, yVar, GL_RED, GL_FLOAT, data.solution.get());
 		}
 
-		solution.intermediate = gl::create_texture(xVar, yVar, FORMAT);
+		solution.intermediate = gl::create_texture(xVar, yVar, GL_R32F);
 		glClearTexImage(solution.intermediate.id, 0, GL_RED, GL_FLOAT, nullptr);
 
-		solution.f = gl::create_texture(xVar, yVar, FORMAT);
+		solution.f = gl::create_texture(xVar, yVar, GL_R32F);
 		glTextureSubImage2D(solution.f.id, 0, 0, 0, xVar, yVar, GL_RED, GL_FLOAT, data.f.get());
 
 		solution.curr = 0;
@@ -164,10 +162,10 @@ namespace dir2d
 			auto [numWorkgroupsX, numWorkgroupsY] = get_num_workgroups(domain.xSplit, domain.ySplit, m_workgroupSizeX, m_workgroupSizeY);
 			auto stage0Workgroups = count_stage_workgroups(numWorkgroupsX, numWorkgroupsY, Stage::Stage0);
 
-			glBindImageTexture(IMG0, solution.s[0].id, 0, GL_FALSE, 0, GL_READ_WRITE, FORMAT);
-			glBindImageTexture(IMG1, solution.s[1].id, 0, GL_FALSE, 0, GL_READ_WRITE, FORMAT);
-			glBindImageTexture(IMGF, solution.f.id, 0, GL_FALSE, 0, GL_READ_ONLY, FORMAT);
-			glBindImageTexture(IMG_INTERMEDIATE, solution.intermediate.id, 0, GL_FALSE, 0, GL_READ_WRITE, FORMAT);
+			glBindImageTexture(IMG0, solution.s[0].id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
+			glBindImageTexture(IMG1, solution.s[1].id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
+			glBindImageTexture(IMGF, solution.f.id, 0, GL_FALSE, 0, GL_READ_ONLY, GL_R32F);
+			glBindImageTexture(IMG_INTERMEDIATE, solution.intermediate.id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
 
 			glUniform1i(m_uniformsSt0.curr, solution.curr);
 			glUniform1f(m_uniformsSt0.w, solution.w);
@@ -198,10 +196,10 @@ namespace dir2d
 			auto [numWorkgroupsX, numWorkgroupsY] = get_num_workgroups(domain.xSplit, domain.ySplit, m_workgroupSizeX, m_workgroupSizeY);
 			auto stage1Workgroups = count_stage_workgroups(numWorkgroupsX, numWorkgroupsY, Stage::Stage1);
 
-			glBindImageTexture(IMG0, solution.s[0].id, 0, GL_FALSE, 0, GL_READ_WRITE, FORMAT);
-			glBindImageTexture(IMG1, solution.s[1].id, 0, GL_FALSE, 0, GL_READ_WRITE, FORMAT);
-			glBindImageTexture(IMGF, solution.f.id, 0, GL_FALSE, 0, GL_READ_ONLY, FORMAT);
-			glBindImageTexture(IMG_INTERMEDIATE, solution.intermediate.id, 0, GL_FALSE, 0, GL_READ_WRITE, FORMAT);
+			glBindImageTexture(IMG0, solution.s[0].id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
+			glBindImageTexture(IMG1, solution.s[1].id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
+			glBindImageTexture(IMGF, solution.f.id, 0, GL_FALSE, 0, GL_READ_ONLY, GL_R32F);
+			glBindImageTexture(IMG_INTERMEDIATE, solution.intermediate.id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
 
 			glUniform1i(m_uniformsSt1.curr, solution.curr);
 			glUniform1f(m_uniformsSt1.w, solution.w);

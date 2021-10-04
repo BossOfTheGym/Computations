@@ -6,7 +6,7 @@
 	#define _WORKGROUP_Y 16
 #endif
 
-#define FMT rgba32f
+#define FMT r32f
 
 #define STAGE 0
 
@@ -249,30 +249,18 @@ void main()
 
 	int steps = (inBounds(global, size) ? getCurrStep() : -1);
 
-	// DEBUG
-	//if (steps >= STEPS || onFlowerLeafPred) {
-	//	vec3 color = leafColors[leaf];
-	//	imageStore(intermediate, global              , vec4(0.00 * color, 1.0));
-	//	imageStore(intermediate, global + ivec2(1, 0), vec4(0.25 * color, 1.0));
-	//	imageStore(intermediate, global + ivec2(0, 1), vec4(0.50 * color, 1.0));
-	//	imageStore(intermediate, global + ivec2(1, 1), vec4(1.00 * color, 1.0));
-	//}
-	//return;
-	// ENDDEBUG
-
-	
 	// cache data
 	// loads either value or zero if out of bounds
-	float = f00 = imageLoad(f, global              ).x; 
-	float = f10 = imageLoad(f, global + ivec2(1, 0)).x;
-	float = f01 = imageLoad(f, global + ivec2(0, 1)).x;
-	float = f11 = imageLoad(f, global + ivec2(1, 1)).x;
+	float f00 = imageLoad(f, global              ).x; 
+	float f10 = imageLoad(f, global + ivec2(1, 0)).x;
+	float f01 = imageLoad(f, global + ivec2(0, 1)).x;
+	float f11 = imageLoad(f, global + ivec2(1, 1)).x;
 
 	// loads either value or zero if out of bounds
-	float = u00 = imageLoad(solution[curr], global              ).x;
-	float = u10 = imageLoad(solution[curr], global + ivec2(1, 0)).x;
-	float = u01 = imageLoad(solution[curr], global + ivec2(0, 1)).x;
-	float = u11 = imageLoad(solution[curr], global + ivec2(1, 1)).x;
+	float u00 = imageLoad(solution[curr], global              ).x;
+	float u10 = imageLoad(solution[curr], global + ivec2(1, 0)).x;
+	float u01 = imageLoad(solution[curr], global + ivec2(0, 1)).x;
+	float u11 = imageLoad(solution[curr], global + ivec2(1, 1)).x;
 
 	// cache store
 	cacheStoreValue(local              , u00);
@@ -326,9 +314,18 @@ void main()
 			cacheStoreValue(local + ivec2(1, 1), u11);
 		}
 		barrier();
+
+		// store only flower leaves(zero-iter is already stored in solution[curr])
+		if (steps == 1 && onFlowerLeafPred) {
+			imageStore(solution[curr ^ 1], global              , vec4(u00));
+			imageStore(solution[curr ^ 1], global + ivec2(1, 0), vec4(u10));
+			imageStore(solution[curr ^ 1], global + ivec2(0, 1), vec4(u01));
+			imageStore(solution[curr ^ 1], global + ivec2(1, 1), vec4(u11));
+		}
 	}
 
-	if (steps >= 1 || onFlowerLeafPred) { // out of bound writes are ignored, u[01][01] are already updated
+	// store only main region
+	if (steps >= 1) { // out of bound writes are ignored, u[01][01] are already updated
 		imageStore(solution[curr ^ 1], global              , vec4(u00));
 		imageStore(solution[curr ^ 1], global + ivec2(1, 0), vec4(u10));
 		imageStore(solution[curr ^ 1], global + ivec2(0, 1), vec4(u01));

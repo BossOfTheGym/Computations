@@ -6,6 +6,8 @@
 	#define _WORKGROUP_Y 16
 #endif
 
+#define FMT r32f
+
 #define STEPS (_STEPS - 1)
 #define TRUE_STEPS (2 * STEPS)
 
@@ -41,8 +43,8 @@ layout(local_size_x = WORKGROUP_X + STEPS * 2, local_size_y = WORKGROUP_Y + STEP
 
 // picture is stored in a row-major manner
 // used both for read and write, boundary is not calculated
-layout(binding = 0, r32f) uniform image2D solution[2];
-layout(binding = 2, r32f) uniform readonly image2D f;
+layout(binding = 0, FMT) uniform restrict image2D solution[2];
+layout(binding = 2, FMT) uniform restrict readonly image2D f;
 
 uniform int curr; // 0 or 1
 uniform float w;
