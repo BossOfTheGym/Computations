@@ -173,28 +173,44 @@ void main()
 	int steps = (inBounds(global, size) ? getCurrStep(work) : -STEPS - 2);
 
 	// f data
-	float f00 = imageLoad(f, global              ).x; 
-	float f10 = imageLoad(f, global + ivec2(1, 0)).x;
-	float f01 = imageLoad(f, global + ivec2(0, 1)).x;
-	float f11 = imageLoad(f, global + ivec2(1, 1)).x;
+	float f01 = 0.0, f11 = 0.0;
+	float f00 = 0.0, f10 = 0.0;
+	if (-STEPS < steps) {
+		f00 = imageLoad(f, global              ).x; 
+		f10 = imageLoad(f, global + ivec2(1, 0)).x;
+		f01 = imageLoad(f, global + ivec2(0, 1)).x;
+		f11 = imageLoad(f, global + ivec2(1, 1)).x;
+	}
 
 	// solution data
-	float u00 = imageLoad(solution[curr], global              ).x;
-	float u10 = imageLoad(solution[curr], global + ivec2(1, 0)).x;
-	float u01 = imageLoad(solution[curr], global + ivec2(0, 1)).x;
-	float u11 = imageLoad(solution[curr], global + ivec2(1, 1)).x;
+	float u01 = 0.0, u11 = 0.0;
+	float u00 = 0.0, u10 = 0.0;
+	if (steps >= 0) {
+		u00 = imageLoad(solution[curr], global              ).x;
+		u10 = imageLoad(solution[curr], global + ivec2(1, 0)).x;
+		u01 = imageLoad(solution[curr], global + ivec2(0, 1)).x;
+		u11 = imageLoad(solution[curr], global + ivec2(1, 1)).x;
+	}
 
 	// intermediate data
-	float i00 = imageLoad(intermediate, global              ).x; 
-	float i10 = imageLoad(intermediate, global + ivec2(1, 0)).x;
-	float i01 = imageLoad(intermediate, global + ivec2(0, 1)).x;
-	float i11 = imageLoad(intermediate, global + ivec2(1, 1)).x;
+	float i01 = 0.0, i11 = 0.0;
+	float i00 = 0.0, i10 = 0.0;
+	if (-STEPS < steps && steps < 0) {
+		i00 = imageLoad(intermediate, global              ).x; 
+		i10 = imageLoad(intermediate, global + ivec2(1, 0)).x;
+		i01 = imageLoad(intermediate, global + ivec2(0, 1)).x;
+		i11 = imageLoad(intermediate, global + ivec2(1, 1)).x;
+	}
 
 	// next iter
-	float n00 = imageLoad(solution[curr ^ 1], global              ).x; 
-	float n10 = imageLoad(solution[curr ^ 1], global + ivec2(1, 0)).x;
-	float n01 = imageLoad(solution[curr ^ 1], global + ivec2(0, 1)).x;
-	float n11 = imageLoad(solution[curr ^ 1], global + ivec2(1, 1)).x;
+	float n01 = 0.0, n11 = 0.0;
+	float n00 = 0.0, n10 = 0.0;
+	if (-STEPS < steps && steps < 0) {
+		n00 = imageLoad(solution[curr ^ 1], global              ).x; 
+		n10 = imageLoad(solution[curr ^ 1], global + ivec2(1, 0)).x;
+		n01 = imageLoad(solution[curr ^ 1], global + ivec2(0, 1)).x;
+		n11 = imageLoad(solution[curr ^ 1], global + ivec2(1, 1)).x;
+	}
 
 	// computations	
 	for (int i = 1; i < STEPS; i++, steps++) {
