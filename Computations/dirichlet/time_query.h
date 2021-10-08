@@ -22,7 +22,7 @@ namespace dir2d
 	private:
 		gl::Query m_timeQuery;
 		GLuint64   m_elapsed{};
-		GLuint64   m_elapsedTotal{};
+		f64		   m_elapsedMean{};
 		GLuint64   m_measurements{};
 		bool       m_ready{true};
 	};

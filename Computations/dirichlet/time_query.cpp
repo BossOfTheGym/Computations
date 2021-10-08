@@ -18,7 +18,7 @@ namespace dir2d
 	void TimeQuery::reset()
 	{
 		 m_elapsed = 0;
-		 m_elapsedTotal = 0;
+		 m_elapsedMean = 0.0;
 		 m_measurements = 0;
 		 m_ready = false;
 	}
@@ -29,7 +29,8 @@ namespace dir2d
 
 		glBeginQuery(GL_TIME_ELAPSED, m_timeQuery.id);
 		if (m_ready) {
-			m_elapsedTotal += m_elapsed;
+			f64 k = (f64)m_measurements / (m_measurements + 1);
+			m_elapsedMean = m_elapsedMean * k + m_elapsed / (m_measurements + 1);
 			++m_measurements;
 		}
 		m_ready = true;
@@ -47,6 +48,6 @@ namespace dir2d
 
 	f64 TimeQuery::elapsedMean() const
 	{
-		return m_measurements != 0 ? (f64)m_elapsed / m_measurements : 0.0;
+		return m_elapsedMean;
 	}
 }
