@@ -41,8 +41,8 @@ void test_simple()
 	builder.setSystems({"red_black"});
 	builder.setGridX(1);
 	builder.setGridY(1);
-	builder.setWindowWidth(1024);
-	builder.setWindowHeight(1024);
+	builder.setWindowWidth(512);
+	builder.setWindowHeight(512);
 	builder.setTotalUpdates(1000);
 	for (auto split : {63, 127, 255, 511, 1023, 2047}) {
 		for (auto work : {8, 16, 32}) {
