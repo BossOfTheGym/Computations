@@ -136,7 +136,7 @@ namespace app
 
 				uint updates = requiredModules.app->get<AppParams>().totalUpdates;
 
-				std::vector<SmartHandle> handles = createHandles(appParams.xSplit, appParams.ySplit, requiredModules.dirichletProxy);
+				auto handles = createHandles(appParams.xSplit, appParams.ySplit, requiredModules.dirichletProxy);
 
 				printProxyOrder(requiredModules.dirichletProxy);
 
