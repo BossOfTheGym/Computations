@@ -9,24 +9,20 @@
 #define WORKGROUP_Y _WORKGROUP_Y
 #define WORKGROUP ivec2(WORKGROUP_X, WORKGROUP_Y)
 
-#define TRUE_WORKGROUP_X (WORKGROUP_X + 2)
-#define TRUE_WORKGROUP_Y (WORKGROUP_Y + 2)
-#define TRUE_WORKGROUP ivec2(TRUE_WORKGROUP_X, TRUE_WORKGROUP_Y)
+#define CACHE_X (WORKGROUP_X + 2)
+#define CACHE_Y (WORKGROUP_Y + 2)
+#define CACHE_SIZE (CACHE_X * CACHE_Y)
 
-layout(local_size_x = WORKGROUP_X + 2, local_size_y = WORKGROUP_Y + 2) in;
+layout(local_size_x = WORKGROUP_X, local_size_y = WORKGROUP_Y) in;
 
 // used both for read and write, boundary is not calculated
-layout(binding = 0, r32f) uniform restrict image2D solution;
-layout(binding = 1, r32f) uniform restrict readonly image2D f;
+layout(binding = 0, r32f) uniform image2D solution;
+layout(binding = 1, r32f) uniform readonly image2D f;
 
 uniform int rb;
 uniform float w;
 uniform float hx;
 uniform float hy;
-
-#define CACHE_X (TRUE_WORKGROUP_X + 2)
-#define CACHE_Y (TRUE_WORKGROUP_Y + 2)
-#define CACHE_SIZE (CACHE_X * CACHE_Y)
 
 // first is x, second is y
 shared float cache[CACHE_SIZE];
@@ -49,28 +45,40 @@ void cacheStoreValue(ivec2 indices, float value)
 // returns local index(zero-based), global(can be out of bounds) 
 void getGlobalLocalInvocationID(out ivec2 global, out ivec2 local)
 {
-	ivec2 work = ivec2(gl_WorkGroupID.xy);
-
 	local = ivec2(gl_LocalInvocationID.xy);
-	global = local - 1 + work * WORKGROUP;
+	global = ivec2(gl_GlobalInvocationID.xy);
 }
 
-bool onBoundary(ivec2 global, ivec2 size)
+bool inInnerDomainX(ivec2 global, ivec2 size)
 {
-	return any(equal(global, ivec2(0))) || any(equal(global, size - 1)); 
+	return 0 < global.x && global.x < size.x - 1;
 }
 
-bool inRegion(ivec2 coords, ivec2 start, ivec2 end)
+bool inInnerDomainY(ivec2 global, ivec2 size)
 {
-	return all(lessThanEqual(start, coords)) && all(lessThan(coords, end));
+	return 0 < global.y && global.y < size.y - 1;
 }
 
-bool inBounds(ivec2 global, ivec2 size)
+bool onUpperBoundaryX(ivec2 coord, ivec2 size)
 {
-	return inRegion(global, ivec2(0), size);
+	return coord.x == size.x - 1;
 }
 
-// red-black update
+bool onLowerBoundaryX(ivec2 coord, ivec2 size)
+{
+	return coord.x == 0;
+}
+
+bool onUpperBoundaryY(ivec2 coord, ivec2 size)
+{
+	return coord.y == size.y - 1;
+}
+
+bool onLowerBoundaryY(ivec2 coord, ivec2 size)
+{
+	return coord.y == 0;
+}
+
 float update(float u00, float um10, float u10, float u0m1, float u01, float f00)
 {
 	float hxhx = hx * hx;
@@ -88,23 +96,38 @@ void main()
 
 	ivec2 size = imageSize(solution);
 
-	bool updateable = inRegion(global, ivec2(1), size - 1)
-		&& inRegion(local, ivec2(1), TRUE_WORKGROUP - 1)
-		&& (global.x + global.y & 0x1) != rb;
-
 	float f00 = imageLoad(f, global).x;
 
-	float u00 = imageLoad(solution, global).x;
-	cacheStoreValue(local, u00);
+	bool innerX = inInnerDomainX(global, size);
+	bool innerY = inInnerDomainY(global, size);
+
+	cacheStoreValue(local, imageLoad(solution, global).x);
+	if (innerY) {
+		if (onUpperBoundaryY(local, WORKGROUP)) {
+			cacheStoreValue(local + ivec2(0, 1), imageLoad(solution, global + ivec2(0, 1)).x);
+		}
+		if (onLowerBoundaryY(local, WORKGROUP)) {
+			cacheStoreValue(local + ivec2(0, -1), imageLoad(solution, global + ivec2(0, -1)).x);
+		}
+	}
+	if (innerX) {
+		if (onUpperBoundaryX(local, WORKGROUP)) {
+			cacheStoreValue(local + ivec2(1, 0), imageLoad(solution, global + ivec2(1, 0)).x);
+		}
+		if (onLowerBoundaryX(local, WORKGROUP)) {
+			cacheStoreValue(local + ivec2(-1, 0), imageLoad(solution, global + ivec2(-1, 0)).x);
+		}
+	}
 	barrier();
 
+	float u00  = cacheLoadValue(local               );
 	float um10 = cacheLoadValue(local + ivec2(-1, 0));
 	float u10  = cacheLoadValue(local + ivec2(+1, 0));
 	float u0m1 = cacheLoadValue(local + ivec2(0, -1));
 	float u01  = cacheLoadValue(local + ivec2(0, +1));
 
-	if (updateable) {
 	u00 = update(u00, um10, u10, u0m1, u01, f00);
+	if ((global.x + global.y & 0x1) != rb && innerX && innerY) {
 		imageStore(solution, global, vec4(u00));
 	}
 }
