@@ -211,7 +211,6 @@ namespace dir2d
 		}
 		glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
 		m_querySt1.end();
-		
 	}
 
 	GLuint64 RedBlackTiledSmtm::elapsed() const
