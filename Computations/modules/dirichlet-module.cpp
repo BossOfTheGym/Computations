@@ -11,6 +11,7 @@
 #include <dirichlet/red_black.h>
 #include <dirichlet/red_black_tiled.h>
 #include <dirichlet/red_black_smtm.h>
+#include <dirichlet/red_black_smtmo.h>
 #include <dirichlet/red_black_smtm_s.h>
 
 #include <string>
@@ -174,6 +175,9 @@ ModulePtr DirichletModuleBuilder::build(Module& root, const cfg::json& config)
 
 	if (config.contains("/dirichlet/red_black_smtm"_json_pointer)) {
 		create_two_shader_sys<dir2d::RedBlackTiledSmtm>(root, *systemsPtr, *controlsPtr, programStorage, config, "red_black_smtm", "red_black_smtm_st0", "red_black_smtm_st1");
+	}
+	if (config.contains("/dirichlet/red_black_smtmo"_json_pointer)) {
+		create_two_shader_sys<dir2d::RedBlackTiledSmtmo>(root, *systemsPtr, *controlsPtr, programStorage, config, "red_black_smtmo", "red_black_smtmo_st0", "red_black_smtmo_st1");
 	}
 
 	return modulePtr;
