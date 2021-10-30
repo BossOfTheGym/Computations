@@ -77,8 +77,7 @@ namespace dir2d
 	void RedBlackTiledSmtmo::Solution::pingpong()
 	{
 		curr ^= 1;
-		// TODO : test
-		// stage ^= 1;
+		stage ^= 1; // TODO : test with and without stage pingponging
 	}
 
 
