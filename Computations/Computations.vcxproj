@@ -155,6 +155,7 @@
     <ClCompile Include="dirichlet\jacoby.cpp" />
     <ClCompile Include="dirichlet\red_black.cpp" />
     <ClCompile Include="dirichlet\red_black_smtm.cpp" />
+    <ClCompile Include="dirichlet\red_black_smtmo.cpp" />
     <ClCompile Include="dirichlet\red_black_smtm_s.cpp" />
     <ClCompile Include="dirichlet\red_black_tiled.cpp" />
     <ClCompile Include="dirichlet\time_query.cpp" />
@@ -259,6 +260,7 @@
     <ClInclude Include="window-builder.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="dirichlet\red_black_smtmo.h" />
     <None Include="shaders\jacoby.comp" />
     <None Include="shaders\quad.frag" />
     <None Include="shaders\quad.vert" />

@@ -180,6 +180,9 @@
     <ClCompile Include="modules\metainfo-module.cpp">
       <Filter>modules\sources</Filter>
     </ClCompile>
+    <ClCompile Include="dirichlet\red_black_smtmo.cpp">
+      <Filter>dirichlet\sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="glfw-cxx\glfw3.h">
@@ -417,6 +420,9 @@
     </None>
     <None Include="shaders\red_black_tiled.comp">
       <Filter>shaders</Filter>
+    </None>
+    <None Include="dirichlet\red_black_smtmo.h">
+      <Filter>dirichlet\headers</Filter>
     </None>
   </ItemGroup>
 </Project>
