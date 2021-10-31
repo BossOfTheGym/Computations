@@ -185,7 +185,7 @@ void main()
 		u01 = imageLoad(solution[curr], global + ivec2(0, 1)).x;
 		u11 = imageLoad(solution[curr], global + ivec2(1, 1)).x;
 	}
-	else {//if (-STEPS < steps && steps < 0) { // TODO : condition can be possibly removed
+	else if (-STEPS < steps && steps < 0) { // TODO : condition can be possibly removed
 		u00 = imageLoad(solution[curr ^ 1], global              ).x; 
 		u10 = imageLoad(solution[curr ^ 1], global + ivec2(1, 0)).x;
 		u01 = imageLoad(solution[curr ^ 1], global + ivec2(0, 1)).x;
