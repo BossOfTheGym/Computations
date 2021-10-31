@@ -62,7 +62,7 @@ namespace dir2d
 
 		solution.curr = 0;
 		solution.stage = 0;
-		solution.w = compute_optimal_w(domain.hx, domain.hy, domain.xSplit, domain.ySplit);
+		solution.w = 0.95 * compute_optimal_w(domain.hx, domain.hy, domain.xSplit, domain.ySplit);
 
 		return solution.s[0].valid()
 			&& solution.s[1].valid()
