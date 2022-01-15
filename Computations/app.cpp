@@ -60,7 +60,7 @@ namespace app
 			{
 				json result;
 				result["elapsed"] = m_elapsed;
-				result["elapsed_mean"] = m_elapsedMean;
+				//result["elapsed_mean"] = m_elapsedMean;
 				return result;
 			}
 
@@ -137,6 +137,7 @@ namespace app
 				uint updates = requiredModules.app->get<AppParams>().totalUpdates;
 
 				auto handles = createHandles(appParams.xSplit, appParams.ySplit, requiredModules.dirichletProxy);
+				//createHandles(appParams.xSplit, appParams.ySplit, requiredModules.dirichletProxy);
 
 				printProxyOrder(requiredModules.dirichletProxy);
 
@@ -146,6 +147,7 @@ namespace app
 					glfw::poll_events();
 					window->swapBuffers();
 					
+					//std::this_thread::sleep_for(200ms);
 
 					glClearColor(0.5, 0.5, 0.5, 1.0);
 					glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
