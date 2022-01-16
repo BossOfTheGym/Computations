@@ -424,5 +424,11 @@
     <None Include="dirichlet\red_black_smtmo.h">
       <Filter>dirichlet\headers</Filter>
     </None>
+    <None Include="shaders\red_black_smtmo_st0.comp">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\red_black_smtmo_st1.comp">
+      <Filter>shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

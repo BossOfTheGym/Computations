@@ -265,6 +265,8 @@
     <None Include="shaders\quad.frag" />
     <None Include="shaders\quad.vert" />
     <None Include="shaders\red_black.comp" />
+    <None Include="shaders\red_black_smtmo_st0.comp" />
+    <None Include="shaders\red_black_smtmo_st1.comp" />
     <None Include="shaders\red_black_smtm_s.comp" />
     <None Include="shaders\red_black_smtm_st0.comp" />
     <None Include="shaders\red_black_smtm_st1.comp" />
