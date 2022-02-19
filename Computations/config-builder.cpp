@@ -79,8 +79,6 @@ namespace
 		shaders["red_black_smtm_s.comp"]    = json::object({{"macros", tiledConfig}});
 		shaders["red_black_smtm_st0.comp"]  = json::object({{"macros", tiledConfig}});
 		shaders["red_black_smtm_st1.comp"]  = json::object({{"macros", tiledConfig}});
-		shaders["red_black_smt_st0.comp"]   = json::object({{"macros", tiledConfig}});
-		shaders["red_black_smt_st1.comp"]   = json::object({{"macros", tiledConfig}});
 		shaders["red_black_smtmo_st0.comp"] = json::object({{"macros", tiledConfig}});
 		shaders["red_black_smtmo_st1.comp"] = json::object({{"macros", tiledConfig}});
 
@@ -100,10 +98,7 @@ namespace
 			{"jacoby", json::array({"jacoby.comp"})},
 			{"red_black", json::array({"red_black.comp"})},
 			{"red_black_tiled", json::array({"red_black_tiled.comp"})},
-			{"red_black_smt_s", json::array({"red_black_smt_s.comp"})},
 			{"red_black_smtm_s", json::array({"red_black_smtm_s.comp"})},
-			{"red_black_smt_st0", json::array({"red_black_smt_st0.comp"})},
-			{"red_black_smt_st1", json::array({"red_black_smt_st1.comp"})},
 			{"red_black_smtm_st0", json::array({"red_black_smtm_st0.comp"})},
 			{"red_black_smtm_st1", json::array({"red_black_smtm_st1.comp"})},
 			{"red_black_smtmo_st0", json::array({"red_black_smtmo_st0.comp"})},
