@@ -29,6 +29,5 @@ public:
 	// "systems" : <all systems are stored in this submodule>
 	// "control" : <proxies that control systems (create & destroy domain, update them and get elapsed time)>
 	// 
-	// TODO : this module should be split up to several modules
 	ModulePtr build(Module& root, const cfg::json& config) override;
 };

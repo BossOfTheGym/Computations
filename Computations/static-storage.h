@@ -55,4 +55,4 @@ private:
 #define ACCESS_STORAGE(tag, resource) StaticStorage<tag>::instance<resource>().storage
 
 #define REGISTER_RESOURCE(tag, resource, name, ...) \
-inline bool staticStorage_##tag##name = StaticStorage<tag>::instance<resource>().store(#name, ##__VA_ARGS__);
+inline bool staticStorage_##tag##name = StaticStorage<tag>::instance<resource>().store(#name, ##__VA_ARGS__)

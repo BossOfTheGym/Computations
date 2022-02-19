@@ -16,12 +16,6 @@
     <Filter Include="gl-cxx">
       <UniqueIdentifier>{5315449b-1808-4059-97db-17e01b8afd24}</UniqueIdentifier>
     </Filter>
-    <Filter Include="main\headers">
-      <UniqueIdentifier>{b9ab8e9c-d32c-4761-9097-74f48ed92fea}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="main\sources">
-      <UniqueIdentifier>{0e926305-30aa-4426-828c-7dc7c028df4a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="gl-cxx\headers">
       <UniqueIdentifier>{672cf0a3-7b3d-4710-988c-957a8b0b4514}</UniqueIdentifier>
     </Filter>
@@ -49,11 +43,8 @@
     <Filter Include="modules">
       <UniqueIdentifier>{b8473994-0f73-433c-8c95-ae104cbe4e66}</UniqueIdentifier>
     </Filter>
-    <Filter Include="modules\headers">
-      <UniqueIdentifier>{8a9dff74-a6f9-4549-95f2-8549ee41907d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="modules\sources">
-      <UniqueIdentifier>{6744f868-9977-4e9f-8ba2-1d4585668480}</UniqueIdentifier>
+    <Filter Include="modules\dirichlet-builder">
+      <UniqueIdentifier>{c9e1c104-1646-4851-bc7d-7c341e477f76}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -62,15 +53,6 @@
     </ClCompile>
     <ClCompile Include="glfw-cxx\sources\opengl-loader.cpp">
       <Filter>glfw-cxx\sources</Filter>
-    </ClCompile>
-    <ClCompile Include="main.cpp">
-      <Filter>main\sources</Filter>
-    </ClCompile>
-    <ClCompile Include="main-window.cpp">
-      <Filter>main\sources</Filter>
-    </ClCompile>
-    <ClCompile Include="app.cpp">
-      <Filter>main\sources</Filter>
     </ClCompile>
     <ClCompile Include="dirichlet\jacoby.cpp">
       <Filter>dirichlet\sources</Filter>
@@ -108,80 +90,92 @@
     <ClCompile Include="dirichlet\dirichlet_util.cpp">
       <Filter>dirichlet\sources</Filter>
     </ClCompile>
-    <ClCompile Include="glsl-preproc.cpp">
-      <Filter>main\sources</Filter>
-    </ClCompile>
     <ClCompile Include="dirichlet\red_black_smtm_s.cpp">
       <Filter>dirichlet\sources</Filter>
     </ClCompile>
-    <ClCompile Include="dependency-resolver.cpp">
-      <Filter>main\sources</Filter>
-    </ClCompile>
-    <ClCompile Include="file-util.cpp">
-      <Filter>main\sources</Filter>
-    </ClCompile>
-    <ClCompile Include="shader-loader.cpp">
-      <Filter>main\sources</Filter>
-    </ClCompile>
-    <ClCompile Include="shader-path-resolver.cpp">
-      <Filter>main\sources</Filter>
-    </ClCompile>
-    <ClCompile Include="shader-storage.cpp">
-      <Filter>main\sources</Filter>
-    </ClCompile>
-    <ClCompile Include="window-builder.cpp">
-      <Filter>main\sources</Filter>
-    </ClCompile>
-    <ClCompile Include="program-builder.cpp">
-      <Filter>main\sources</Filter>
-    </ClCompile>
-    <ClCompile Include="program-storage.cpp">
-      <Filter>main\sources</Filter>
-    </ClCompile>
-    <ClCompile Include="glfw-guard.cpp">
-      <Filter>main\sources</Filter>
-    </ClCompile>
-    <ClCompile Include="modules\dirichlet-module.cpp">
-      <Filter>modules\sources</Filter>
-    </ClCompile>
-    <ClCompile Include="modules\glfw-module.cpp">
-      <Filter>modules\sources</Filter>
-    </ClCompile>
-    <ClCompile Include="modules\module.cpp">
-      <Filter>modules\sources</Filter>
-    </ClCompile>
-    <ClCompile Include="modules\programs-module.cpp">
-      <Filter>modules\sources</Filter>
-    </ClCompile>
-    <ClCompile Include="modules\shaders-module.cpp">
-      <Filter>modules\sources</Filter>
-    </ClCompile>
-    <ClCompile Include="modules\window-module.cpp">
-      <Filter>modules\sources</Filter>
-    </ClCompile>
-    <ClCompile Include="modules\bundle.cpp">
-      <Filter>modules\sources</Filter>
-    </ClCompile>
-    <ClCompile Include="config-builder.cpp">
-      <Filter>main\sources</Filter>
-    </ClCompile>
-    <ClCompile Include="modules\app-module.cpp">
-      <Filter>modules\sources</Filter>
-    </ClCompile>
-    <ClCompile Include="modules\output-module.cpp">
-      <Filter>modules\sources</Filter>
-    </ClCompile>
-    <ClCompile Include="grid.cpp">
-      <Filter>main\sources</Filter>
-    </ClCompile>
-    <ClCompile Include="modules\grid-module.cpp">
-      <Filter>modules\sources</Filter>
-    </ClCompile>
-    <ClCompile Include="modules\metainfo-module.cpp">
-      <Filter>modules\sources</Filter>
-    </ClCompile>
     <ClCompile Include="dirichlet\red_black_smtmo.cpp">
       <Filter>dirichlet\sources</Filter>
+    </ClCompile>
+    <ClCompile Include="modules\dirichlet-builder\dirichlet-reg.cpp">
+      <Filter>modules\dirichlet-builder</Filter>
+    </ClCompile>
+    <ClCompile Include="modules\app-module.cpp">
+      <Filter>modules</Filter>
+    </ClCompile>
+    <ClCompile Include="modules\bundle.cpp">
+      <Filter>modules</Filter>
+    </ClCompile>
+    <ClCompile Include="modules\dirichlet-module.cpp">
+      <Filter>modules</Filter>
+    </ClCompile>
+    <ClCompile Include="modules\glfw-module.cpp">
+      <Filter>modules</Filter>
+    </ClCompile>
+    <ClCompile Include="modules\grid-module.cpp">
+      <Filter>modules</Filter>
+    </ClCompile>
+    <ClCompile Include="modules\metainfo-module.cpp">
+      <Filter>modules</Filter>
+    </ClCompile>
+    <ClCompile Include="modules\module.cpp">
+      <Filter>modules</Filter>
+    </ClCompile>
+    <ClCompile Include="modules\output-module.cpp">
+      <Filter>modules</Filter>
+    </ClCompile>
+    <ClCompile Include="modules\programs-module.cpp">
+      <Filter>modules</Filter>
+    </ClCompile>
+    <ClCompile Include="modules\shaders-module.cpp">
+      <Filter>modules</Filter>
+    </ClCompile>
+    <ClCompile Include="modules\window-module.cpp">
+      <Filter>modules</Filter>
+    </ClCompile>
+    <ClCompile Include="app.cpp">
+      <Filter>main</Filter>
+    </ClCompile>
+    <ClCompile Include="config-builder.cpp">
+      <Filter>main</Filter>
+    </ClCompile>
+    <ClCompile Include="dependency-resolver.cpp">
+      <Filter>main</Filter>
+    </ClCompile>
+    <ClCompile Include="file-util.cpp">
+      <Filter>main</Filter>
+    </ClCompile>
+    <ClCompile Include="glfw-guard.cpp">
+      <Filter>main</Filter>
+    </ClCompile>
+    <ClCompile Include="glsl-preproc.cpp">
+      <Filter>main</Filter>
+    </ClCompile>
+    <ClCompile Include="grid.cpp">
+      <Filter>main</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>main</Filter>
+    </ClCompile>
+    <ClCompile Include="main-window.cpp">
+      <Filter>main</Filter>
+    </ClCompile>
+    <ClCompile Include="program-builder.cpp">
+      <Filter>main</Filter>
+    </ClCompile>
+    <ClCompile Include="program-storage.cpp">
+      <Filter>main</Filter>
+    </ClCompile>
+    <ClCompile Include="shader-loader.cpp">
+      <Filter>main</Filter>
+    </ClCompile>
+    <ClCompile Include="shader-path-resolver.cpp">
+      <Filter>main</Filter>
+    </ClCompile>
+    <ClCompile Include="shader-storage.cpp">
+      <Filter>main</Filter>
+    </ClCompile>
+    <ClCompile Include="window-builder.cpp">
+      <Filter>main</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -199,18 +193,6 @@
     </ClInclude>
     <ClInclude Include="storage.h">
       <Filter>storage</Filter>
-    </ClInclude>
-    <ClInclude Include="main-window.h">
-      <Filter>main\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="app.h">
-      <Filter>main\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="app-system.h">
-      <Filter>main\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="core.h">
-      <Filter>main\headers</Filter>
     </ClInclude>
     <ClInclude Include="dirichlet\dirichlet-2d.h">
       <Filter>dirichlet\headers</Filter>
@@ -269,59 +251,8 @@
     <ClInclude Include="dirichlet\resource_provider.h">
       <Filter>dirichlet\headers</Filter>
     </ClInclude>
-    <ClInclude Include="glsl-preproc.h">
-      <Filter>main\headers</Filter>
-    </ClInclude>
     <ClInclude Include="dirichlet\red_black_smtm_s.h">
       <Filter>dirichlet\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="cfg.h">
-      <Filter>main\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="cfg-fwd.h">
-      <Filter>main\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="dependency.h">
-      <Filter>main\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="dependency-resolver.h">
-      <Filter>main\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="file-util.h">
-      <Filter>main\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="fs.h">
-      <Filter>main\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="placeholder.h">
-      <Filter>main\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="shader-loader.h">
-      <Filter>main\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="shader-path-resolver.h">
-      <Filter>main\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="shader-provider.h">
-      <Filter>main\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="shader-storage.h">
-      <Filter>main\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="type-id.h">
-      <Filter>main\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="window-builder.h">
-      <Filter>main\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="static-storage.h">
-      <Filter>main\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="program-builder.h">
-      <Filter>main\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="program-storage.h">
-      <Filter>main\headers</Filter>
     </ClInclude>
     <ClInclude Include="dirichlet\dirichlet-proxy.h">
       <Filter>dirichlet\headers</Filter>
@@ -329,68 +260,137 @@
     <ClInclude Include="dirichlet\dirichlet_cfg.h">
       <Filter>dirichlet\headers</Filter>
     </ClInclude>
-    <ClInclude Include="dirichlet-params.h">
-      <Filter>main\headers</Filter>
+    <ClInclude Include="modules\dirichlet-builder\dirichlet-builders.h">
+      <Filter>modules\dirichlet-builder</Filter>
     </ClInclude>
-    <ClInclude Include="parse-util.h">
-      <Filter>main\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="glfw-guard.h">
-      <Filter>main\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="modules\dirichlet-module.h">
-      <Filter>modules\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="modules\glfw-module.h">
-      <Filter>modules\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="modules\module.h">
-      <Filter>modules\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="modules\module-builders.h">
-      <Filter>modules\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="modules\programs-module.h">
-      <Filter>modules\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="modules\shaders-module.h">
-      <Filter>modules\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="modules\window-module.h">
-      <Filter>modules\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="modules\module-dependencies.h">
-      <Filter>modules\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="modules\bundle.h">
-      <Filter>modules\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="config-builder.h">
-      <Filter>main\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="app-params.h">
-      <Filter>main\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="output-params.h">
-      <Filter>main\headers</Filter>
+    <ClInclude Include="modules\dirichlet-builder\dirichlet-builder-util.h">
+      <Filter>modules\dirichlet-builder</Filter>
     </ClInclude>
     <ClInclude Include="modules\app-module.h">
-      <Filter>modules\headers</Filter>
+      <Filter>modules</Filter>
     </ClInclude>
-    <ClInclude Include="modules\output-module.h">
-      <Filter>modules\headers</Filter>
+    <ClInclude Include="modules\bundle.h">
+      <Filter>modules</Filter>
     </ClInclude>
-    <ClInclude Include="grid.h">
-      <Filter>main\headers</Filter>
+    <ClInclude Include="modules\dirichlet-module.h">
+      <Filter>modules</Filter>
+    </ClInclude>
+    <ClInclude Include="modules\glfw-module.h">
+      <Filter>modules</Filter>
     </ClInclude>
     <ClInclude Include="modules\grid-module.h">
-      <Filter>modules\headers</Filter>
+      <Filter>modules</Filter>
     </ClInclude>
     <ClInclude Include="modules\metainfo-module.h">
-      <Filter>modules\headers</Filter>
+      <Filter>modules</Filter>
+    </ClInclude>
+    <ClInclude Include="modules\module.h">
+      <Filter>modules</Filter>
+    </ClInclude>
+    <ClInclude Include="modules\module-builders.h">
+      <Filter>modules</Filter>
+    </ClInclude>
+    <ClInclude Include="modules\module-dependencies.h">
+      <Filter>modules</Filter>
+    </ClInclude>
+    <ClInclude Include="modules\output-module.h">
+      <Filter>modules</Filter>
+    </ClInclude>
+    <ClInclude Include="modules\programs-module.h">
+      <Filter>modules</Filter>
+    </ClInclude>
+    <ClInclude Include="modules\shaders-module.h">
+      <Filter>modules</Filter>
+    </ClInclude>
+    <ClInclude Include="modules\window-module.h">
+      <Filter>modules</Filter>
+    </ClInclude>
+    <ClInclude Include="app.h">
+      <Filter>main</Filter>
+    </ClInclude>
+    <ClInclude Include="app-params.h">
+      <Filter>main</Filter>
+    </ClInclude>
+    <ClInclude Include="app-system.h">
+      <Filter>main</Filter>
+    </ClInclude>
+    <ClInclude Include="cfg.h">
+      <Filter>main</Filter>
+    </ClInclude>
+    <ClInclude Include="cfg-fwd.h">
+      <Filter>main</Filter>
+    </ClInclude>
+    <ClInclude Include="config-builder.h">
+      <Filter>main</Filter>
+    </ClInclude>
+    <ClInclude Include="core.h">
+      <Filter>main</Filter>
+    </ClInclude>
+    <ClInclude Include="dependency.h">
+      <Filter>main</Filter>
+    </ClInclude>
+    <ClInclude Include="dependency-resolver.h">
+      <Filter>main</Filter>
+    </ClInclude>
+    <ClInclude Include="dirichlet-params.h">
+      <Filter>main</Filter>
+    </ClInclude>
+    <ClInclude Include="file-util.h">
+      <Filter>main</Filter>
+    </ClInclude>
+    <ClInclude Include="fs.h">
+      <Filter>main</Filter>
+    </ClInclude>
+    <ClInclude Include="glfw-guard.h">
+      <Filter>main</Filter>
+    </ClInclude>
+    <ClInclude Include="glsl-preproc.h">
+      <Filter>main</Filter>
+    </ClInclude>
+    <ClInclude Include="grid.h">
+      <Filter>main</Filter>
+    </ClInclude>
+    <ClInclude Include="main-window.h">
+      <Filter>main</Filter>
     </ClInclude>
     <ClInclude Include="metainfo.h">
-      <Filter>main\headers</Filter>
+      <Filter>main</Filter>
+    </ClInclude>
+    <ClInclude Include="output-params.h">
+      <Filter>main</Filter>
+    </ClInclude>
+    <ClInclude Include="parse-util.h">
+      <Filter>main</Filter>
+    </ClInclude>
+    <ClInclude Include="placeholder.h">
+      <Filter>main</Filter>
+    </ClInclude>
+    <ClInclude Include="program-builder.h">
+      <Filter>main</Filter>
+    </ClInclude>
+    <ClInclude Include="program-storage.h">
+      <Filter>main</Filter>
+    </ClInclude>
+    <ClInclude Include="shader-loader.h">
+      <Filter>main</Filter>
+    </ClInclude>
+    <ClInclude Include="shader-path-resolver.h">
+      <Filter>main</Filter>
+    </ClInclude>
+    <ClInclude Include="shader-provider.h">
+      <Filter>main</Filter>
+    </ClInclude>
+    <ClInclude Include="shader-storage.h">
+      <Filter>main</Filter>
+    </ClInclude>
+    <ClInclude Include="static-storage.h">
+      <Filter>main</Filter>
+    </ClInclude>
+    <ClInclude Include="type-id.h">
+      <Filter>main</Filter>
+    </ClInclude>
+    <ClInclude Include="window-builder.h">
+      <Filter>main</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

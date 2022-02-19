@@ -172,6 +172,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="modules\app-module.cpp" />
     <ClCompile Include="modules\bundle.cpp" />
+    <ClCompile Include="modules\dirichlet-builder\dirichlet-reg.cpp" />
     <ClCompile Include="modules\dirichlet-module.cpp" />
     <ClCompile Include="modules\glfw-module.cpp" />
     <ClCompile Include="modules\grid-module.cpp" />
@@ -220,6 +221,8 @@
     <ClInclude Include="metainfo.h" />
     <ClInclude Include="modules\app-module.h" />
     <ClInclude Include="modules\bundle.h" />
+    <ClInclude Include="modules\dirichlet-builder\dirichlet-builder-util.h" />
+    <ClInclude Include="modules\dirichlet-builder\dirichlet-builders.h" />
     <ClInclude Include="modules\dirichlet-module.h" />
     <ClInclude Include="modules\glfw-module.h" />
     <ClInclude Include="modules\grid-module.h" />
