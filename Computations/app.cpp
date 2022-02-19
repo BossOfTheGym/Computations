@@ -137,7 +137,6 @@ namespace app
 				uint updates = requiredModules.app->get<AppParams>().totalUpdates;
 
 				auto handles = createHandles(appParams.xSplit, appParams.ySplit, requiredModules.dirichletProxy);
-				//createHandles(appParams.xSplit, appParams.ySplit, requiredModules.dirichletProxy);
 
 				printProxyOrder(requiredModules.dirichletProxy);
 
