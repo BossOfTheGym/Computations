@@ -1,0 +1,165 @@
+#version 460 core
+
+#ifndef _CONFIGURED
+	#define _STEPS 2
+	#define _WORKGROUP_X 16
+	#define _WORKGROUP_Y 16
+#endif
+
+#define FMT r32f
+
+#define STEPS (_STEPS - 1)
+#define TRUE_STEPS (2 * STEPS)
+
+#define WORKGROUP_X (_WORKGROUP_X)
+#define WORKGROUP_Y (_WORKGROUP_Y)
+#define WORKGROUP ivec2(WORKGROUP_X, WORKGROUP_Y)
+
+#define TRUE_WORKGROUP_X (WORKGROUP_X)
+#define TRUE_WORKGROUP_Y (WORKGROUP_Y)
+#define TRUE_WORKGROUP ivec2(TRUE_WORKGROUP_X, TRUE_WORKGROUP_Y)
+
+#define WORKGROUP_X_OVERLAP (WORKGROUP_X + STEPS * 2)
+#define WORKGROUP_Y_OVERLAP (WORKGROUP_Y + STEPS * 2)
+#define WORKGROUP_OVERLAP ivec2(WORKGROUP_X_OVERLAP, WORKGROUP_Y_OVERLAP)
+
+#define TRUE_WORKGROUP_X_OVERLAP (WORKGROUP_X_OVERLAP)
+#define TRUE_WORKGROUP_Y_OVERLAP (WORKGROUP_Y_OVERLAP)
+#define TRUE_WORKGROUP_OVERLAP ivec2(TRUE_WORKGROUP_X_OVERLAP, TRUE_WORKGROUP_Y_OVERLAP)
+
+#ifndef FAST_UPDATE
+	#define pred_t bool
+	#define UPDATE_VALUE(u, u_new, pred) ((pred) ? (u_new) : (u))
+#else
+	#define pred_t float
+	#define UPDATE_VALUE(u, u_new, pred) ((u) + ((u_new) - (u)) * (pred))
+#endif
+
+layout(local_size_x = WORKGROUP_X + STEPS * 2, local_size_y = WORKGROUP_Y + STEPS * 2) in;
+
+#define CACHE_X (TRUE_WORKGROUP_X_OVERLAP + 2)
+#define CACHE_Y (TRUE_WORKGROUP_Y_OVERLAP + 2)
+#define CACHE_SIZE (CACHE_Y * CACHE_X)
+
+// picture is stored in a row-major manner
+// used both for read and write, boundary is not calculated
+layout(binding = 0, FMT) uniform restrict image2D solution;
+layout(binding = 1, FMT) uniform restrict readonly image2D f;
+
+uniform float hx;
+uniform float hy;
+
+// first is x(i), second is y(j)
+shared float cache[CACHE_SIZE];
+
+int cacheFlatIndex(ivec2 indices)
+{
+	return indices.x * CACHE_Y + indices.y + (CACHE_Y + 1);
+}
+
+float cacheLoadValue(ivec2 indices)
+{
+	return cache[cacheFlatIndex(indices)];
+}
+
+void cacheStoreValue(ivec2 indices, float value)
+{
+	cache[cacheFlatIndex(indices)] = value;
+}
+
+// returns local index(zero-based), global(can be out of bounds)
+void getGlobalLocalInvocationID(out ivec2 global, out ivec2 local)
+{
+	ivec2 work = ivec2(gl_WorkGroupID.xy);
+
+	local = ivec2(gl_LocalInvocationID.xy);
+	global = local - TRUE_STEPS + work * TRUE_WORKGROUP;
+}
+
+// step function, in fact return signed distance to the frame defined by start coord and end coord
+int stepFunction(ivec2 coord, ivec2 start, ivec2 end)
+{
+	ivec2 dc1 = coord - start;
+	ivec2 dc2 = end - coord;
+	return min(min(dc1.x, dc1.y), min(dc2.x, dc2.y));
+}
+
+int getCurrStep()
+{
+	return stepFunction(ivec2(gl_LocalInvocationID.xy), ivec2(0), WORKGROUP_OVERLAP - 1);
+}
+
+// some invocation parameters
+bool inRegion(ivec2 coords, ivec2 start, ivec2 end)
+{
+	return all(lessThanEqual(start, coords)) && all(lessThan(coords, end));
+}
+
+bool inBounds(ivec2 global, ivec2 size)
+{
+	return inRegion(global, ivec2(0), size);
+}
+
+bool onBoundary(ivec2 global, ivec2 size)
+{
+	return any(equal(global, ivec2(0))) || any(equal(global, size - 1)); 
+}
+
+// red-black step
+const float w = 1.0;
+
+float update(float u00, float um10, float u10, float u0m1, float u01, float f00)
+{
+	float hxhx = hx * hx;
+	float hyhy = hy * hy;
+	float H = -2.0 / hxhx - 2.0 / hyhy;
+	float u = f00 / H - (um10 + u10) / (hxhx * H) - (u0m1 + u01) / (hyhy * H);
+
+	return (1.0 - w) * u00 + w * u;
+}
+
+void main()
+{
+	// some invocation's parameters
+	ivec2 global, local;
+	getGlobalLocalInvocationID(global, local);
+
+	ivec2 size = imageSize(solution);
+
+	pred_t u00Updateable = pred_t(inBounds(global, size) && !onBoundary(global, size));
+
+	int steps = (inBounds(global, size) ? getCurrStep() : -1);
+
+	// cache data
+	// loads either value or zero if out of bounds (check optimized out)
+	float f00 = imageLoad(f, global).x;
+
+	// solution data
+	// loads either value or zero if out of bounds (check optimized out)
+	float u00 = imageLoad(solution, global).x;
+
+	// cache store
+	cacheStoreValue(local, u00);
+	barrier();
+	
+	// computations	
+	for (int i = 1; i <= STEPS; i++, steps--) {	
+		float um10 = cacheLoadValue(local + ivec2(-1,  0)); // left
+		float u10  = cacheLoadValue(local + ivec2( 1,  0)); // right
+		float u0m1 = cacheLoadValue(local + ivec2( 0, -1)); // bottom
+		float u01  = cacheLoadValue(local + ivec2( 0,  1)); // top
+		barrier();
+
+		float u00_new = update(u00, um10, u10, u0m1, u01, f00);
+
+		u00 = UPDATE_VALUE(u10, u10_new, u10Updateable);
+		if (steps >= 0) {
+			cacheStoreValue(local, u00);
+		}
+		barrier();
+	}
+	
+	if (steps >= 0) { // out of bound writes are ignored, u00 are already updated
+		imageStore(solution, global, vec4(u00));
+	}
+}
