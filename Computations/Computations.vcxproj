@@ -148,6 +148,8 @@
     <ClCompile Include="app.cpp" />
     <ClCompile Include="config-builder.cpp" />
     <ClCompile Include="dependency-resolver.cpp" />
+    <ClCompile Include="dirichlet\chaotic_smtm.cpp" />
+    <ClCompile Include="dirichlet\chaotic_tiled.cpp" />
     <ClCompile Include="dirichlet\dirichlet_dataaabb2d.cpp" />
     <ClCompile Include="dirichlet\dirichlet_domainaabb2d.cpp" />
     <ClCompile Include="dirichlet\dirichlet_handle.cpp" />
@@ -200,6 +202,8 @@
     <ClInclude Include="dependency-resolver.h" />
     <ClInclude Include="dependency.h" />
     <ClInclude Include="dirichlet-params.h" />
+    <ClInclude Include="dirichlet\chaotic_smtm.h" />
+    <ClInclude Include="dirichlet\chaotic_tiled.h" />
     <ClInclude Include="dirichlet\dirichlet-2d.h" />
     <ClInclude Include="dirichlet\dirichlet-proxy.h" />
     <ClInclude Include="dirichlet\dirichlet_cfg.h" />
@@ -264,6 +268,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="dirichlet\red_black_smtmo.h" />
+    <None Include="shaders\chaotic_smtm_st0.comp" />
+    <None Include="shaders\chaotic_smtm_st1.comp" />
+    <None Include="shaders\chaotic_tiled.comp" />
     <None Include="shaders\jacoby.comp" />
     <None Include="shaders\quad.frag" />
     <None Include="shaders\quad.vert" />

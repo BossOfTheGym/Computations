@@ -34,12 +34,6 @@
     <Filter Include="storage">
       <UniqueIdentifier>{101b48eb-7081-46fb-9f36-a08316e39ee4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="dirichlet\headers">
-      <UniqueIdentifier>{0c82ba62-ccae-4775-8ad8-c315a11bf38a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="dirichlet\sources">
-      <UniqueIdentifier>{912721c4-2b3b-4773-8b51-eea76ce3ebdb}</UniqueIdentifier>
-    </Filter>
     <Filter Include="modules">
       <UniqueIdentifier>{b8473994-0f73-433c-8c95-ae104cbe4e66}</UniqueIdentifier>
     </Filter>
@@ -54,21 +48,6 @@
     <ClCompile Include="glfw-cxx\sources\opengl-loader.cpp">
       <Filter>glfw-cxx\sources</Filter>
     </ClCompile>
-    <ClCompile Include="dirichlet\jacoby.cpp">
-      <Filter>dirichlet\sources</Filter>
-    </ClCompile>
-    <ClCompile Include="dirichlet\red_black.cpp">
-      <Filter>dirichlet\sources</Filter>
-    </ClCompile>
-    <ClCompile Include="dirichlet\red_black_smtm.cpp">
-      <Filter>dirichlet\sources</Filter>
-    </ClCompile>
-    <ClCompile Include="dirichlet\red_black_tiled.cpp">
-      <Filter>dirichlet\sources</Filter>
-    </ClCompile>
-    <ClCompile Include="dirichlet\time_query.cpp">
-      <Filter>dirichlet\sources</Filter>
-    </ClCompile>
     <ClCompile Include="gl-cxx\gl-res.cpp">
       <Filter>gl-cxx\sources</Filter>
     </ClCompile>
@@ -77,24 +56,6 @@
     </ClCompile>
     <ClCompile Include="gl-cxx\gl-state-info.cpp">
       <Filter>gl-cxx\sources</Filter>
-    </ClCompile>
-    <ClCompile Include="dirichlet\dirichlet_dataaabb2d.cpp">
-      <Filter>dirichlet\sources</Filter>
-    </ClCompile>
-    <ClCompile Include="dirichlet\dirichlet_domainaabb2d.cpp">
-      <Filter>dirichlet\sources</Filter>
-    </ClCompile>
-    <ClCompile Include="dirichlet\dirichlet_handle.cpp">
-      <Filter>dirichlet\sources</Filter>
-    </ClCompile>
-    <ClCompile Include="dirichlet\dirichlet_util.cpp">
-      <Filter>dirichlet\sources</Filter>
-    </ClCompile>
-    <ClCompile Include="dirichlet\red_black_smtm_s.cpp">
-      <Filter>dirichlet\sources</Filter>
-    </ClCompile>
-    <ClCompile Include="dirichlet\red_black_smtmo.cpp">
-      <Filter>dirichlet\sources</Filter>
     </ClCompile>
     <ClCompile Include="modules\dirichlet-builder\dirichlet-reg.cpp">
       <Filter>modules\dirichlet-builder</Filter>
@@ -177,6 +138,45 @@
     <ClCompile Include="window-builder.cpp">
       <Filter>main</Filter>
     </ClCompile>
+    <ClCompile Include="dirichlet\dirichlet_dataaabb2d.cpp">
+      <Filter>dirichlet</Filter>
+    </ClCompile>
+    <ClCompile Include="dirichlet\dirichlet_domainaabb2d.cpp">
+      <Filter>dirichlet</Filter>
+    </ClCompile>
+    <ClCompile Include="dirichlet\dirichlet_handle.cpp">
+      <Filter>dirichlet</Filter>
+    </ClCompile>
+    <ClCompile Include="dirichlet\dirichlet_util.cpp">
+      <Filter>dirichlet</Filter>
+    </ClCompile>
+    <ClCompile Include="dirichlet\jacoby.cpp">
+      <Filter>dirichlet</Filter>
+    </ClCompile>
+    <ClCompile Include="dirichlet\red_black.cpp">
+      <Filter>dirichlet</Filter>
+    </ClCompile>
+    <ClCompile Include="dirichlet\red_black_smtm.cpp">
+      <Filter>dirichlet</Filter>
+    </ClCompile>
+    <ClCompile Include="dirichlet\red_black_smtm_s.cpp">
+      <Filter>dirichlet</Filter>
+    </ClCompile>
+    <ClCompile Include="dirichlet\red_black_smtmo.cpp">
+      <Filter>dirichlet</Filter>
+    </ClCompile>
+    <ClCompile Include="dirichlet\red_black_tiled.cpp">
+      <Filter>dirichlet</Filter>
+    </ClCompile>
+    <ClCompile Include="dirichlet\time_query.cpp">
+      <Filter>dirichlet</Filter>
+    </ClCompile>
+    <ClCompile Include="dirichlet\chaotic_smtm.cpp">
+      <Filter>dirichlet</Filter>
+    </ClCompile>
+    <ClCompile Include="dirichlet\chaotic_tiled.cpp">
+      <Filter>dirichlet</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="glfw-cxx\glfw3.h">
@@ -193,24 +193,6 @@
     </ClInclude>
     <ClInclude Include="storage.h">
       <Filter>storage</Filter>
-    </ClInclude>
-    <ClInclude Include="dirichlet\dirichlet-2d.h">
-      <Filter>dirichlet\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="dirichlet\jacoby.h">
-      <Filter>dirichlet\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="dirichlet\red_black.h">
-      <Filter>dirichlet\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="dirichlet\red_black_smtm.h">
-      <Filter>dirichlet\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="dirichlet\red_black_tiled.h">
-      <Filter>dirichlet\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="dirichlet\time_query.h">
-      <Filter>dirichlet\headers</Filter>
     </ClInclude>
     <ClInclude Include="gl-cxx\gl-header.h">
       <Filter>gl-cxx\headers</Filter>
@@ -229,36 +211,6 @@
     </ClInclude>
     <ClInclude Include="gl-cxx\gl-fwd.h">
       <Filter>gl-cxx\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="dirichlet\dirichlet_dataaabb2d.h">
-      <Filter>dirichlet\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="dirichlet\dirichlet_domainaabb2d.h">
-      <Filter>dirichlet\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="dirichlet\dirichlet_fwd.h">
-      <Filter>dirichlet\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="dirichlet\dirichlet_function.h">
-      <Filter>dirichlet\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="dirichlet\dirichlet_handle.h">
-      <Filter>dirichlet\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="dirichlet\dirichlet_util.h">
-      <Filter>dirichlet\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="dirichlet\resource_provider.h">
-      <Filter>dirichlet\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="dirichlet\red_black_smtm_s.h">
-      <Filter>dirichlet\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="dirichlet\dirichlet-proxy.h">
-      <Filter>dirichlet\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="dirichlet\dirichlet_cfg.h">
-      <Filter>dirichlet\headers</Filter>
     </ClInclude>
     <ClInclude Include="modules\dirichlet-builder\dirichlet-builders.h">
       <Filter>modules\dirichlet-builder</Filter>
@@ -392,6 +344,60 @@
     <ClInclude Include="window-builder.h">
       <Filter>main</Filter>
     </ClInclude>
+    <ClInclude Include="dirichlet\dirichlet_cfg.h">
+      <Filter>dirichlet</Filter>
+    </ClInclude>
+    <ClInclude Include="dirichlet\dirichlet_dataaabb2d.h">
+      <Filter>dirichlet</Filter>
+    </ClInclude>
+    <ClInclude Include="dirichlet\dirichlet_domainaabb2d.h">
+      <Filter>dirichlet</Filter>
+    </ClInclude>
+    <ClInclude Include="dirichlet\dirichlet_function.h">
+      <Filter>dirichlet</Filter>
+    </ClInclude>
+    <ClInclude Include="dirichlet\dirichlet_fwd.h">
+      <Filter>dirichlet</Filter>
+    </ClInclude>
+    <ClInclude Include="dirichlet\dirichlet_handle.h">
+      <Filter>dirichlet</Filter>
+    </ClInclude>
+    <ClInclude Include="dirichlet\dirichlet_util.h">
+      <Filter>dirichlet</Filter>
+    </ClInclude>
+    <ClInclude Include="dirichlet\dirichlet-2d.h">
+      <Filter>dirichlet</Filter>
+    </ClInclude>
+    <ClInclude Include="dirichlet\dirichlet-proxy.h">
+      <Filter>dirichlet</Filter>
+    </ClInclude>
+    <ClInclude Include="dirichlet\jacoby.h">
+      <Filter>dirichlet</Filter>
+    </ClInclude>
+    <ClInclude Include="dirichlet\red_black.h">
+      <Filter>dirichlet</Filter>
+    </ClInclude>
+    <ClInclude Include="dirichlet\red_black_smtm.h">
+      <Filter>dirichlet</Filter>
+    </ClInclude>
+    <ClInclude Include="dirichlet\red_black_smtm_s.h">
+      <Filter>dirichlet</Filter>
+    </ClInclude>
+    <ClInclude Include="dirichlet\red_black_tiled.h">
+      <Filter>dirichlet</Filter>
+    </ClInclude>
+    <ClInclude Include="dirichlet\resource_provider.h">
+      <Filter>dirichlet</Filter>
+    </ClInclude>
+    <ClInclude Include="dirichlet\time_query.h">
+      <Filter>dirichlet</Filter>
+    </ClInclude>
+    <ClInclude Include="dirichlet\chaotic_smtm.h">
+      <Filter>dirichlet</Filter>
+    </ClInclude>
+    <ClInclude Include="dirichlet\chaotic_tiled.h">
+      <Filter>dirichlet</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\quad.frag">
@@ -421,13 +427,22 @@
     <None Include="shaders\red_black_tiled.comp">
       <Filter>shaders</Filter>
     </None>
-    <None Include="dirichlet\red_black_smtmo.h">
-      <Filter>dirichlet\headers</Filter>
-    </None>
     <None Include="shaders\red_black_smtmo_st0.comp">
       <Filter>shaders</Filter>
     </None>
     <None Include="shaders\red_black_smtmo_st1.comp">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="dirichlet\red_black_smtmo.h">
+      <Filter>dirichlet</Filter>
+    </None>
+    <None Include="shaders\chaotic_tiled.comp">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\chaotic_smtm_st0.comp">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\chaotic_smtm_st1.comp">
       <Filter>shaders</Filter>
     </None>
   </ItemGroup>
