@@ -29,8 +29,7 @@ namespace dir2d
 
 	bool ChaoticSmtm::Uniforms::valid() const
 	{
-		return hx != -1 && hy != -1
-			&& numWorkgroupsX != -1 && numWorkgroupsY != -1;
+		return hx != -1 && hy != -1 && numWorkgroupsX != -1 && numWorkgroupsY != -1;
 	}
 
 
@@ -51,8 +50,7 @@ namespace dir2d
 		solution.f = gl::create_texture(xVar, yVar, GL_R32F);
 		glTextureSubImage2D(solution.f.id, 0, 0, 0, xVar, yVar, GL_RED, GL_FLOAT, data.f.get());
 
-		return solution.s.valid()
-			&& solution.f.valid();
+		return solution.s.valid() && solution.f.valid();
 	}
 
 	gl::Id ChaoticSmtm::Solution::texture() const
@@ -125,7 +123,7 @@ namespace dir2d
 	void ChaoticSmtm::update()
 	{
 		constexpr int IMGS = 0;
-		constexpr int IMGF = 2;
+		constexpr int IMGF = 1;
 
 		// stage 0
 		glUseProgram(m_programSt0);

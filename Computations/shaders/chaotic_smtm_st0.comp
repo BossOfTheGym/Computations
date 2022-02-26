@@ -8,8 +8,6 @@
 
 #define FMT r32f
 
-#define STAGE 0
-
 #define STEPS _STEPS
 #define TRUE_STEPS (STEPS)
 
@@ -52,6 +50,13 @@ uniform float hx;
 uniform float hy;
 uniform int numWorkgroupsX; // num of workgroups along x-axis
 uniform int numWorkgroupsY; // num of workgroups along y-axis
+
+// default usage, constant value
+#define STAGE 0
+
+// non-default usage, value is ping-ponged between 0 and 1
+uniform int _stage;
+//#define STAGE _stage
 
 // first is x(i), second is y(j)
 shared float cache[CACHE_SIZE];
@@ -243,7 +248,7 @@ void main()
 	int steps = (inBounds(global, size) ? getCurrStep() : -1);
 
 	// flower leaves + main region
-	bool shouldStore = (onFlowerLeaf(work) != NONE || steps >= STEPS);
+	bool shouldStore = ((onFlowerLeaf(work) != NONE && steps != 0) || steps >= STEPS);
 
 	// cache data
 	// loads either value or zero if out of bounds
