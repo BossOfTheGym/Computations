@@ -95,7 +95,7 @@ void getWorkgroupID(out ivec2 work, int currStage)
 void getGlobalLocalInvocationID(in ivec2 work, out ivec2 global, out ivec2 local)
 {
 	local = ivec2(gl_LocalInvocationID.xy);
-	global = local + work * TRUE_WORKGROUP - TRUE_STEPS;
+	global = local - TRUE_STEPS + work * TRUE_WORKGROUP;
 }
 
 // step function, in fact return signed distance to the frame defined by start coord and end coord
@@ -243,12 +243,13 @@ void main()
 	int steps = (inBounds(global, size) ? getCurrStep() : -1);
 
 	// flower leaves + main region
-	bool shouldStore = onFlowerLeaf(work) != NONE || steps >= STEPS;
+	bool shouldStore = (onFlowerLeaf(work) != NONE || steps >= STEPS);
 
 	// cache data
 	// loads either value or zero if out of bounds
 	float f00 = imageLoad(f, global).x;
 
+	// solution data
 	// loads either value or zero if out of bounds
 	float u00 = imageLoad(solution, global).x;
 

@@ -196,7 +196,7 @@ void main()
 	}
 	
 	// store updated value
-	if (steps >= 0) {
+	if (steps > 0) {
 		imageStore(solution, global, vec4(u00));
 	}
 }
