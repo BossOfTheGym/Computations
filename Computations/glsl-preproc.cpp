@@ -119,10 +119,11 @@ bool GlslPreprocessor::processRest()
 		std::smatch match;
 		if (std::regex_match(line, match, m_includePattern)) {
 			std::string includePathStr = relate(m_shaderPath, match[1].str());
-			if (!include(includePathStr)) {
-				if (!processInclude(includePathStr)) {
-					return false;
-				}
+			if (include(includePathStr)) {
+				continue;
+			}
+			if (!processInclude(includePathStr)) {
+				return false;
 			}
 		}
 		else {
@@ -147,10 +148,11 @@ bool GlslPreprocessor::processInclude(const std::string& includePath)
 		std::smatch match;
 		if (std::regex_match(line, match, m_includePattern)) {
 			std::string includePathStr = relate(includePath, match[1].str());
-			if (!include(includePathStr)) {
-				if (!processInclude(includePathStr)) {
-					return false;
-				}
+			if (include(includePathStr)) {
+				continue;
+			}
+			if (!processInclude(includePathStr)) {
+				return false;
 			}
 		}
 		else {
