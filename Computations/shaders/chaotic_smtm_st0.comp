@@ -236,7 +236,7 @@ void main()
 	getWorkgroupID(work, STAGE);
 	getGlobalLocalInvocationID(work, global, local);
 
-	ivec2 size = imageSize(solution[curr]);
+	ivec2 size = imageSize(solution);
 
 	pred_t u00Updateable = pred_t(inBounds(global, size) && !onBoundary(global, size));
 
@@ -266,7 +266,7 @@ void main()
 
 		float u00_new = update(u00, um10, u10, u0m1, u01, f00);
 
-		u00 = UPDATE_VALUE(u10, u10_new, u10Updateable);
+		u00 = UPDATE_VALUE(u00, u00_new, u00Updateable);
 		if (steps >= 0) {
 			cacheStoreValue(local, u00);
 		}

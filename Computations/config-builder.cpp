@@ -68,21 +68,21 @@ namespace
 		};
 		
 		json shaders;
-		shaders["quad.frag"]                = json::object();
-		shaders["quad.vert"]                = json::object();
-
-		shaders["jacoby.comp"]              = json::object({{"macros", simpleConfig}});
-		shaders["red_black.comp"]           = json::object({{"macros", simpleConfig}});
-
-		shaders["red_black_tiled.comp"]     = json::object({{"macros", tiledConfig}});
-		shaders["red_black_smt_s.comp"]     = json::object({{"macros", tiledConfig}});
-		shaders["red_black_smtm_s.comp"]    = json::object({{"macros", tiledConfig}});
-		shaders["red_black_smtm_st0.comp"]  = json::object({{"macros", tiledConfig}});
-		shaders["red_black_smtm_st1.comp"]  = json::object({{"macros", tiledConfig}});
+		shaders["quad.frag"] = json::object();
+		shaders["quad.vert"] = json::object();
+		shaders["jacoby.comp"] = json::object({{"macros", simpleConfig}});
+		shaders["red_black.comp"] = json::object({{"macros", simpleConfig}});
+		shaders["red_black_tiled.comp"] = json::object({{"macros", tiledConfig}});
+		shaders["red_black_smt_s.comp"] = json::object({{"macros", tiledConfig}});
+		shaders["red_black_smtm_s.comp"] = json::object({{"macros", tiledConfig}});
+		shaders["red_black_smtm_st0.comp"] = json::object({{"macros", tiledConfig}});
+		shaders["red_black_smtm_st1.comp"] = json::object({{"macros", tiledConfig}});
 		shaders["red_black_smtmo_st0.comp"] = json::object({{"macros", tiledConfig}});
 		shaders["red_black_smtmo_st1.comp"] = json::object({{"macros", tiledConfig}});
-
-		shaders["test_compute.comp"]        = json::object();
+		shaders["chaotic_tiled.comp"] = json::object({{"macros", tiledConfig}});
+		shaders["chaotic_smtm_st0.comp"] = json::object({{"macros", tiledConfig}});
+		shaders["chaotic_smtm_st1.comp"] = json::object({{"macros", tiledConfig}});
+		shaders["test_compute.comp"] = json::object();
 
 		json shader_storage;
 		shader_storage["shader_folder"] = "shaders";
@@ -103,6 +103,9 @@ namespace
 			{"red_black_smtm_st1", json::array({"red_black_smtm_st1.comp"})},
 			{"red_black_smtmo_st0", json::array({"red_black_smtmo_st0.comp"})},
 			{"red_black_smtmo_st1", json::array({"red_black_smtmo_st1.comp"})},
+			{"chaotic_tiled", json::array({"chaotic_tiled.comp"})},
+			{"chaotic_smtm_st0", json::array({"chaotic_smtm_st0.comp"})},
+			{"chaotic_smtm_st1", json::array({"chaotic_smtm_st1.comp"})},
 			{"test_compute", json::array({"test_compute.comp"})}
 		};
 	}
@@ -133,6 +136,5 @@ json ConfigBuilder::build()
 	get_program_storage_config(config);
 	get_window_config(config, m_windowWidth, m_windowHeight);
 	get_glfw_config(config);
-
 	return config;
 }

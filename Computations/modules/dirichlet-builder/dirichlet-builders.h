@@ -10,6 +10,8 @@ class ProgramStorage;
 
 struct DirichletBuilderTag;
 
+// TODO : little violation of single responsibility principple, this method also loads created module into the root module
+// instead it should just return built module or empty ptr
 class IDirichletBuilder
 {
 public:

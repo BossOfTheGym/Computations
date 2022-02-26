@@ -14,8 +14,11 @@ ModulePtr DirichletModuleBuilder::build(Module& root, const cfg::json& config)
 	try_load_module(*modulePtr, controlsPtr, "controls");
 	try_load_module(root, modulePtr, "dirichlet");
 
-	for (auto& [name, builder] : ACCESS_DIRICHLET_BUILDERS()) {
-		builder->build(root, config);
+	auto& builders = ACCESS_DIRICHLET_BUILDERS();
+	for (auto& [name, _] : config["dirichlet"].items()) {
+		if (auto it = builders.find(name); it != builders.end()) {
+			it->second->build(root, config);
+		}
 	}
 
 	return modulePtr;
