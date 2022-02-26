@@ -9,7 +9,7 @@
 #define FMT r32f
 
 #define STEPS (_STEPS - 1)
-#define TRUE_STEPS (2 * STEPS)
+#define TRUE_STEPS (STEPS)
 
 #define WORKGROUP_X (_WORKGROUP_X)
 #define WORKGROUP_Y (_WORKGROUP_Y)

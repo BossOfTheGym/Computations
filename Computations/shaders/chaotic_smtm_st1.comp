@@ -11,7 +11,7 @@
 #define STAGE 1
 
 #define STEPS _STEPS
-#define TRUE_STEPS (2 * STEPS)
+#define TRUE_STEPS (STEPS)
 
 #define WORKGROUP_X (_WORKGROUP_X)
 #define WORKGROUP_Y (_WORKGROUP_Y)

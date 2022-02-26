@@ -66,8 +66,8 @@ void custom_test()
 	ConfigBuilder builder;
 	builder.setSystems({"jacoby", "chaotic_tiled", "chaotic_smtm"});
 	builder.setOutput("test/output.json");
-	builder.setSplitX(1023);
-	builder.setSplitY(1023);
+	builder.setSplitX(512);
+	builder.setSplitY(512);
 	builder.setGridX(3);
 	builder.setGridY(1);
 	builder.setWindowWidth(1536);
