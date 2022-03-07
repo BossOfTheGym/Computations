@@ -6,20 +6,26 @@
 #include <memory>
 #include <sstream>
 
-void test_tiled()
+void test_tiled(const std::vector<std::string>& systems,
+				uint width,
+				const std::vector<uint>& splitValues,
+				const std::vector<uint>& stepValues,
+				const std::vector<uint>& workValues,
+				const std::string& outputPrefix,
+				uint updates)
 {
 	ConfigBuilder builder;
-	builder.setSystems({"red_black_tiled", "red_black_smtm", "red_black_smtm_s"});
-	builder.setGridX(3);
+	builder.setSystems(systems);
+	builder.setGridX(systems.size());
 	builder.setGridY(1);
-	builder.setWindowWidth(1536);
-	builder.setWindowHeight(512);
-	builder.setTotalUpdates(1000);
-	for (auto split : {127, 255, 511, 1023}) {
-		for (auto step : {3, 4, 5}) {
-			for (auto work : {8, 16, 32}) {
+	builder.setWindowWidth(width * systems.size());
+	builder.setWindowHeight(width);
+	builder.setTotalUpdates(updates);
+	for (auto split : splitValues) {
+		for (auto step : stepValues) {
+			for (auto work : workValues) {
 				std::ostringstream output;
-				output << "tests/tiled/test_" << split << "_" << step << "_" << work << ".json";
+				output << outputPrefix << split << "_" << step << "_" << work << ".json";
 
 				builder.setSteps(step);
 				builder.setSplitX(split);
@@ -35,19 +41,24 @@ void test_tiled()
 	}
 }
 
-void test_simple()
+void test_non_tiled(const std::vector<std::string>& systems,
+				 uint width,
+				 const std::vector<uint>& splitValues,
+				 const std::vector<uint>& workValues,
+				 const std::string& outputPrefix,
+				 uint updates)
 {
 	ConfigBuilder builder;
-	builder.setSystems({"red_black"});
+	builder.setSystems(systems);
 	builder.setGridX(1);
 	builder.setGridY(1);
-	builder.setWindowWidth(512);
-	builder.setWindowHeight(512);
-	builder.setTotalUpdates(1000);
-	for (auto split : {127, 255, 511, 1023}) {
-		for (auto work : {8, 16, 32}) {
+	builder.setWindowWidth(width);
+	builder.setWindowHeight(width);
+	builder.setTotalUpdates(updates);
+	for (auto split : splitValues) {
+		for (auto work : workValues) {
 			std::ostringstream output;
-			output << "tests/simple/test_" << split << "_" << work<< ".json";
+			output << outputPrefix << split << "_" << work << ".json";
 
 			builder.setSplitX(split);
 			builder.setSplitY(split);
@@ -61,21 +72,71 @@ void test_simple()
 	}
 }
 
+void test_rb_tiled()
+{
+	test_tiled({"red_black_tiled", "red_black_smtm", "red_black_smtm_s"},
+			   512,
+			   {255, 511, 1023},
+			   {3, 4, 5},
+			   {16, 24, 32},
+			   "tests/tiled/test_",
+			   1000);
+}
+
+void test_chaotic()
+{
+	test_tiled({"chaotic_tiled", "chaotic_smtm"},
+			   512,
+			   {255, 511, 1023},
+			   {3, 4, 5},
+			   {12, 16, 20},
+			   "tests/chaotic/test_",
+			   1000);
+}
+
+void test_rb()
+{
+	test_non_tiled({"red_black"},
+				   512,
+				   {255, 511, 1023},
+				   {16, 24, 32},
+				   "tests/rb/test_",
+				   1000);
+}
+
+void test_jacoby()
+{
+	test_non_tiled({"jacoby"},
+				   512,
+				   {255, 511, 1023},
+				   {12, 16, 20},
+				   "tests/jacoby/test_",
+				   1000);
+}
+
+void test_all()
+{
+	test_rb_tiled();
+	test_chaotic();
+	test_rb();
+	test_jacoby();
+}
+
 void custom_test()
 {
 	ConfigBuilder builder;
-	builder.setSystems({"jacoby", "chaotic_tiled", "chaotic_smtm"});
+	builder.setSystems({"chaotic_tiled", "chaotic_smtm", "jacoby"});
 	builder.setOutput("test/output.json");
-	builder.setSplitX(512);
-	builder.setSplitY(512);
+	builder.setSplitX(1023);
+	builder.setSplitY(1023);
 	builder.setGridX(3);
 	builder.setGridY(1);
 	builder.setWindowWidth(1536);
 	builder.setWindowHeight(512);
-	builder.setTotalUpdates(100000);
+	builder.setTotalUpdates(200);
 	builder.setSteps(5);
-	builder.setWorkgroupSizeX(8);
-	builder.setWorkgroupSizeY(8);
+	builder.setWorkgroupSizeX(16);
+	builder.setWorkgroupSizeY(16);
 
 	auto application = std::make_unique<app::App>(builder.build());
 	application->mainloop();
@@ -83,8 +144,7 @@ void custom_test()
 
 int main()
 {
-	//test_tiled();
-	//test_simple();	
-	custom_test();
+	test_all();
+	//custom_test();
 	return 0;
 }
