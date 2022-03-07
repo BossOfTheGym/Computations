@@ -65,8 +65,7 @@ namespace dir2d
 		Handle handle = acquire();
 
 		Solution solution;
-		if (!Solution::create(solution, domain, data))
-		{
+		if (!Solution::create(solution, domain, data)) {
 			return null_handle;
 		}
 
@@ -80,8 +79,7 @@ namespace dir2d
 	SmartHandle ChaoticTiled::createSmart(const DomainAabb2D& domain, const DataAabb2D& data, const UpdateParams& config)
 	{
 		Handle handle = create(domain, data, config);
-		if (handle == null_handle)
-		{
+		if (handle == null_handle) {
 			return SmartHandle{};
 		}
 		return provideHandle(handle, this);
@@ -117,8 +115,7 @@ namespace dir2d
 		glUseProgram(m_program);
 
 		m_query.start();
-		for (auto handle : m_domainStorage)
-		{
+		for (auto handle : m_domainStorage) {
 			auto& domain = m_domainStorage.get(handle);
 			auto& solution = m_solutionStorage.get(handle);
 			auto& config = m_configStorage.get(handle);
@@ -130,8 +127,7 @@ namespace dir2d
 			glUniform1f(m_uniforms.hy, domain.hy);
 
 			auto [numWorkgroupsX, numWorkgroupsY] = get_num_workgroups(domain.xSplit, domain.ySplit, m_workgroupSizeX, m_workgroupSizeY);
-			for (i32 i = 0; i < config.itersPerUpdate; i++)
-			{
+			for (i32 i = 0; i < config.itersPerUpdate; i++) {
 				glDispatchCompute(numWorkgroupsX, numWorkgroupsY, 1);
 				// TODO : check with barrier and without
 				glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
